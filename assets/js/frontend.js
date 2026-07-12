@@ -54,6 +54,13 @@ $(document).ready(function () {
 
     });
 
+    if (typeof datosColombia !== 'undefined') {
+        cargarDepartamentos();
+        $('#departamento').on('change', function () {
+            cargarCiudades(this.value);
+        });
+    }
+
 });
 
 function resolverIdRifaPublica() {
@@ -307,7 +314,7 @@ function aplicarImagenesSitio() {
         return raw;
     };
 
-    const logoUrl = resolveAssetUrl(img.logo) || (window.location.origin + '/assets/images/logo.png');
+    const logoUrl = resolveAssetUrl(img.logo) || (window.location.origin + '/assets/images/logo-transparent.png');
     document.querySelectorAll('[data-site-logo], [data-site-logo-footer], [data-site-logo-white], [data-site-logo-nav]').forEach((el) => {
         el.src = logoUrl;
     });
@@ -316,8 +323,8 @@ function aplicarImagenesSitio() {
         document.querySelectorAll('link[data-site-favicon]').forEach(link => { link.href = favUrl; });
     }
 
-    const heroPlaceholder = window.location.origin + '/assets/images/hero-banner-placeholder.svg';
-    const isLogoAsset = (url) => /\/logo(?:[-_]?white)?\.(?:png|jpe?g|webp|svg)(\?|$)/i.test(String(url || ''));
+    const heroPlaceholder = window.location.origin + '/assets/images/hero-evento-principal.png';
+    const isLogoAsset = (url) => /\/logo(?:[-_]?white|-transparent)?\.(?:png|jpe?g|webp|svg)(\?|$)/i.test(String(url || ''));
     const resolveHeroAssetUrl = (entry) => {
         const primary = resolveAssetUrl(entry);
         if (primary && !isLogoAsset(primary)) {
@@ -335,10 +342,24 @@ function aplicarImagenesSitio() {
         ? img.hero_mobile
         : img.hero_banner;
     const heroUrl = resolveHeroAssetUrl(heroSource) || heroPlaceholder;
-    document.querySelectorAll('[data-hero-banner], [data-site-hero-banner]').forEach((el) => {
+    document.querySelectorAll('[data-site-hero-banner]').forEach((el) => {
         el.src = heroUrl;
         el.dataset.fallbackSrc = heroPlaceholder;
         el.onerror = function onHeroImgError() {
+            const fb = this.dataset.fallbackSrc;
+            if (fb && this.src !== fb) {
+                this.src = fb;
+            }
+        };
+    });
+
+    const gallery2Url = resolveHeroAssetUrl(img.hero_gallery_2)
+        || resolveHeroAssetUrl(img.section_info_1)
+        || (window.location.origin + '/assets/images/premio-nmax.jpeg');
+    document.querySelectorAll('[data-site-hero-gallery-2]').forEach((el) => {
+        el.src = gallery2Url;
+        el.dataset.fallbackSrc = window.location.origin + '/assets/images/premio-nmax.jpeg';
+        el.onerror = function onHeroGallery2Error() {
             const fb = this.dataset.fallbackSrc;
             if (fb && this.src !== fb) {
                 this.src = fb;
@@ -422,12 +443,64 @@ function formatHeroTitleHtml(rawTitle) {
 }
 
 function aplicarTextosRifa() {
-    const rifa = rifaActiva();
     const heroTitle = document.getElementById('landingHeroTitle');
-    if (rifa && heroTitle) {
-        const titulo = (rifa.title_raffle || '').trim();
+    const fromSetting = typeof getSetting === 'function'
+        ? String(getSetting('landing_hero_title', '') || '').trim()
+        : '';
+    if (heroTitle && fromSetting) {
+        heroTitle.innerHTML = formatHeroTitleHtml(fromSetting);
+    } else if (heroTitle) {
+        const rifa = rifaActiva();
+        const titulo = rifa ? String(rifa.title_raffle || '').trim() : '';
         if (titulo) heroTitle.innerHTML = formatHeroTitleHtml(titulo);
     }
+
+    const setText = (id, key) => {
+        const el = document.getElementById(id);
+        if (!el || typeof getSetting !== 'function') return;
+        const val = String(getSetting(key, '') || '').trim();
+        if (val !== '') el.textContent = val;
+    };
+
+    setText('landingPremioMayorTitulo', 'landing_premio_mayor_titulo');
+    setText('landingPremioMayorDesc', 'landing_premio_mayor_desc');
+    setText('landingPremioExtraTitulo', 'landing_premio_extra_titulo');
+    setText('landingPremioExtraLabel', 'landing_premio_extra_label');
+    setText('landingPremioExtraDesc', 'landing_premio_extra_desc');
+    setText('landingFooterTagline', 'footer_tagline');
+    setText('landingFooterPhones', 'footer_phones');
+    setText('landingFooterLocation', 'footer_location');
+    setText('landingFooterPayments', 'footer_payments');
+
+    const brand = typeof getSetting === 'function'
+        ? String(getSetting('nombre_rifa', '') || '').trim()
+        : '';
+    if (brand) {
+        setText('landingFooterBrand', 'nombre_rifa');
+        setText('landingFooterCopyBrand', 'nombre_rifa');
+    }
+
+    const email = typeof getSetting === 'function'
+        ? String(getSetting('contact_email', '') || '').trim()
+        : '';
+    const emailEl = document.getElementById('landingFooterEmail');
+    if (emailEl && email) {
+        emailEl.textContent = email;
+        emailEl.setAttribute('href', 'mailto:' + email);
+    }
+
+    const toggleWrap = (wrapId, value) => {
+        const wrap = document.getElementById(wrapId);
+        if (!wrap) return;
+        wrap.classList.toggle('d-none', String(value || '').trim() === '');
+    };
+    if (typeof getSetting === 'function') {
+        toggleWrap('landingFooterPhonesWrap', getSetting('footer_phones', ''));
+        toggleWrap('landingFooterEmailWrap', getSetting('contact_email', ''));
+        toggleWrap('landingFooterLocationWrap', getSetting('footer_location', ''));
+        toggleWrap('landingFooterPaymentsWrap', getSetting('footer_payments', ''));
+    }
+
     aplicarNavEvento();
 }
 
@@ -508,7 +581,7 @@ function crearSlider(mainId, thumbsId, interval, keyPrefix) {
 
     const main = new Splide(mainId, {
         type: keyPrefix === 'hero' ? 'fade' : 'slide',
-        autoplay: keyPrefix !== 'hero',
+        autoplay: true,
         interval: interval,
         rewind: true,
         pagination: false,
@@ -735,7 +808,9 @@ function aplicarModoRifa() {
 
     const manual = esRifaManual();
     const manualBox = document.getElementById('selectorManualNumeros');
+    const paquetesBox = document.getElementById('bloquePaquetesLanding');
     if (manualBox) manualBox.classList.toggle('d-none', !manual);
+    if (paquetesBox) paquetesBox.classList.toggle('d-none', manual);
 
     if (manual) {
         estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
@@ -928,36 +1003,41 @@ function pricingTierConfig() {
             && isPricingTierEnabled(getSetting('pricing_tiered_enabled', '0')));
 
     if (!enabled) {
-        return { enabled: false, firstUnit: 0, secondUnit: 0, thirdPlusUnit: 0 };
+        return { enabled: false, firstUnit: 0, secondUnit: 0, thirdPlusUnit: 0, bulkThreshold: 0 };
     }
 
     const setting = (key, fallback) => (
         typeof getSetting === 'function' ? getSetting(key, String(fallback)) : String(fallback)
     );
 
+    const bulkThreshold = readPricingInt(
+        p?.bulk_threshold ?? setting('pricing_bulk_threshold', 0),
+        0
+    );
+
     return {
         enabled: true,
-        firstUnit: readPricingInt(p?.first_unit ?? setting('pricing_first_unit', 150), 150),
+        firstUnit: readPricingInt(p?.first_unit ?? setting('pricing_first_unit', 1500), 1500),
         secondUnit: readPricingInt(
-            p?.second_unit ?? p?.tier1_unit ?? setting('pricing_tier1_unit', 150),
-            150
+            p?.second_unit ?? p?.tier1_unit ?? setting('pricing_tier1_unit', 1500),
+            1500
         ),
         thirdPlusUnit: readPricingInt(
-            p?.third_plus_unit ?? p?.tier2_unit ?? setting('pricing_tier2_unit', 150),
-            150
+            p?.third_plus_unit ?? p?.tier2_unit ?? setting('pricing_tier2_unit', 1200),
+            1200
         ),
+        bulkThreshold,
     };
 }
 
 function defaultPackageGridItems() {
     return [
-        { qty: 66, price: 10000, badge: null, badge_slug: null },
-        { qty: 133, price: 19950, badge: 'Popular', badge_slug: 'popular' },
-        { qty: 150, price: 30000, badge: null, badge_slug: null },
-        { qty: 300, price: 45000, badge: 'Ahorro', badge_slug: 'ahorro' },
-        { qty: 600, price: 90000, badge: 'Más vendido', badge_slug: 'mas-vendido' },
-        { qty: 1000, price: 150000, badge: null, badge_slug: null },
-        { qty: 1200, price: 180000, badge: 'VIP', badge_slug: 'vip' },
+        { qty: 10, price: 15000, badge: null, badge_slug: null },
+        { qty: 18, price: 27000, badge: null, badge_slug: null },
+        { qty: 30, price: 45000, badge: 'Popular', badge_slug: 'popular' },
+        { qty: 40, price: 48000, badge: 'Ahorro', badge_slug: 'ahorro' },
+        { qty: 60, price: 72000, badge: null, badge_slug: null },
+        { qty: 100, price: 120000, badge: 'Más vendido', badge_slug: 'mas-vendido' },
     ];
 }
 
@@ -995,16 +1075,18 @@ function packagePricingConfig() {
     });
 
     if (!Object.keys(packages).length) {
-        [66, 133, 150, 300, 600, 1000, 1200].forEach((qty, i) => {
-            const prices = [10000, 19950, 30000, 45000, 90000, 150000, 180000];
+        [10, 18, 30, 40, 60, 100].forEach((qty, i) => {
+            const prices = [15000, 27000, 45000, 48000, 72000, 120000];
             packages[qty] = prices[i];
         });
     }
 
     return {
         enabled,
-        unitPrice: readPricingInt(p?.unit_price ?? 150, 150),
-        minQuantity: readPricingInt(p?.min_quantity ?? 66, 66),
+        unitPrice: readPricingInt(p?.unit_price ?? 1500, 1500),
+        bulkUnitPrice: 1200,
+        bulkThreshold: 40,
+        minQuantity: readPricingInt(p?.min_quantity ?? 10, 10),
         packages,
     };
 }
@@ -1028,7 +1110,8 @@ function packagePriceForQuantity(qty) {
     }
 
     if (quantity >= pkg.minQuantity) {
-        return { total: quantity * pkg.unitPrice, isPackage: false };
+        const unit = quantity >= pkg.bulkThreshold ? pkg.bulkUnitPrice : pkg.unitPrice;
+        return { total: quantity * unit, isPackage: false };
     }
 
     return null;
@@ -1076,6 +1159,27 @@ function calcularDesglosePrecio(cantidad) {
             thirdPlusUnit: unit,
             tier1Unit: unit,
             tier2Unit: unit,
+        };
+    }
+
+    if (tier.bulkThreshold > 0) {
+        const unit = qty >= tier.bulkThreshold ? tier.thirdPlusUnit : tier.firstUnit;
+        const promo = qty >= tier.bulkThreshold;
+        return {
+            total: Math.round(unit * qty),
+            firstCount: promo ? 0 : qty,
+            secondCount: 0,
+            thirdPlusCount: promo ? qty : 0,
+            pairCount: 0,
+            tier1Count: promo ? 0 : qty,
+            tier2Count: promo ? qty : 0,
+            promoActive: promo,
+            pairPromoActive: false,
+            firstUnit: tier.firstUnit,
+            secondUnit: tier.firstUnit,
+            thirdPlusUnit: tier.thirdPlusUnit,
+            tier1Unit: tier.firstUnit,
+            tier2Unit: tier.thirdPlusUnit,
         };
     }
 
@@ -1150,6 +1254,21 @@ function mensajePromoPrecio(cantidad, variant = 'full') {
     const tier = pricingTierConfig();
     if (!tier.enabled || qty <= 0) {
         return '';
+    }
+
+    if (tier.bulkThreshold > 0) {
+        const unit = qty >= tier.bulkThreshold ? tier.thirdPlusUnit : tier.firstUnit;
+        const total = unit * qty;
+        if (variant === 'hero' || variant === 'compact') {
+            if (qty >= tier.bulkThreshold) {
+                return `Desde ${tier.bulkThreshold} · ${fmtCOPShort(tier.thirdPlusUnit)} c/u · ${fmtCOPShort(total)}`;
+            }
+            return '';
+        }
+        if (qty >= tier.bulkThreshold) {
+            return `PROMO DESDE ${tier.bulkThreshold} — ${fmtCOPShort(tier.thirdPlusUnit)} c/u (${fmtCOPShort(total)} total)`;
+        }
+        return `Desde ${tier.bulkThreshold} nros: ${fmtCOPShort(tier.thirdPlusUnit)} c/u`;
     }
 
     const total2 = tier.secondUnit * 2;
@@ -1245,6 +1364,19 @@ function renderHeroPackagesHtml() {
 }
 
 function renderHeroPrecioTiersHtml(tier) {
+    if (tier.bulkThreshold > 0) {
+        return `
+        <div class="cr-hero-precio-tier">
+            <span class="cr-hero-precio-tier__label">Hasta ${tier.bulkThreshold - 1}</span>
+            <span class="cr-hero-precio-tier__value">${fmtCOPShort(tier.firstUnit)}<span class="cr-hero-precio-tier__unit">c/u</span></span>
+        </div>
+        <div class="cr-hero-precio-tier cr-hero-precio-tier--promo">
+            <span class="cr-hero-precio-tier__badge">Ahorro</span>
+            <span class="cr-hero-precio-tier__label">Desde ${tier.bulkThreshold}</span>
+            <span class="cr-hero-precio-tier__value">${fmtCOPShort(tier.thirdPlusUnit)}<span class="cr-hero-precio-tier__unit">c/u</span></span>
+        </div>`;
+    }
+
     return `
         <div class="cr-hero-precio-tier">
             <span class="cr-hero-precio-tier__label">1 num</span>
@@ -1741,8 +1873,37 @@ async function buscarClientePorCelular(tel) {
         $('#apellidoCliente').val(c.lastname_customer);
         $('#emailCliente').val(c.email_customer);
 
+        if (c.department_customer) {
+            $('#departamento')
+                .val(c.department_customer)
+                .trigger('change');
+            if (c.city_customer) {
+                setTimeout(() => {
+                    $('#ciudad').val(c.city_customer);
+                }, 50);
+            }
+        }
+
     }
 
+}
+
+function cargarDepartamentos() {
+    const $d = $('#departamento');
+    $d.empty().append('<option value="">Seleccione...</option>');
+    Object.keys(datosColombia)
+        .sort()
+        .forEach(d => $d.append(new Option(d, d)));
+}
+
+function cargarCiudades(dep) {
+    const $c = $('#ciudad');
+    $c.empty().append('<option value="">Seleccione...</option>');
+    if (dep && datosColombia[dep]) {
+        datosColombia[dep].forEach(c =>
+            $c.append(new Option(c.display || c, c.value || c))
+        );
+    }
 }
 
 function showSiteToast(msg, type, hint) {
@@ -1890,7 +2051,9 @@ if (!estado.cantidadSeleccionada || estado.cantidadSeleccionada < min) {
         nombre: $('#nombreCliente').val().trim(),
         apellido: $('#apellidoCliente').val().trim(),
         celular: $('#celularCliente').val().replace(/\D/g, ''),
-        email: $('#emailCliente').val().trim()
+        email: $('#emailCliente').val().trim(),
+        departamento: $('#departamento').val(),
+        ciudad: $('#ciudad').val()
 
     };
 
@@ -1905,6 +2068,12 @@ if (!estado.cantidadSeleccionada || estado.cantidadSeleccionada < min) {
 
     if (!esEmailValido(datos.email))
         return toastError("Correo inválido"), false;
+
+    if (!datos.departamento)
+        return toastError("Selecciona departamento"), false;
+
+    if (!datos.ciudad)
+        return toastError("Selecciona ciudad"), false;
 
     return datos;
 
@@ -1994,6 +2163,8 @@ async function procesarTransferencia(e) {
     formData.append('lastname_customer', datos.apellido);
     formData.append('phone_customer', datos.celular);
     formData.append('email_customer', datos.email);
+    formData.append('department_customer', datos.departamento);
+    formData.append('city_customer', datos.ciudad);
 
     formData.append('comprobante', file);
 
@@ -2148,6 +2319,7 @@ function aplicarRedesDesdeSettings() {
 
     aplicarRedSocial('.social-instagram', pick('social_instagram_url', 'social_instagram_url'));
     aplicarRedSocial('.social-facebook', pick('social_facebook_url', 'social_facebook_url'));
+    aplicarRedSocial('.social-tiktok', pick('social_tiktok_url', 'social_tiktok_url'));
     aplicarRedSocial(
         '.social-whatsapp',
         normalizeWhatsappUrl(
@@ -2165,6 +2337,24 @@ function aplicarRedesDesdeSettings() {
     }
     if (brebNameEl && brebName) {
         brebNameEl.textContent = brebName;
+    }
+
+    const bancolombia = String(pick('transfer_bancolombia', 'transfer_bancolombia') || '').trim();
+    const bancolombiaName = String(pick('transfer_bancolombia_name', 'transfer_bancolombia_name') || '').trim();
+    const bancolombiaEl = document.getElementById('bancolombia');
+    if (bancolombiaEl && bancolombia) {
+        bancolombiaEl.textContent = bancolombia;
+        const nameEl = bancolombiaEl.parentElement?.querySelector('.cr-cuenta-card__name');
+        if (nameEl && bancolombiaName) nameEl.textContent = bancolombiaName;
+    }
+
+    const nequi = String(pick('transfer_nequi', 'transfer_nequi') || '').trim();
+    const nequiName = String(pick('transfer_nequi_name', 'transfer_nequi_name') || '').trim();
+    const nequiEl = document.getElementById('nequi');
+    if (nequiEl && nequi) {
+        nequiEl.textContent = nequi;
+        const nameEl = nequiEl.parentElement?.querySelector('.cr-cuenta-card__name');
+        if (nameEl && nequiName) nameEl.textContent = nequiName;
     }
 }
 

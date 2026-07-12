@@ -26,8 +26,9 @@ final class SiteImageHttpController
     public const KNOWN_KEYS = [
         'logo' => 'Logo principal',
         'favicon' => 'Favicon',
-        'hero_banner' => 'Banner principal',
+        'hero_banner' => 'Banner principal (carrusel 1)',
         'hero_mobile' => 'Banner móvil',
+        'hero_gallery_2' => 'Carrusel premio (foto 2)',
         'section_info_1' => 'Imagen sección informativa 1',
         'section_info_2' => 'Imagen sección informativa 2',
         'fallback_image' => 'Imagen de respaldo global',

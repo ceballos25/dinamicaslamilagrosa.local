@@ -18,7 +18,7 @@ include_once ROOT_PATH . "/includes/head.php";
                 <div class="transfer-page-header mb-3">
                     <div>
                         <h2 class="mb-1 fw-bold"><i class="ti ti-building-bank me-1"></i>Transferencias web</h2>
-                        <p class="text-muted small mb-0 d-none d-md-block">Busca compras, revisa comprobantes y anula ventas sin salir de aquí.</p>
+                        <p class="text-muted small mb-0 d-none d-md-block">Revisa comprobantes pendientes, aprueba compras y asigna números.</p>
                     </div>
                     <span id="transferTotalBadge" class="badge transfer-total-badge d-none">0</span>
                 </div>
@@ -26,7 +26,10 @@ include_once ROOT_PATH . "/includes/head.php";
                 <div class="card border-0 shadow-sm mb-3 transfer-filters-card">
                     <div class="card-body py-3">
                         <div class="transfer-status-tabs mb-3" role="tablist" aria-label="Estado de transferencias">
-                            <button type="button" class="transfer-status-tab is-active" data-status="2" role="tab" aria-selected="true">
+                            <button type="button" class="transfer-status-tab is-active" data-status="1" role="tab" aria-selected="true">
+                                <i class="ti ti-clock me-1"></i> Pendientes
+                            </button>
+                            <button type="button" class="transfer-status-tab" data-status="2" role="tab" aria-selected="false">
                                 <i class="ti ti-circle-check me-1"></i> Aprobadas
                             </button>
                             <button type="button" class="transfer-status-tab" data-status="3" role="tab" aria-selected="false">
@@ -34,7 +37,8 @@ include_once ROOT_PATH . "/includes/head.php";
                             </button>
                         </div>
                         <select id="filterTransferStatus" class="d-none" aria-hidden="true" tabindex="-1">
-                            <option value="2" selected>Aprobadas</option>
+                            <option value="1" selected>Pendientes</option>
+                            <option value="2">Aprobadas</option>
                             <option value="3">Rechazadas</option>
                         </select>
 
@@ -100,11 +104,24 @@ include_once ROOT_PATH . "/includes/head.php";
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body text-center p-2 bg-light" id="cuerpoComprobante"></div>
+            <div class="modal-footer d-none" id="modalComprobanteActions"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRecibo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recibo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="cuerpoRecibo"></div>
         </div>
     </div>
 </div>
 
 <?php
-$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/transferencias.js?v=26"></script>';
+$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/transferencias.js?v=27"></script>';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

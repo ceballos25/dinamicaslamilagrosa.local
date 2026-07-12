@@ -70,6 +70,8 @@ class TransfersController
                 'lastname_customer' => $data['lastname_customer'],
                 'phone_customer' => $data['phone_customer'],
                 'email_customer' => $data['email_customer'],
+                'department_customer' => $data['department_customer'] ?? '',
+                'city_customer' => $data['city_customer'] ?? '',
             ]);
         } catch (Throwable $e) {
             return ['success' => false, 'message' => $e->getMessage()];

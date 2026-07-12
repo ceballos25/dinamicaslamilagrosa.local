@@ -59,6 +59,8 @@ include_once ROOT_PATH . "/includes/head.php";
                                         <th>Nombre Completo</th>
                                         <th>Teléfono</th>
                                         <th>Email</th>
+                                        <th>Depto</th>
+                                        <th>Ciudad</th>
                                         <th>Estado</th>
                                         <th width="100">Acciones</th>
                                     </tr>
@@ -114,6 +116,14 @@ include_once ROOT_PATH . "/includes/head.php";
                             <label class="form-label small fw-bold">Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control" id="email">
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Departamento <span class="text-danger">*</span></label>
+                            <select class="form-select select2-departamento" id="departamento" required></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Ciudad <span class="text-danger">*</span></label>
+                            <select class="form-select select2-ciudad" id="ciudad" required disabled></select>
+                        </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold">Estado <span class="text-danger">*</span></label>
                             <select class="form-select" id="estado">
@@ -152,7 +162,12 @@ include_once ROOT_PATH . "/includes/head.php";
 </div>
 
 <?php
-$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script>
-<script src="' . ASSETS_URL . '/js/clientes.js?v=7"></script>';
+$extra_js = '
+<link href="' . ASSETS_URL . '/libs/select2/css/select2.min.css" rel="stylesheet" />
+<link href="' . ASSETS_URL . '/libs/select2/css/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<script src="' . ASSETS_URL . '/libs/select2/js/select2.min.js"></script>
+<script src="' . ASSETS_URL . '/js/departamentos-ciudades.js?v=1"></script>
+<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script>
+<script src="' . ASSETS_URL . '/js/clientes.js?v=8"></script>';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

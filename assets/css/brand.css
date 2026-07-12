@@ -1,5 +1,5 @@
 :root {
-    /* Combo Stickers — amarillo dorado del logo */
+    /* Dinámicas La Milagrosa — amarillo dorado del logo */
     --cr-primary: #f2b500;
     --cr-primary-dark: #C99700;
     --cr-primary-light: #FFD24D;
@@ -49,8 +49,8 @@
 
     --cr-promo-bg: var(--cr-primary);
     --cr-promo-text: var(--cr-dark);
-    --cr-nav-bg: #ffffff;
-    --cr-nav-border: var(--cr-border);
+    --cr-nav-bg: #000000;
+    --cr-nav-border: rgba(255, 255, 255, 0.12);
     --cr-nav-logo-height: 72px;
     --cr-nav-logo-height-mobile: 70px;
 
@@ -69,6 +69,9 @@
     --cr-num-reserved-bg: #ffffff;
     --cr-num-reserved-text: var(--cr-primary);
     --cr-num-reserved-border: var(--cr-primary);
+    --cr-num-premium-bg: var(--cr-primary);
+    --cr-num-premium-text: var(--cr-dark);
+    --cr-num-premium-border: var(--cr-primary-dark);
     --cr-num-bg: var(--cr-num-libre-bg);
     --cr-num-text: var(--cr-num-libre-text);
     --cr-num-border: 2px solid var(--cr-num-libre-border);
@@ -126,7 +129,7 @@
     --cr-btn-pay-text: var(--cr-dark);
     --cr-btn-pay-hover: var(--cr-primary-dark);
 
-    --cr-footer-bg: var(--cr-dark);
+    --cr-footer-bg: #000000;
     --cr-footer-heading: var(--cr-primary);
     --cr-footer-text: #ffffff;
     --cr-footer-text-muted: #aaaaaa;
@@ -213,7 +216,7 @@
     --dark-bg: var(--cr-dark);
 }
 
-/* Combo Stickers: foto principal del evento en hero */
+/* Dinámicas La Milagrosa: foto principal del evento en hero */
 body.landing .cr-hero-photo img.premios-primer-sorteo {
     object-fit: contain;
     background: transparent;

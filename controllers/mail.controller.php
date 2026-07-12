@@ -7,6 +7,29 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailController {
 
+    /**
+     * Envía un correo de prueba SMTP (mismo pipeline que ventas).
+     */
+    public static function enviarCorreoPrueba(string $recipient, string $recipientName = 'Prueba'): bool
+    {
+        $recipient = trim($recipient);
+        if ($recipient === '' || !filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+            self::logMail('Prueba omitida: destinatario inválido');
+            return false;
+        }
+
+        $subject = '✅ Prueba de correo - ' . SITE_NAME . ' - ' . date('Y-m-d H:i:s');
+        $html = '<h2>Prueba de correo</h2>'
+            . '<p>El SMTP de <strong>' . htmlspecialchars(SITE_NAME, ENT_QUOTES, 'UTF-8') . '</strong> funciona correctamente.</p>'
+            . '<p>Fecha: ' . htmlspecialchars(date('c'), ENT_QUOTES, 'UTF-8') . '</p>';
+
+        if (self::sendViaSmtp($recipient, $recipientName, $subject, $html)) {
+            return true;
+        }
+
+        return self::sendViaSendmail($recipient, $recipientName, $subject, $html);
+    }
+
     public static function enviarCorreoVenta(int $idSale): bool {
 
         $venta = VentasController::consultarVenta($idSale);
@@ -145,7 +168,8 @@ class MailController {
     private static function applySmtpProfile(PHPMailer $mail, array $profile): void
     {
         $mail->isSMTP();
-        $mail->Host = $profile['host'];
+        // Preferir IPv4: mail.* vía Cloudflare/AAAA hace timeout en SMTP.
+        $mail->Host = self::resolveSmtpHost((string)$profile['host']);
         $mail->Port = $profile['port'];
 
         $encryption = $profile['encryption'];
@@ -158,7 +182,7 @@ class MailController {
             $mail->SMTPSecure = '';
         }
 
-        // cPanel: certificado del host (host11...) no coincide con localhost.
+        // cPanel: certificado del host (host11...) no coincide con localhost / IP.
         $mail->SMTPOptions = [
             'ssl' => [
                 'verify_peer' => false,
@@ -166,6 +190,22 @@ class MailController {
                 'allow_self_signed' => true,
             ],
         ];
+    }
+
+    /** Resuelve hostname a IPv4 cuando hace falta (evita AAAA de Cloudflare). */
+    private static function resolveSmtpHost(string $host): string
+    {
+        $host = trim($host);
+        if ($host === '' || $host === 'localhost' || filter_var($host, FILTER_VALIDATE_IP)) {
+            return $host;
+        }
+
+        $ipv4 = gethostbyname($host);
+        if ($ipv4 !== $host && filter_var($ipv4, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return $ipv4;
+        }
+
+        return $host;
     }
 
     private static function fillMessage(

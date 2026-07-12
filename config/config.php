@@ -16,8 +16,8 @@ bootstrapPrivateStorage($publicRoot);
 define('DS', DIRECTORY_SEPARATOR);
 define('BASE_URL', rtrim(env('SITE_URL'), '/'));
 define('ASSETS_URL', BASE_URL . '/assets');
-define('LOGO_NAV_URL', ASSETS_URL . '/images/logo.png');
-define('LOGO_LIGHT_URL', ASSETS_URL . '/images/logo.png');
+define('LOGO_NAV_URL', ASSETS_URL . '/images/logo-transparent.png');
+define('LOGO_LIGHT_URL', ASSETS_URL . '/images/logo-transparent.png');
 
 /**
  * ===============================

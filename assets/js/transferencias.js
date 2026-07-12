@@ -2,10 +2,12 @@ let transferencias = [];
 let paginaActual = 1;
 let totalTransferencias = 0;
 const registrosPorPagina = 10;
+const TRANSFER_STATUS_PENDIENTE = 1;
 const TRANSFER_STATUS_APROBADA = 2;
 const TRANSFER_STATUS_RECHAZADA = 3;
 
 const TRANSFERENCIAS_ENDPOINT = '/front/ajax/transferencias.ajax.php';
+const VENTAS_ENDPOINT = '/front/ajax/ventas.ajax.php';
 const TZ_COLOMBIA = 'America/Bogota';
 const LOCALE_CO = 'es-CO';
 
@@ -102,7 +104,7 @@ function transferDatos(t) {
 }
 
 function transferFiltroStatus() {
-    return String(document.getElementById('filterTransferStatus')?.value || TRANSFER_STATUS_APROBADA);
+    return String(document.getElementById('filterTransferStatus')?.value || TRANSFER_STATUS_PENDIENTE);
 }
 
 function syncTransferStatusTabs() {
@@ -171,26 +173,53 @@ function renderTransferCopyableValue(texto, etiqueta) {
     </span>`;
 }
 
+function transferEsPendiente(t) {
+    return Number(t.status_transfer) === TRANSFER_STATUS_PENDIENTE;
+}
+
 function transferEsRechazada(t) {
     return Number(t.status_transfer) === TRANSFER_STATUS_RECHAZADA;
 }
 
 function transferEstadoMeta() {
-    return transferFiltroStatus() === String(TRANSFER_STATUS_RECHAZADA)
-        ? { key: 'rechazada', plural: 'rechazadas', emptyTitle: 'No hay transferencias rechazadas', emptyHint: 'Las ventas anuladas desde aquí aparecerán en este listado.' }
-        : { key: 'aprobada', plural: 'aprobadas', emptyTitle: 'No hay transferencias aprobadas', emptyHint: 'Las compras validadas aparecen aquí. Usa «Hoy» para ver solo las de esta noche.' };
+    const status = transferFiltroStatus();
+    if (status === String(TRANSFER_STATUS_PENDIENTE)) {
+        return {
+            key: 'pendiente',
+            plural: 'pendientes',
+            emptyTitle: 'No hay transferencias pendientes',
+            emptyHint: 'Cuando un cliente envíe comprobante, aparecerá aquí para aprobar o rechazar.',
+        };
+    }
+    if (status === String(TRANSFER_STATUS_RECHAZADA)) {
+        return {
+            key: 'rechazada',
+            plural: 'rechazadas',
+            emptyTitle: 'No hay transferencias rechazadas',
+            emptyHint: 'Las compras anuladas o rechazadas aparecerán en este listado.',
+        };
+    }
+    return {
+        key: 'aprobada',
+        plural: 'aprobadas',
+        emptyTitle: 'No hay transferencias aprobadas',
+        emptyHint: 'Las compras que apruebes aparecen aquí con sus números asignados.',
+    };
 }
 
 function actualizarBadgeTotal() {
     const badge = document.getElementById('transferTotalBadge');
     if (!badge) return;
     const meta = transferEstadoMeta();
+    const status = transferFiltroStatus();
     badge.textContent = `${totalTransferencias} ${totalTransferencias === 1 ? meta.key : meta.plural}`;
     badge.classList.toggle('d-none', totalTransferencias === 0);
-    badge.classList.toggle('bg-danger-subtle', transferFiltroStatus() === String(TRANSFER_STATUS_RECHAZADA));
-    badge.classList.toggle('text-danger', transferFiltroStatus() === String(TRANSFER_STATUS_RECHAZADA));
-    badge.classList.toggle('bg-success-subtle', transferFiltroStatus() === String(TRANSFER_STATUS_APROBADA));
-    badge.classList.toggle('text-success', transferFiltroStatus() === String(TRANSFER_STATUS_APROBADA));
+    badge.classList.toggle('bg-warning-subtle', status === String(TRANSFER_STATUS_PENDIENTE));
+    badge.classList.toggle('text-warning-emphasis', status === String(TRANSFER_STATUS_PENDIENTE));
+    badge.classList.toggle('bg-danger-subtle', status === String(TRANSFER_STATUS_RECHAZADA));
+    badge.classList.toggle('text-danger', status === String(TRANSFER_STATUS_RECHAZADA));
+    badge.classList.toggle('bg-success-subtle', status === String(TRANSFER_STATUS_APROBADA));
+    badge.classList.toggle('text-success', status === String(TRANSFER_STATUS_APROBADA));
 }
 
 function actualizarPaginacionTransfer() {
@@ -332,7 +361,7 @@ function limpiarFiltrosTransfer() {
     document.getElementById('searchTransfer').value = '';
     const select = document.getElementById('filterTransferStatus');
     if (select) {
-        select.value = String(TRANSFER_STATUS_APROBADA);
+        select.value = String(TRANSFER_STATUS_PENDIENTE);
     }
     syncTransferStatusTabs();
     document.getElementById('fecha_inicio').value = '';
@@ -371,6 +400,9 @@ function renderTransferProofBlock(t, large) {
 }
 
 function renderTransferStatusBadge(t) {
+    if (transferEsPendiente(t)) {
+        return '<span class="badge transfer-badge-pendiente px-3 py-2 rounded-pill">Pendiente</span>';
+    }
     if (transferEsRechazada(t)) {
         return '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill">Rechazada</span>';
     }
@@ -395,10 +427,14 @@ function transferTieneComprobante(t) {
 function renderTransferCard(t) {
     const d = transferDatos(t);
     const id = Number(t.id_transfer);
+    const pendiente = transferEsPendiente(t);
     const rechazada = transferEsRechazada(t);
-    const cardClass = rechazada ? 'transfer-review-card--rejected' : 'transfer-review-card--done';
+    const cardClass = pendiente
+        ? 'transfer-review-card--pending'
+        : (rechazada ? 'transfer-review-card--rejected' : 'transfer-review-card--done');
     const ref = transferProofReference(t);
     const tieneComprobante = transferTieneComprobante(t);
+    const canApprove = adminCanCap('transferencias.approve');
 
     const comprobanteBtn = tieneComprobante
         ? `<button type="button" class="btn btn-primary transfer-action-btn d-md-none" onclick="verComprobantePorId(${id})">
@@ -406,13 +442,31 @@ function renderTransferCard(t) {
            </button>`
         : '';
 
-    const rechazarBtn = !rechazada && adminCanCap('transferencias.approve')
-        ? `<button type="button" class="btn btn-outline-danger transfer-action-btn" onclick="rechazarTransferenciaVenta(${id})">
+    let actions = '';
+    if (pendiente && canApprove) {
+        actions = [
+            comprobanteBtn,
+            `<button type="button" class="btn btn-outline-danger transfer-action-btn" onclick="rechazarTransferenciaVenta(${id})">
+                <i class="ti ti-x me-1"></i> Rechazar
+            </button>`,
+            `<button type="button" class="btn btn-success transfer-action-btn" onclick="aprobarTransferenciaVenta(${id})">
+                <i class="ti ti-check me-1"></i> Aprobar compra
+            </button>`,
+        ].filter(Boolean).join('');
+    } else if (!rechazada && !pendiente && canApprove) {
+        actions = [
+            comprobanteBtn,
+            `<button type="button" class="btn btn-outline-danger transfer-action-btn" onclick="rechazarTransferenciaVenta(${id})">
                 <i class="ti ti-ban me-1"></i> Anular venta
-           </button>`
-        : '';
+            </button>`,
+        ].filter(Boolean).join('');
+    } else {
+        actions = comprobanteBtn;
+    }
 
-    const actions = [comprobanteBtn, rechazarBtn].filter(Boolean).join('');
+    const numbersLabel = pendiente
+        ? 'Números'
+        : (rechazada ? 'Números liberados' : 'Números asignados');
 
     return `
     <article class="transfer-review-card ${cardClass}">
@@ -446,7 +500,7 @@ function renderTransferCard(t) {
                         <span class="transfer-review-meta__value">${adminEscapeHtml(d.qtyLabel)}</span>
                     </div>
                     <div class="transfer-review-meta__item transfer-review-meta__item--numbers transfer-review-meta__item--wide">
-                        <span class="transfer-review-meta__label">${rechazada ? 'Números liberados' : 'Números asignados'}</span>
+                        <span class="transfer-review-meta__label">${numbersLabel}</span>
                         <span class="transfer-review-meta__value">${renderTransferSoldNumbers(t)}</span>
                     </div>
                     <div class="transfer-review-meta__item">
@@ -473,17 +527,95 @@ function renderTransferCard(t) {
     </article>`;
 }
 
+function paramsAprobarTransferencia(t) {
+    const fd = new FormData();
+    fd.append('action', 'aprobar');
+    fd.append('id_transfer', String(t.id_transfer ?? ''));
+    fd.append('status_transfer', String(t.status_transfer ?? ''));
+    fd.append('quantity_transfer', String(t.quantity_transfer ?? ''));
+    fd.append('id_raffle_transfer', String(t.id_raffle_transfer ?? ''));
+    fd.append('amount_transfer', String(t.amount_transfer ?? ''));
+    fd.append('id_customer_transfer', String(t.id_customer_transfer ?? ''));
+    fd.append('code_transfer', String(t.code_transfer ?? ''));
+    if (t.source_transfer != null && String(t.source_transfer).trim() !== '') {
+        fd.append('source_transfer', String(t.source_transfer));
+    }
+    adminAppendCsrf(fd);
+    return fd;
+}
+
+function aprobarTransferenciaVenta(id) {
+    const t = transferencias.find(x => Number(x.id_transfer) === Number(id));
+    if (!t) return;
+
+    Swal.fire({
+        title: '¿Aprobar esta compra?',
+        html: `<p class="mb-2">${adminEscapeHtml(transferNombreCompleto(t))}</p>
+               <p class="fw-bold text-success mb-0">${adminEscapeHtml('$' + Number(t.amount_transfer).toLocaleString('es-CO'))}</p>
+               <small class="text-muted font-monospace">${adminEscapeHtml(t.code_transfer || '')}</small>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, aprobar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#198754',
+        reverseButtons: true,
+    }).then(result => {
+        if (!result.isConfirmed) return;
+
+        Swal.fire({
+            title: 'Procesando…',
+            text: 'Creando venta y asignando números',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
+        fetch(TRANSFERENCIAS_ENDPOINT, { method: 'POST', body: paramsAprobarTransferencia(t) })
+            .then(parseJsonTransferenciasAjax)
+            .then(res => {
+                const idSale = Number(res.id_sale);
+                if (res.success && idSale > 0) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Venta creada',
+                        text: 'Abriendo recibo…',
+                        timer: 1200,
+                        showConfirmButton: false,
+                    });
+                    setTimeout(() => verReciboTransferencia(idSale), 1200);
+                } else if (!res.success && idSale > 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Venta registrada',
+                        text: res.message || 'Revise el estado en la base de datos.',
+                    });
+                    verReciboTransferencia(idSale);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: adminExtractMessage(res, 'No se pudo aprobar'),
+                    });
+                }
+                cargarTransferencias();
+            })
+            .catch(() => Swal.fire('Error', 'Fallo en la solicitud', 'error'));
+    });
+}
+
 function rechazarTransferenciaVenta(id) {
     const t = transferencias.find(x => Number(x.id_transfer) === Number(id));
     const nombre = t ? transferNombreCompleto(t) : 'esta compra';
     const codigo = t?.code_transfer ? ` (${t.code_transfer})` : '';
+    const pendiente = t ? transferEsPendiente(t) : false;
 
     Swal.fire({
-        title: '¿Anular esta venta?',
-        html: `Se anulará la compra de <strong>${adminEscapeHtml(nombre)}</strong>${adminEscapeHtml(codigo)}, se liberarán los números y quedará como rechazada.`,
+        title: pendiente ? '¿Rechazar transferencia?' : '¿Anular esta venta?',
+        html: pendiente
+            ? `Se rechazará la compra de <strong>${adminEscapeHtml(nombre)}</strong>${adminEscapeHtml(codigo)}.`
+            : `Se anulará la compra de <strong>${adminEscapeHtml(nombre)}</strong>${adminEscapeHtml(codigo)}, se liberarán los números y quedará como rechazada.`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Sí, anular',
+        confirmButtonText: pendiente ? 'Sí, rechazar' : 'Sí, anular',
         cancelButtonText: 'Cancelar',
         confirmButtonColor: '#dc3545',
         focusCancel: true,
@@ -499,14 +631,14 @@ function rechazarTransferenciaVenta(id) {
             .then(parseJsonTransferenciasAjax)
             .then(data => {
                 if (!data.success) {
-                    adminNotifyError(adminExtractMessage(data, 'No se pudo rechazar la venta.'));
+                    adminNotifyError(adminExtractMessage(data, pendiente ? 'No se pudo rechazar.' : 'No se pudo rechazar la venta.'));
                     return;
                 }
-                adminNotifySuccess(adminExtractMessage(data, 'Venta anulada correctamente.'));
+                adminNotifySuccess(adminExtractMessage(data, pendiente ? 'Transferencia rechazada.' : 'Venta anulada correctamente.'));
                 cargarTransferencias();
             })
             .catch(err => {
-                adminNotifyError(err instanceof Error ? err.message : 'No se pudo rechazar la venta.');
+                adminNotifyError(err instanceof Error ? err.message : (pendiente ? 'No se pudo rechazar.' : 'No se pudo rechazar la venta.'));
             });
     });
 }
@@ -518,18 +650,53 @@ function verComprobantePorId(id) {
         Swal.fire('Error', 'No hay comprobante disponible', 'error');
         return;
     }
-    verComprobante(imgUrl);
+    verComprobante(imgUrl, t && transferEsPendiente(t) ? t : null);
 }
 
-function verComprobante(url) {
+function verComprobante(url, transfer) {
     if (!url) return;
 
     const cuerpo = document.getElementById('cuerpoComprobante');
+    const footer = document.getElementById('modalComprobanteActions');
     if (cuerpo) {
         cuerpo.innerHTML = `<img src="${adminEscapeHtml(url)}" class="img-fluid rounded transfer-proof-modal-img" alt="Comprobante">`;
     }
 
+    if (footer && transfer && transferEsPendiente(transfer) && adminCanCap('transferencias.approve')) {
+        const id = Number(transfer.id_transfer);
+        footer.classList.remove('d-none');
+        footer.innerHTML = `
+            <button type="button" class="btn btn-outline-danger" onclick="rechazarTransferenciaVenta(${id}); bootstrap.Modal.getInstance(document.getElementById('modalComprobante'))?.hide();">
+                <i class="ti ti-x me-1"></i> Rechazar
+            </button>
+            <button type="button" class="btn btn-success" onclick="aprobarTransferenciaVenta(${id}); bootstrap.Modal.getInstance(document.getElementById('modalComprobante'))?.hide();">
+                <i class="ti ti-check me-1"></i> Aprobar compra
+            </button>`;
+    } else if (footer) {
+        footer.classList.add('d-none');
+        footer.innerHTML = '';
+    }
+
     new bootstrap.Modal(document.getElementById('modalComprobante')).show();
+}
+
+function verReciboTransferencia(id) {
+    const fd = new FormData();
+    fd.append('action', 'detalle_venta');
+    fd.append('id_sale', String(id));
+    adminAppendCsrf(fd);
+
+    fetch(VENTAS_ENDPOINT, { method: 'POST', body: fd })
+        .then(parseJsonTransferenciasAjax)
+        .then(res => {
+            if (res.success && document.getElementById('cuerpoRecibo')) {
+                document.getElementById('cuerpoRecibo').innerHTML = res.html_recibo || '';
+                new bootstrap.Modal(document.getElementById('modalRecibo')).show();
+                return;
+            }
+            Swal.fire('Error', 'No se pudo cargar el recibo', 'error');
+        })
+        .catch(() => Swal.fire('Error', 'No se pudo cargar el recibo', 'error'));
 }
 
 function parseJsonTransferenciasAjax(res) {

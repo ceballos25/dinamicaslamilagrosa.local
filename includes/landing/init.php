@@ -26,3 +26,23 @@ if ($maint->isPublicBlocked() && !$isAdminSession) {
 
 require_once dirname(__DIR__) . '/components/cr-numero-chip.php';
 require_once dirname(__DIR__) . '/meta-pixel.php';
+require_once dirname(__DIR__) . '/bendecidos_public.php';
+
+/**
+ * Lee un setting de la BD (cache DynamicConfig).
+ */
+function landing_setting(string $key, string $default = ''): string
+{
+    static $cfg = null;
+    $cfg ??= AppContainer::get()->config();
+    $value = trim((string)($cfg->get($key, $default) ?? $default));
+
+    return $value !== '' ? $value : $default;
+}
+
+$landingBrandName = landing_setting(
+    'nombre_rifa',
+    defined('SITE_NAME') && SITE_NAME ? (string)SITE_NAME : 'Dinámicas La Milagrosa'
+);
+
+$bendecidosCards = dlm_bendecidos_cards();

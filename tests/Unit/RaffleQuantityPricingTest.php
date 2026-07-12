@@ -50,12 +50,26 @@ final class RaffleQuantityPricingTest extends TestCase
         self::assertSame(4, $result['third_plus_count']);
     }
 
-    public function testDisabledUsesFallbackUnit(): void
+    public function testBulkThresholdUsesReducedUnitFromForty(): void
     {
-        $pricing = RaffleQuantityPricing::forTest(false, 65000, 60000, 55000);
-        $result = $pricing->calculate(3, 50000.0);
+        $pricing = RaffleQuantityPricing::forTest(true, 1500, 1500, 1200, 40);
 
-        self::assertSame(150000, $result['total']);
-        self::assertFalse($result['promo_active']);
+        self::assertSame(45000, $pricing->calculate(30)['total']);
+        self::assertFalse($pricing->calculate(30)['promo_active']);
+
+        self::assertSame(48000, $pricing->calculate(40)['total']);
+        self::assertTrue($pricing->calculate(40)['promo_active']);
+
+        self::assertSame(120000, $pricing->calculate(100)['total']);
+    }
+
+    public function testPublicArrayExposesBulkThreshold(): void
+    {
+        $pricing = RaffleQuantityPricing::forTest(true, 1500, 1500, 1200, 40);
+        $public = $pricing->toPublicArray();
+
+        self::assertSame(40, $public['bulk_threshold']);
+        self::assertSame(1500, $public['first_unit']);
+        self::assertSame(1200, $public['third_plus_unit']);
     }
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * Estado de transferencia — confirmación y comprobante.
- * Consulta en segundo plano (?poll=1) sin recargar toda la página.
+ * Actualización de estado solo manual (sin polling).
  */
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/controllers/transfersController.php';
@@ -21,12 +21,20 @@ function transferenciaAntifraudNoticeHtml(): string
         . '</div>';
 }
 
-/** Teléfono WhatsApp solo dígitos (57 + celular). */
+/** Teléfono WhatsApp solo dígitos (57 + celular). Vacío si no hay setting. */
 function transferenciaWhatsappPhone(array $settings): string
 {
     $digits = preg_replace('/\D/', '', (string)($settings['whatsapp'] ?? ''));
+
     if ($digits === '') {
-        return '573136319681';
+        $chatUrl = (string)($settings['whatsapp_chat_url'] ?? '');
+        if (preg_match('/(?:wa\.me\/|phone=)(\d{10,15})/i', $chatUrl, $m)) {
+            $digits = $m[1];
+        }
+    }
+
+    if ($digits === '') {
+        return '';
     }
 
     if (strlen($digits) === 10) {
@@ -103,22 +111,8 @@ function transferenciaBuildStatusResponse(string $code): array
     ];
 }
 
-if (isset($_GET['poll']) && $_GET['poll'] === '1') {
-    header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-store');
-    echo json_encode(
-        transferenciaBuildStatusResponse((string)($_GET['code'] ?? '')),
-        JSON_UNESCAPED_UNICODE
-    );
-    exit;
-}
-
 $settings = TransfersController::obtenerSettings();
 $whatsappPhone = transferenciaWhatsappPhone($settings);
-$whatsappUrl = trim((string)($settings['whatsapp_chat_url'] ?? ''));
-if ($whatsappUrl === '') {
-    $whatsappUrl = 'https://api.whatsapp.com/send/?phone=' . $whatsappPhone;
-}
 $code = trim((string)($_GET['code'] ?? ''));
 $fromCheckout = isset($_GET['from_checkout']) && (string)$_GET['from_checkout'] === '1';
 $response = transferenciaBuildStatusResponse($code);
@@ -138,12 +132,12 @@ $errorTitles = [
 ];
 $errorTitle = $errorTitles[$errorCode] ?? $errorTitles['generic'];
 
-$siteName = defined('SITE_NAME') && SITE_NAME ? (string)SITE_NAME : 'Combo Stickers';
+$siteName = defined('SITE_NAME') && SITE_NAME ? (string)SITE_NAME : 'Dinámicas La Milagrosa';
 $homeUrl = defined('BASE_URL') && BASE_URL ? rtrim((string)BASE_URL, '/') : '/';
 
 $pageTitle = $showRecibo
     ? 'Pago confirmado — ' . $siteName
-    : ($isError ? $errorTitle . ' — ' . $siteName : 'Confirmando tu compra — ' . $siteName);
+    : ($isError ? $errorTitle . ' — ' . $siteName : 'Comprobante en revisión — ' . $siteName);
 
 header('Content-Type: text/html; charset=utf-8');
 ?>
@@ -158,7 +152,7 @@ header('Content-Type: text/html; charset=utf-8');
     <link rel="shortcut icon" type="image/png" href="<?= cr_site_favicon_href() ?>" data-site-favicon>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" crossorigin="anonymous">
-    <link rel="stylesheet" href="<?= htmlspecialchars(ASSETS_URL . '/css/app.css', ENT_QUOTES, 'UTF-8') ?>?v=77">
+    <link rel="stylesheet" href="<?= htmlspecialchars(ASSETS_URL . '/css/app.css', ENT_QUOTES, 'UTF-8') ?>?v=84">
     <style>
         :root {
             --cr-gold: #f2b500;
@@ -221,10 +215,12 @@ header('Content-Type: text/html; charset=utf-8');
         }
         .icon-wrap.success { background: var(--cr-accent-green-soft); border-color: var(--cr-accent-green); }
         .icon-wrap.error { background: var(--cr-accent-red-soft); border-color: var(--cr-accent-red); }
+        .icon-wrap.warning { background: var(--cr-gold-muted); border-color: var(--cr-gold); }
         .icon-wrap svg { width: 28px; height: 28px; }
         .icon-wrap .accent { stroke: var(--cr-gold-dark); fill: none; }
         .icon-wrap.success .accent { stroke: var(--cr-accent-green); }
         .icon-wrap.error .accent { stroke: var(--cr-accent-red); }
+        .icon-wrap.warning .accent { stroke: var(--cr-gold-dark); }
         h1 { font-size: 1.15rem; font-weight: 700; text-align: center; line-height: 1.4; margin-bottom: 0.65rem; color: var(--cr-dark); }
         .subtitle { text-align: center; color: var(--cr-text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.25rem; }
         .progress-block { margin-bottom: 1rem; }
@@ -306,12 +302,14 @@ header('Content-Type: text/html; charset=utf-8');
         }
         .btn-outline:hover { border-color: var(--cr-gold-dark); background: var(--cr-gold-muted); }
         .btn-whatsapp {
-            display: block; width: 100%; padding: 0.85rem 1rem; text-align: center;
+            display: flex; width: 100%; padding: 0.85rem 1rem; text-align: center;
+            align-items: center; justify-content: center; gap: 0.45rem;
             text-decoration: none; font-weight: 600; font-size: 0.9rem; color: #fff !important;
             background: linear-gradient(45deg, #25D366, #128C7E);
             border: none; border-radius: var(--cr-radius-md); cursor: pointer;
         }
         .btn-whatsapp:hover { filter: brightness(1.05); color: #fff !important; }
+        .btn-whatsapp .ti { font-size: 1.2rem; line-height: 1; }
         .recibo-wrap { margin-top: 1rem; animation: fadeUp 0.5s ease; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .recibo-box {
@@ -417,7 +415,7 @@ header('Content-Type: text/html; charset=utf-8');
                 <div class="order-ref">Tu referencia<br><code><?= htmlspecialchars($code, ENT_QUOTES, 'UTF-8') ?></code></div>
                 <?php endif; ?>
                 <div class="btn-row">
-                    <?php if ($errorCode === 'rejected'): ?>
+                    <?php if ($errorCode === 'rejected' && $whatsappPhone !== ''): ?>
                     <button type="button" class="btn-whatsapp" onclick="enviarSoporte()">WhatsApp</button>
                     <?php endif; ?>
                     <a class="btn-gold" href="<?= htmlspecialchars($homeUrl, ENT_QUOTES, 'UTF-8') ?>">Volver al sitio</a>
@@ -445,36 +443,39 @@ header('Content-Type: text/html; charset=utf-8');
         <?php else: ?>
         <div class="card" id="stateCard">
             <div class="card-body">
-                <div class="icon-wrap hidden" id="stateIconWrap"></div>
-                <h1 id="stateTitle">Confirmando tu compra</h1>
+                <div class="icon-wrap warning" aria-hidden="true">
+                    <svg class="accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <h1>Comprobante recibido</h1>
+                <p class="subtitle">Estamos revisando tu pago. Cuando lo aprueben, pulsa <strong>Actualizar estado</strong> para ver tus números.</p>
 
-                <div class="progress-block" id="progressBlock">
+                <div class="progress-block">
                     <div class="txn-flow">
                         <div class="txn-rail" aria-hidden="true">
-                            <div class="txn-rail__fill is-active" id="progressFill"></div>
+                            <div class="txn-rail__fill" style="width:50%"></div>
                         </div>
                         <div class="steps">
-                            <div class="step active" id="step1">
+                            <div class="step done">
                                 <div class="step-dot">
-                                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>
+                                    <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                                 </div>
                                 <p class="step-text">Comprobante<br>recibido</p>
                             </div>
-                            <div class="step" id="step2">
+                            <div class="step active">
                                 <div class="step-dot">
                                     <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
                                 </div>
-                                <p class="step-text">Confirmando<br>tu compra</p>
+                                <p class="step-text">En revisión<br>del equipo</p>
                             </div>
-                            <div class="step" id="step3">
+                            <div class="step">
                                 <div class="step-dot">
                                     <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
                                 </div>
-                                <p class="step-text">Preparando<br>tus números</p>
+                                <p class="step-text">Entrega de<br>tus números</p>
                             </div>
                         </div>
                     </div>
-                    <p class="wait-hint" id="waitHint">Estamos confirmando tu compra automáticamente, un momento…</p>
+                    <p class="wait-hint">Tu compra queda pendiente de aprobación. Escríbenos por WhatsApp o actualiza el estado cuando te confirmen.</p>
                 </div>
 
                 <?php if ($code !== ''): ?>
@@ -483,9 +484,21 @@ header('Content-Type: text/html; charset=utf-8');
                     <code><?= htmlspecialchars($code, ENT_QUOTES, 'UTF-8') ?></code>
                 </div>
                 <?php endif; ?>
+
+                <div class="btn-row">
+                    <?php if ($whatsappPhone !== ''): ?>
+                    <button type="button" class="btn-whatsapp" onclick="enviarValidacion()">
+                        <i class="ti ti-brand-whatsapp" aria-hidden="true"></i>
+                        Obtener mis números
+                    </button>
+                    <?php endif; ?>
+                    <button type="button" class="btn-gold" onclick="actualizarEstado()">
+                        Actualizar estado
+                    </button>
+                    <a class="btn-outline" href="<?= htmlspecialchars($homeUrl, ENT_QUOTES, 'UTF-8') ?>">Volver al sitio</a>
+                </div>
             </div>
         </div>
-        <div id="reciboContainer" class="recibo-wrap hidden"></div>
         <?php endif; ?>
     </div>
 
@@ -499,140 +512,33 @@ header('Content-Type: text/html; charset=utf-8');
     <script>
     const DATA = {
         code: <?= json_encode($code, JSON_UNESCAPED_UNICODE) ?>,
-        whatsappUrl: <?= json_encode($whatsappUrl, JSON_UNESCAPED_UNICODE) ?>,
+        phone: <?= json_encode($whatsappPhone, JSON_UNESCAPED_UNICODE) ?>,
         homeUrl: <?= json_encode($homeUrl, JSON_UNESCAPED_UNICODE) ?>,
-        siteName: <?= json_encode($siteName, JSON_UNESCAPED_UNICODE) ?>,
-        successIconHtml: <?= json_encode(transferenciaSuccessIconSvg(), JSON_UNESCAPED_UNICODE) ?>,
-        antifraudNoticeHtml: <?= json_encode(transferenciaAntifraudNoticeHtml(), JSON_UNESCAPED_UNICODE) ?>,
-        fromCheckout: <?= $fromCheckout ? 'true' : 'false' ?>
+        msgValidacion: <?= json_encode(
+            "¡Hola! 👋 Acabo de realizar una compra en su página.\n\n📋 *Código:* {CODE}\n\nPor favor, confirmen y aprueben mi compra. 🙂"
+        ) ?>,
+        msgSoporte: <?= json_encode(
+            "Hola 👋\n\nMi código {CODE} tuvo un problema al confirmarse. Necesito ayuda con mi pago 🙏"
+        ) ?>
     };
 
+    function enviarValidacion() {
+        abrirWA(DATA.msgValidacion.replace('{CODE}', DATA.code));
+    }
     function enviarSoporte() {
-        const texto = 'Hola 👋\n\nMi código ' + DATA.code + ' tuvo un problema al confirmarse. Necesito ayuda con mi pago 🙏';
-        abrirWA(texto);
+        abrirWA(DATA.msgSoporte.replace('{CODE}', DATA.code));
     }
     function abrirWA(texto) {
-        const sep = DATA.whatsappUrl.indexOf('?') >= 0 ? '&' : '?';
-        window.open(DATA.whatsappUrl + sep + 'text=' + encodeURIComponent(texto), '_blank', 'noopener,noreferrer');
+        const phone = String(DATA.phone || '').replace(/\D/g, '');
+        if (!phone) return;
+        const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(phone)
+            + '&text=' + encodeURIComponent(texto);
+        window.open(url, '_blank', 'noopener,noreferrer');
     }
-
-    <?php if ($isPending && $code !== ''): ?>
-    (function () {
-        const pollUrl = 'transferencia.php?poll=1&code=' + encodeURIComponent(DATA.code);
-        const stepDurationMs = 4200;
-        let stepPhase = 0;
-        let stageDone = false;
-        let revealing = false;
-
-        const step1 = document.getElementById('step1');
-        const step2 = document.getElementById('step2');
-        const step3 = document.getElementById('step3');
-        const progressFill = document.getElementById('progressFill');
-        const stateTitle = document.getElementById('stateTitle');
-        const progressBlock = document.getElementById('progressBlock');
-        const stateIconWrap = document.getElementById('stateIconWrap');
-        const reciboContainer = document.getElementById('reciboContainer');
-        const appShell = document.getElementById('appShell');
-        const minPhaseToReveal = 2;
-        const finalRevealMs = 2200;
-        let pendingReceiptHtml = null;
-
-        const stepBarPct = [12, 50, 100];
-        const stepDoneIcon = '<svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
-
-        function tryRevealSuccess() {
-            if (!pendingReceiptHtml || revealing || stageDone) return;
-            if (stepPhase < minPhaseToReveal) return;
-
-            revealing = true;
-            if (stepPhase < 2) {
-                setStepPhase(2);
-            }
-            setTimeout(() => showSuccess(pendingReceiptHtml), finalRevealMs);
-        }
-
-        function setStepPhase(phase) {
-            stepPhase = phase;
-            [step1, step2, step3].forEach((el, i) => {
-                if (!el) return;
-                el.classList.remove('active', 'done');
-                const dot = el.querySelector('.step-dot');
-                if (i < phase) {
-                    el.classList.add('done');
-                    if (dot) dot.innerHTML = stepDoneIcon;
-                } else if (i === phase) {
-                    el.classList.add('active');
-                }
-            });
-            if (progressFill) progressFill.style.width = stepBarPct[phase] + '%';
-        }
-
-        function startStageFlow() {
-            setStepPhase(0);
-            setTimeout(() => {
-                if (stageDone || revealing) return;
-                setStepPhase(1);
-                setTimeout(() => {
-                    if (stageDone || revealing) return;
-                    setStepPhase(2);
-                    tryRevealSuccess();
-                }, stepDurationMs);
-            }, stepDurationMs);
-        }
-
-        function showSuccess(html) {
-            stageDone = true;
-            progressBlock.classList.add('hidden');
-            if (progressFill) progressFill.classList.remove('is-active');
-            if (stateIconWrap) {
-                stateIconWrap.classList.remove('hidden');
-                stateIconWrap.className = 'icon-wrap success';
-                stateIconWrap.innerHTML = DATA.successIconHtml;
-            }
-            stateTitle.textContent = '¡Pago confirmado!';
-            appShell.classList.add('shell--wide');
-            reciboContainer.innerHTML = '<div class="recibo-box">' + html + '</div>' + DATA.antifraudNoticeHtml + '<p class="footer-note">Guarda captura. También llegó a tu correo.</p><div class="btn-row"><a class="btn-gold" href="' + DATA.homeUrl + '">Volver al sitio</a></div>';
-            reciboContainer.classList.remove('hidden');
-            document.title = 'Pago confirmado — ' + DATA.siteName;
-        }
-
-        function showRejected() {
-            stageDone = true;
-            window.location.href = 'transferencia.php?code=' + encodeURIComponent(DATA.code) + '&_=' + Date.now();
-        }
-
-        async function poll() {
-            if (stageDone || revealing) return;
-
-            try {
-                const res = await fetch(pollUrl, { cache: 'no-store' });
-                const data = await res.json();
-                if (data.status === 'ok' && data.html_recibo) {
-                    pendingReceiptHtml = data.html_recibo;
-                    tryRevealSuccess();
-                    return;
-                }
-                if (data.status === 'error') {
-                    showRejected();
-                    return;
-                }
-            } catch (e) {
-                /* reintenta en el siguiente ciclo */
-            }
-        }
-
-        startStageFlow();
-
-        poll();
-        const pollTimer = setInterval(() => {
-            if (stageDone || revealing) {
-                clearInterval(pollTimer);
-                return;
-            }
-            poll();
-        }, 2000);
-    })();
-    <?php endif; ?>
+    function actualizarEstado() {
+        // Sin from_checkout ni poll: una sola recarga manual.
+        window.location.href = 'transferencia.php?code=' + encodeURIComponent(DATA.code) + '&_=' + Date.now();
+    }
     </script>
 </body>
 </html>

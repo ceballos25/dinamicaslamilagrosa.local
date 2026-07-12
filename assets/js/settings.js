@@ -30,6 +30,12 @@ const SETTING_UI_META = {
         type: 'textarea',
         section: 'web',
     },
+    comprobante_validation_enabled: {
+        title: 'Validar comprobantes de pago (OCR)',
+        help: 'Encendido: en el checkout revisa la imagen (monto, duplicados, si parece un recibo) y rechaza las dudosas. Apagado: acepta cualquier imagen. En ambos casos la compra queda pendiente: un administrador debe aprobarla en Transferencias.',
+        type: 'toggle',
+        section: 'web',
+    },
     web_id_raffle: {
         title: 'Rifa que se muestra en la página principal',
         help: 'Se actualiza solo al crear o activar una rifa. Si pausas la rifa actual, pasa a la última rifa activa. El ID lo ves en Rifas.',
@@ -39,15 +45,129 @@ const SETTING_UI_META = {
     },
     barra: {
         title: 'Ajuste de la barra de progreso',
-        help: 'Déjalo en 0 para mostrar el avance real. Solo cámbialo si necesitas sumar un poco al porcentaje visible (máx. 100). Recarga la web para verlo.',
+        help: 'Usa el panel de abajo: suma un extra al % real o congélalo en un valor fijo.',
         placeholder: '0',
         type: 'text',
         section: 'web',
+        panel: 'barra',
+    },
+    barra_modo: {
+        title: 'Modo barra de progreso',
+        help: 'sumar = real + extra. fija = porcentaje congelado.',
+        type: 'hidden',
+        section: 'web',
+        panel: 'barra',
+    },
+    barra_fija: {
+        title: 'Porcentaje fijo de la barra',
+        help: 'Solo aplica en modo fija.',
+        placeholder: '35',
+        type: 'hidden',
+        section: 'web',
+        panel: 'barra',
+    },
+    nombre_rifa: {
+        title: 'Nombre del sitio / marca',
+        help: 'Aparece en footer, títulos y textos de marca.',
+        placeholder: 'Dinámicas La Milagrosa',
+        type: 'text',
+        section: 'landing',
+    },
+    landing_meta_description: {
+        title: 'Descripción SEO (meta)',
+        help: 'Texto que ven Google y redes al compartir el enlace.',
+        placeholder: 'Descripción de la dinámica…',
+        type: 'textarea',
+        section: 'landing',
+    },
+    landing_hero_title: {
+        title: 'Título del hero',
+        help: 'Título principal de la portada. Usa \\n para saltos de línea si hace falta.',
+        placeholder: '¡Gana una Yamaha NMAX!',
+        type: 'text',
+        section: 'landing',
+    },
+    landing_premio_mayor_titulo: {
+        title: 'Premio mayor — título',
+        help: 'Etiqueta del bloque de premio mayor.',
+        placeholder: 'Premio mayor',
+        type: 'text',
+        section: 'landing',
+    },
+    landing_premio_mayor_desc: {
+        title: 'Premio mayor — descripción',
+        help: 'Detalle del premio mayor (moto, lotería, fecha…).',
+        placeholder: 'Yamaha NMAX · Lotería de Boyacá · Sábado 22 de agosto',
+        type: 'text',
+        section: 'landing',
+    },
+    landing_premio_extra_titulo: {
+        title: 'Premios extra — título',
+        help: 'Etiqueta del bloque de premios adicionales.',
+        placeholder: 'Premios adicionales',
+        type: 'text',
+        section: 'landing',
+    },
+    landing_premio_extra_label: {
+        title: 'Premios extra — etiqueta',
+        help: 'Texto destacado (ej. 6 números bendecidos).',
+        placeholder: '6 números bendecidos',
+        type: 'text',
+        section: 'landing',
+    },
+    landing_premio_extra_desc: {
+        title: 'Premios extra — valor',
+        help: 'Detalle o monto (ej. $500.000 c/u).',
+        placeholder: '$500.000 c/u',
+        type: 'text',
+        section: 'landing',
+    },
+    footer_tagline: {
+        title: 'Footer — texto de marca',
+        help: 'Párrafo bajo el nombre en el pie de página.',
+        placeholder: 'Participa fácil, rápido y seguro…',
+        type: 'textarea',
+        section: 'landing',
+    },
+    footer_phones: {
+        title: 'Footer — teléfonos',
+        help: 'Números visibles en contacto del pie.',
+        placeholder: '320 259 5153 · 320 259 5184',
+        type: 'text',
+        section: 'landing',
+    },
+    contact_email: {
+        title: 'Correo de contacto',
+        help: 'Email del pie y formularios de contacto.',
+        placeholder: 'contacto@ejemplo.com',
+        type: 'text',
+        section: 'landing',
+    },
+    footer_location: {
+        title: 'Footer — ubicación',
+        help: 'Ciudad o país en el pie.',
+        placeholder: 'Colombia',
+        type: 'text',
+        section: 'landing',
+    },
+    footer_payments: {
+        title: 'Footer — medios de pago',
+        help: 'Texto de transferencias (Bre-B, Bancolombia, Nequi…).',
+        placeholder: 'Bre-B · Bancolombia · Nequi',
+        type: 'text',
+        section: 'landing',
     },
     whatsapp: {
         title: 'Número de WhatsApp',
         help: 'Solo números, con indicativo. Ejemplo Colombia: 573001234567',
         placeholder: '573001234567',
+        type: 'text',
+        section: 'contacto',
+    },
+    whatsapp_secondary: {
+        title: 'WhatsApp secundario',
+        help: 'Segundo celular (solo dígitos con indicativo).',
+        placeholder: '573001234568',
         type: 'text',
         section: 'contacto',
     },
@@ -79,16 +199,29 @@ const SETTING_UI_META = {
         type: 'text',
         section: 'contacto',
     },
+    social_tiktok_url: {
+        title: 'TikTok',
+        help: 'Enlace a tu perfil de TikTok.',
+        placeholder: 'https://www.tiktok.com/@tu_cuenta',
+        type: 'text',
+        section: 'contacto',
+    },
+    pricing_packages_enabled: {
+        title: 'Paquetes de compra (web)',
+        help: 'Encendido: la web muestra paquetes listos (10, 18, 30…). Apagado: solo cantidad libre.',
+        type: 'toggle',
+        section: 'precios',
+    },
     pricing_tiered_enabled: {
         title: 'Precios por tramos (web)',
-        help: 'Encendido: 1.º número, 2.º número y del 3.º en adelante con precios distintos.',
+        help: 'Encendido: usa precios diferenciados por cantidad (umbral o 1.º/2.º/3+).',
         type: 'toggle',
         section: 'precios',
     },
     pricing_first_unit: {
-        title: 'Precio 1.º número (COP)',
-        help: 'Valor del primer número. Ej: 65000',
-        placeholder: '65000',
+        title: 'Precio unitario base (COP)',
+        help: 'Precio por número debajo del umbral (ej. 1500).',
+        placeholder: '1500',
         type: 'text',
         section: 'precios',
     },
@@ -101,17 +234,66 @@ const SETTING_UI_META = {
     },
     pricing_tier1_unit: {
         title: 'Precio 2.º número (COP)',
-        help: 'Valor del segundo número. Ej: 60000',
-        placeholder: '60000',
+        help: 'Solo modo legacy sin umbral. Ej: 1500',
+        placeholder: '1500',
         type: 'text',
         section: 'precios',
     },
     pricing_tier2_unit: {
-        title: 'Precio 3 o más números (COP)',
-        help: 'Valor por número cuando compran 3 o más (todos a este precio). Ej: 55000',
-        placeholder: '55000',
+        title: 'Precio desde umbral / 3+ (COP)',
+        help: 'Con umbral: precio c/u desde esa cantidad. Sin umbral: precio de 3 o más.',
+        placeholder: '1200',
         type: 'text',
         section: 'precios',
+    },
+    pricing_bulk_threshold: {
+        title: 'Umbral de descuento (cantidad)',
+        help: 'Desde esta cantidad aplica el precio reducido. Ej: 40. Déjalo en 0 para modo 1/2/3+.',
+        placeholder: '40',
+        type: 'text',
+        section: 'precios',
+    },
+    transfer_breb_key: {
+        title: 'Llave Bre-B',
+        help: 'Llave o número Bre-B para transferencias.',
+        placeholder: '@astrid59202',
+        type: 'text',
+        section: 'contacto',
+    },
+    transfer_breb_name: {
+        title: 'Nombre Bre-B',
+        help: 'Nombre del titular de la llave Bre-B.',
+        placeholder: 'Astrid',
+        type: 'text',
+        section: 'contacto',
+    },
+    transfer_bancolombia: {
+        title: 'Cuenta Bancolombia',
+        help: 'Número de cuenta de ahorros Bancolombia.',
+        placeholder: '91209541721',
+        type: 'text',
+        section: 'contacto',
+    },
+    transfer_bancolombia_name: {
+        title: 'Titular Bancolombia',
+        help: 'Nombre del titular de la cuenta Bancolombia.',
+        placeholder: 'Astrid',
+        type: 'text',
+        section: 'contacto',
+    },
+    transfer_nequi: {
+        title: 'Nequi',
+        help: 'Número Nequi para transferencias.',
+        placeholder: '3156129798',
+        type: 'text',
+        section: 'contacto',
+    },
+    transfer_nequi_name: {
+        title: 'Titular Nequi',
+        help: 'Nombre del titular Nequi.',
+        placeholder: 'Astrid',
+        type: 'text',
+        section: 'contacto',
     },
 };
 
@@ -122,14 +304,19 @@ const SETTING_SECTIONS = [
         subtitle: 'Qué ven los visitantes y si pueden comprar en línea.',
     },
     {
+        id: 'landing',
+        title: 'Textos de la portada',
+        subtitle: 'Hero, premios, SEO y pie de página. Todo editable sin tocar código.',
+    },
+    {
         id: 'precios',
         title: 'Precios por cantidad',
-        subtitle: '1.º, 2.º y del 3.º en adelante (web y checkout).',
+        subtitle: 'Paquetes, umbrales y precios unitarios (web y checkout).',
     },
     {
         id: 'contacto',
         title: 'Contacto y redes',
-        subtitle: 'WhatsApp e iconos de redes en la página principal.',
+        subtitle: 'WhatsApp, transferencias e iconos de redes.',
     },
     {
         id: 'otros',
@@ -143,17 +330,43 @@ const SETTING_UI_ORDER = [
     'maintenance_message',
     'web_compras_habilitadas',
     'web_mensaje_compras_bloqueadas',
+    'comprobante_validation_enabled',
     'web_id_raffle',
     'barra',
+    'barra_modo',
+    'barra_fija',
+    'nombre_rifa',
+    'landing_meta_description',
+    'landing_hero_title',
+    'landing_premio_mayor_titulo',
+    'landing_premio_mayor_desc',
+    'landing_premio_extra_titulo',
+    'landing_premio_extra_label',
+    'landing_premio_extra_desc',
+    'footer_tagline',
+    'footer_phones',
+    'contact_email',
+    'footer_location',
+    'footer_payments',
+    'pricing_packages_enabled',
     'pricing_tiered_enabled',
     'pricing_first_unit',
     'pricing_tier1_unit',
     'pricing_tier2_unit',
+    'pricing_bulk_threshold',
     'whatsapp',
+    'whatsapp_secondary',
     'whatsapp_chat_url',
     'whatsapp_group_url',
     'social_instagram_url',
     'social_facebook_url',
+    'social_tiktok_url',
+    'transfer_breb_key',
+    'transfer_breb_name',
+    'transfer_bancolombia',
+    'transfer_bancolombia_name',
+    'transfer_nequi',
+    'transfer_nequi_name',
 ];
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -474,17 +687,33 @@ function renderSettingsFromGlobal() {
     SETTING_SECTIONS.forEach((section) => {
         const sectionRows = SETTING_UI_ORDER
             .filter((k) => (SETTING_UI_META[k]?.section || '') === section.id)
+            .filter((k) => SETTING_UI_META[k]?.panel !== 'barra')
             .map((k) => rowsByKey[k])
             .filter(Boolean);
 
-        if (!sectionRows.length) return;
+        if (!sectionRows.length && section.id !== 'web') return;
 
-        html += renderSettingsSectionHeader(section);
-        html += sectionRows.map((s) => renderSettingRow(s)).join('');
+        if (sectionRows.length) {
+            html += renderSettingsSectionHeader(section);
+            html += sectionRows.map((s) => renderSettingRow(s)).join('');
+        }
+
+        if (section.id === 'web') {
+            html += renderBarraProgresoPanel();
+        }
     });
 
     const knownSet = new Set(SETTING_UI_ORDER);
-    const extraRows = rows.filter((r) => !knownSet.has(r.key_setting));
+    const HIDDEN_EXTRA_KEYS = new Set([
+        'comprobante_ocr_space_api_key',
+        'comprobante_tesseract_path',
+        'comprobante_ocr_provider',
+    ]);
+    const extraRows = rows
+        .filter((r) => !knownSet.has(r.key_setting))
+        .filter((r) => SETTING_UI_META[r.key_setting]?.panel !== 'barra')
+        .filter((r) => !HIDDEN_EXTRA_KEYS.has(r.key_setting))
+        .filter((r) => !/_api_key$|_secret$|_password$/i.test(String(r.key_setting)));
     if (extraRows.length) {
         html += renderSettingsSectionHeader({
             title: 'Opciones adicionales',
@@ -500,6 +729,209 @@ function renderSettingsFromGlobal() {
             updateToggleLabel(s.key_setting);
         }
     });
+
+    initBarraProgresoPanel();
+}
+
+function renderBarraProgresoPanel() {
+    const boost = String(getSetting('barra', '0') ?? '0');
+    const fija = String(getSetting('barra_fija', '') ?? '');
+    const modoFija = isBarraModoFija();
+
+    return `
+    <div class="settings-row barra-progreso-panel row g-3 align-items-start" id="barraProgresoPanel">
+        <div class="col-lg-4">
+            <div class="settings-title">Barra de progreso en la web</div>
+            <p class="settings-help mb-0">
+                <strong>Sumar:</strong> el % real de ventas más un extra (ej. +20). Sube con cada venta.<br>
+                <strong>Congelar:</strong> queda fijo en el valor que elijas y no sube aunque sigan vendiendo.
+            </p>
+        </div>
+        <div class="col-lg-8">
+            <div class="d-flex flex-wrap gap-3 mb-3 small">
+                <span class="badge bg-light text-dark border">Real vendido: <strong id="barraPanelReal">—</strong></span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Visible web: <strong id="barraPanelVisible">—</strong></span>
+                <span class="badge ${modoFija ? 'bg-warning text-dark' : 'bg-success'}" id="barraPanelModoBadge">${modoFija ? 'Congelada' : 'Sumando'}</span>
+            </div>
+            <div class="row g-2 align-items-end">
+                <div class="col-sm-4">
+                    <label class="form-label small text-muted mb-1">Extra a sumar (+)</label>
+                    <input type="text" class="form-control form-control-sm" id="barraBoostInput"
+                        value="${escapeHtml(boost)}" placeholder="20">
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label small text-muted mb-1">Valor fijo (%)</label>
+                    <input type="text" class="form-control form-control-sm" id="barraFijaInput"
+                        value="${escapeHtml(fija)}" placeholder="35">
+                </div>
+                <div class="col-sm-4 d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-sm btn-success flex-grow-1" id="btnBarraSumar">
+                        <i class="ti ti-trending-up me-1"></i> Seguir sumando
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning flex-grow-1" id="btnBarraCongelar">
+                        <i class="ti ti-pinned me-1"></i> Congelar ahora
+                    </button>
+                </div>
+            </div>
+            <p class="small text-muted mb-0 mt-2">
+                <em>Congelar ahora</em> guarda el % visible actual y deja de subir. <em>Seguir sumando</em> vuelve a real + extra.
+            </p>
+        </div>
+    </div>`;
+}
+
+async function fetchBarraRealPorcentaje() {
+    const idRaffle = parseInt(String(getSetting('web_id_raffle', '0')).trim(), 10);
+    if (!Number.isFinite(idRaffle) || idRaffle <= 0) {
+        return 0;
+    }
+
+    const fd = new FormData();
+    fd.append('action', 'obtener_progreso');
+    fd.append('id_raffle', String(idRaffle));
+    settingsAppendCsrf(fd);
+
+    try {
+        const res = await fetch('/front/ajax/numeros.ajax.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!data?.success) {
+            return 0;
+        }
+        return Number(data.porcentaje) || 0;
+    } catch (_) {
+        return 0;
+    }
+}
+
+function refreshBarraProgresoPanelPreview(realPct) {
+    const realEl = document.getElementById('barraPanelReal');
+    const visEl = document.getElementById('barraPanelVisible');
+    const badge = document.getElementById('barraPanelModoBadge');
+    const boostInput = document.getElementById('barraBoostInput');
+    const fijaInput = document.getElementById('barraFijaInput');
+
+    if (!realEl || !visEl) {
+        return;
+    }
+
+    const real = Number.isFinite(realPct) ? realPct : 0;
+    const prevBoost = getSetting('barra');
+    const prevFija = getSetting('barra_fija');
+    const prevModo = getSetting('barra_modo');
+
+    if (boostInput) {
+        SETTINGS.barra = boostInput.value.trim();
+    }
+    if (fijaInput) {
+        SETTINGS.barra_fija = fijaInput.value.trim();
+    }
+
+    const visible = obtenerPorcentajeFinal(real);
+    const clamped = Math.min(Math.max(visible, 0), 100);
+    const visibleTxt = redondearPorcentajeUIPct(clamped, 2) + '%';
+
+    realEl.textContent = redondearPorcentajeUIPct(real, 2) + '%';
+    visEl.textContent = visibleTxt;
+
+    SETTINGS.barra = prevBoost;
+    SETTINGS.barra_fija = prevFija;
+    SETTINGS.barra_modo = prevModo;
+
+    if (badge) {
+        const fija = isBarraModoFija();
+        badge.textContent = fija ? 'Congelada' : 'Sumando';
+        badge.className = 'badge ' + (fija ? 'bg-warning text-dark' : 'bg-success');
+    }
+}
+
+async function guardarBarraProgresoSettings(payload, successLabel) {
+    await actualizarSettings(payload);
+    notifySettingSaved(successLabel);
+    const panel = document.getElementById('barraProgresoPanel');
+    if (panel) {
+        panel.classList.add('settings-row--saved');
+        window.setTimeout(() => panel.classList.remove('settings-row--saved'), 1800);
+    }
+    const real = await fetchBarraRealPorcentaje();
+    refreshBarraProgresoPanelPreview(real);
+}
+
+function initBarraProgresoPanel() {
+    const panel = document.getElementById('barraProgresoPanel');
+    if (!panel || panel.dataset.bound === '1') {
+        return;
+    }
+    panel.dataset.bound = '1';
+
+    const btnSumar = document.getElementById('btnBarraSumar');
+    const btnCongelar = document.getElementById('btnBarraCongelar');
+    const boostInput = document.getElementById('barraBoostInput');
+    const fijaInput = document.getElementById('barraFijaInput');
+
+    let cachedReal = 0;
+
+    const refresh = async () => {
+        cachedReal = await fetchBarraRealPorcentaje();
+        refreshBarraProgresoPanelPreview(cachedReal);
+    };
+
+    refresh();
+
+    if (boostInput) {
+        boostInput.addEventListener('input', () => refreshBarraProgresoPanelPreview(cachedReal));
+    }
+    if (fijaInput) {
+        fijaInput.addEventListener('input', () => refreshBarraProgresoPanelPreview(cachedReal));
+    }
+
+    if (btnSumar) {
+        btnSumar.addEventListener('click', async () => {
+            btnSumar.disabled = true;
+            try {
+                const boost = boostInput ? boostInput.value.trim() : String(getSetting('barra', '0'));
+                await guardarBarraProgresoSettings({
+                    barra: boost,
+                    barra_modo: 'sumar',
+                }, 'Barra: modo sumar');
+            } catch (e) {
+                notifySettingError(e.message);
+            } finally {
+                btnSumar.disabled = false;
+            }
+        });
+    }
+
+    if (btnCongelar) {
+        btnCongelar.addEventListener('click', async () => {
+            btnCongelar.disabled = true;
+            try {
+                const real = await fetchBarraRealPorcentaje();
+                const boost = boostInput ? boostInput.value.trim() : String(getSetting('barra', '0'));
+                SETTINGS.barra = boost;
+                SETTINGS.barra_modo = 'sumar';
+                let visible = obtenerPorcentajeFinal(real);
+                if (fijaInput && fijaInput.value.trim() !== '') {
+                    const manual = parseFloat(fijaInput.value.trim().replace(',', '.'));
+                    if (Number.isFinite(manual) && manual >= 0) {
+                        visible = manual;
+                    }
+                }
+                const valor = String(redondearPorcentajeUIPct(Math.min(Math.max(visible, 0), 100), 2));
+                if (fijaInput) {
+                    fijaInput.value = valor;
+                }
+                await guardarBarraProgresoSettings({
+                    barra: boost,
+                    barra_modo: 'fija',
+                    barra_fija: valor,
+                }, 'Barra congelada en ' + valor + '%');
+            } catch (e) {
+                notifySettingError(e.message);
+            } finally {
+                btnCongelar.disabled = false;
+            }
+        });
+    }
 }
 
 function updateToggleLabel(key) {
@@ -708,10 +1140,28 @@ function redondearPorcentajeUIPct(n, decimales = 2) {
     return parseFloat(n.toFixed(decimales));
 }
 
+function isBarraModoFija() {
+    const modo = String(getSetting('barra_modo', 'sumar')).trim().toLowerCase();
+    return ['fija', 'fijo', 'fixed', '1', 'true', 'on'].includes(modo);
+}
+
+function getBarraFijaValue() {
+    const raw = String(getSetting('barra_fija', '')).trim().replace(',', '.');
+    const n = parseFloat(raw);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
 function obtenerPorcentajeFinal(porcentajeBackend) {
 
     const real = Number(porcentajeBackend);
     const base = Number.isFinite(real) ? real : 0;
+
+    if (isBarraModoFija()) {
+        const fija = getBarraFijaValue();
+        if (fija !== null) {
+            return fija;
+        }
+    }
 
     const raw = getBarraBoostRaw();
 

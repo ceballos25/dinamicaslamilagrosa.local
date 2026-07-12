@@ -164,25 +164,10 @@ final class WebCheckoutService
             return ['success' => false, 'message' => 'Error actualizando transferencia'];
         }
 
-        $transferRow = \TransfersController::obtenerPorCode((string)($transfer['code_transfer'] ?? ''));
-        if ($transferRow === null) {
-            return ['success' => false, 'message' => 'No se encontró la transferencia tras guardar el comprobante'];
-        }
-
-        $approval = \TransfersController::aprobarTransferencia($transferRow);
-        if (empty($approval['success'])) {
-            error_log('[web_checkout] aprobación automática falló: ' . ($approval['message'] ?? 'sin detalle'));
-
-            return CheckoutUserMessages::approvalFailed(
-                isset($approval['message']) ? (string)$approval['message'] : null
-            );
-        }
-
         return [
             'success' => true,
             'code_transfer' => $transfer['code_transfer'] ?? null,
-            'approved' => true,
-            'id_sale' => $approval['id_sale'] ?? null,
+            'approved' => false,
         ];
     }
 
@@ -314,8 +299,13 @@ final class WebCheckoutService
                 'whatsapp_chat_url' => trim((string)$this->dynamicConfig->get('whatsapp_chat_url', '')),
                 'social_instagram_url' => trim((string)$this->dynamicConfig->get('social_instagram_url', '')),
                 'social_facebook_url' => trim((string)$this->dynamicConfig->get('social_facebook_url', '')),
+                'social_tiktok_url' => trim((string)$this->dynamicConfig->get('social_tiktok_url', '')),
                 'transfer_breb_key' => trim((string)$this->dynamicConfig->get('transfer_breb_key', '')),
                 'transfer_breb_name' => trim((string)$this->dynamicConfig->get('transfer_breb_name', '')),
+                'transfer_bancolombia' => trim((string)$this->dynamicConfig->get('transfer_bancolombia', '')),
+                'transfer_bancolombia_name' => trim((string)$this->dynamicConfig->get('transfer_bancolombia_name', '')),
+                'transfer_nequi' => trim((string)$this->dynamicConfig->get('transfer_nequi', '')),
+                'transfer_nequi_name' => trim((string)$this->dynamicConfig->get('transfer_nequi_name', '')),
             ],
             'settings' => $this->landingSettingsMap(),
         ];
@@ -329,18 +319,39 @@ final class WebCheckoutService
             'web_compras_habilitadas' => trim((string)$this->dynamicConfig->get('web_compras_habilitadas', '1')),
             'web_mensaje_compras_bloqueadas' => trim((string)$this->dynamicConfig->get('web_mensaje_compras_bloqueadas', '')),
             'barra' => trim((string)$this->dynamicConfig->get('barra', '')),
+            'barra_modo' => trim((string)$this->dynamicConfig->get('barra_modo', 'sumar')),
+            'barra_fija' => trim((string)$this->dynamicConfig->get('barra_fija', '')),
             'pricing_packages_enabled' => trim((string)$this->dynamicConfig->get('pricing_packages_enabled', '0')),
             'pricing_tiered_enabled' => trim((string)$this->dynamicConfig->get('pricing_tiered_enabled', '0')),
-            'pricing_first_unit' => trim((string)$this->dynamicConfig->get('pricing_first_unit', '150')),
-            'pricing_tier1_unit' => trim((string)$this->dynamicConfig->get('pricing_tier1_unit', '150')),
-            'pricing_tier2_unit' => trim((string)$this->dynamicConfig->get('pricing_tier2_unit', '150')),
+            'pricing_first_unit' => trim((string)$this->dynamicConfig->get('pricing_first_unit', '1500')),
+            'pricing_tier1_unit' => trim((string)$this->dynamicConfig->get('pricing_tier1_unit', '1500')),
+            'pricing_tier2_unit' => trim((string)$this->dynamicConfig->get('pricing_tier2_unit', '1200')),
+            'pricing_bulk_threshold' => trim((string)$this->dynamicConfig->get('pricing_bulk_threshold', '40')),
             'social_instagram_url' => trim((string)$this->dynamicConfig->get('social_instagram_url', '')),
             'social_facebook_url' => trim((string)$this->dynamicConfig->get('social_facebook_url', '')),
+            'social_tiktok_url' => trim((string)$this->dynamicConfig->get('social_tiktok_url', '')),
             'whatsapp' => trim((string)$this->dynamicConfig->get('whatsapp', '')),
             'whatsapp_chat_url' => trim((string)$this->dynamicConfig->get('whatsapp_chat_url', '')),
+            'whatsapp_secondary' => trim((string)$this->dynamicConfig->get('whatsapp_secondary', '')),
             'transfer_breb_key' => trim((string)$this->dynamicConfig->get('transfer_breb_key', '')),
             'transfer_breb_name' => trim((string)$this->dynamicConfig->get('transfer_breb_name', '')),
+            'transfer_bancolombia' => trim((string)$this->dynamicConfig->get('transfer_bancolombia', '')),
+            'transfer_bancolombia_name' => trim((string)$this->dynamicConfig->get('transfer_bancolombia_name', '')),
+            'transfer_nequi' => trim((string)$this->dynamicConfig->get('transfer_nequi', '')),
+            'transfer_nequi_name' => trim((string)$this->dynamicConfig->get('transfer_nequi_name', '')),
             'nombre_rifa' => trim((string)$this->dynamicConfig->get('nombre_rifa', '')),
+            'landing_meta_description' => trim((string)$this->dynamicConfig->get('landing_meta_description', '')),
+            'landing_hero_title' => trim((string)$this->dynamicConfig->get('landing_hero_title', '')),
+            'landing_premio_mayor_titulo' => trim((string)$this->dynamicConfig->get('landing_premio_mayor_titulo', '')),
+            'landing_premio_mayor_desc' => trim((string)$this->dynamicConfig->get('landing_premio_mayor_desc', '')),
+            'landing_premio_extra_titulo' => trim((string)$this->dynamicConfig->get('landing_premio_extra_titulo', '')),
+            'landing_premio_extra_label' => trim((string)$this->dynamicConfig->get('landing_premio_extra_label', '')),
+            'landing_premio_extra_desc' => trim((string)$this->dynamicConfig->get('landing_premio_extra_desc', '')),
+            'footer_tagline' => trim((string)$this->dynamicConfig->get('footer_tagline', '')),
+            'footer_phones' => trim((string)$this->dynamicConfig->get('footer_phones', '')),
+            'contact_email' => trim((string)$this->dynamicConfig->get('contact_email', '')),
+            'footer_location' => trim((string)$this->dynamicConfig->get('footer_location', '')),
+            'footer_payments' => trim((string)$this->dynamicConfig->get('footer_payments', '')),
         ];
     }
 
@@ -480,7 +491,7 @@ final class WebCheckoutService
         }
 
         $row = \Db::fetchOne(
-            'SELECT name_customer, lastname_customer, email_customer
+            'SELECT name_customer, lastname_customer, email_customer, department_customer, city_customer
              FROM customers WHERE phone_customer = :p AND status_customer = 1 LIMIT 1',
             [':p' => $phone]
         );
@@ -495,6 +506,8 @@ final class WebCheckoutService
                 'name_customer' => (string)($row->name_customer ?? ''),
                 'lastname_customer' => (string)($row->lastname_customer ?? ''),
                 'email_customer' => (string)($row->email_customer ?? ''),
+                'department_customer' => (string)($row->department_customer ?? ''),
+                'city_customer' => (string)($row->city_customer ?? ''),
             ],
         ];
     }

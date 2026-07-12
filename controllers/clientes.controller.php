@@ -67,7 +67,7 @@ class ClientesController
             }
         }
 
-        $sql = 'SELECT id_customer,name_customer,lastname_customer,phone_customer,email_customer,status_customer
+        $sql = 'SELECT id_customer,name_customer,lastname_customer,phone_customer,email_customer,department_customer,city_customer,status_customer
             FROM customers WHERE ' . implode(' AND ', $where) . ' ORDER BY id_customer DESC';
 
         $rows = Db::fetchAll($sql, $params);
@@ -85,7 +85,9 @@ class ClientesController
             empty($data['name_customer']) ||
             empty($data['lastname_customer']) ||
             empty($data['phone_customer']) ||
-            empty($data['email_customer'])
+            empty($data['email_customer']) ||
+            empty($data['department_customer']) ||
+            empty($data['city_customer'])
         ) {
             return ['success' => false, 'message' => 'Error: Todos los campos son obligatorios'];
         }
@@ -95,6 +97,8 @@ class ClientesController
             'lastname_customer' => trim($data['lastname_customer']),
             'phone_customer' => trim($data['phone_customer']),
             'email_customer' => trim($data['email_customer']),
+            'department_customer' => trim($data['department_customer']),
+            'city_customer' => trim($data['city_customer']),
             'status_customer' => isset($data['status_customer']) ? (int)$data['status_customer'] : 1,
         ];
 
@@ -117,7 +121,9 @@ class ClientesController
             empty($data['name_customer']) ||
             empty($data['lastname_customer']) ||
             empty($data['phone_customer']) ||
-            empty($data['email_customer'])
+            empty($data['email_customer']) ||
+            empty($data['department_customer']) ||
+            empty($data['city_customer'])
         ) {
             return ['success' => false, 'message' => 'Error: No puedes dejar campos vacíos'];
         }
@@ -127,6 +133,8 @@ class ClientesController
             'lastname_customer' => trim($data['lastname_customer']),
             'phone_customer' => trim($data['phone_customer']),
             'email_customer' => trim($data['email_customer']),
+            'department_customer' => trim($data['department_customer']),
+            'city_customer' => trim($data['city_customer']),
             'status_customer' => isset($data['status_customer']) ? (int)$data['status_customer'] : 1,
         ];
 

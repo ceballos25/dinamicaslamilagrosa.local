@@ -10,6 +10,9 @@ function abrirModal() {
     setVal('clienteId', '');
     document.getElementById('modalTitle').textContent = 'Nuevo Cliente';
 
+    $('#departamento').val('').trigger('change');
+    $('#ciudad').val('').trigger('change').prop('disabled', true);
+    
     if(modalCliente) modalCliente.show();
 }
 
@@ -31,6 +34,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (elModalCliente) modalCliente = bootstrap.Modal.getOrCreateInstance(elModalCliente);
     if (elModalConfirm) modalConfirm = bootstrap.Modal.getOrCreateInstance(elModalConfirm);
+
+    if ($('.select2-departamento').length) {
+        $('.select2-departamento').select2({
+            theme: 'bootstrap-5', dropdownParent: $('#modalCliente'), width: '100%', placeholder: 'Departamento'
+        });
+    }
+    if ($('.select2-ciudad').length) {
+        $('.select2-ciudad').select2({
+            theme: 'bootstrap-5', dropdownParent: $('#modalCliente'), width: '100%', placeholder: 'Ciudad'
+        });
+    }
+
+    if (typeof inicializarUbicacion === 'function') inicializarUbicacion();
 
     if (document.getElementById('bodyTabla')) cargarClientes();
 
@@ -76,7 +92,7 @@ function renderTabla(clientes) {
     const tbody = document.getElementById('bodyTabla');
     if (!tbody) return;
     if (!clientes || clientes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">No se encontraron registros</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No se encontraron registros</td></tr>`;
         if (typeof renderAdminMobileRows === 'function') renderAdminMobileRows('clientesMobile', []);
         return;
     }
@@ -91,12 +107,15 @@ function renderTabla(clientes) {
                         initial: inicial,
                         name: `${c.name_customer} ${c.lastname_customer}`,
                         phone: c.phone_customer,
+                        city: c.city_customer,
                         subHtml: adminEscapeHtml(c.email_customer || ''),
                         subTitle: c.email_customer || '',
                     })}
                 </td>
                 <td class="py-3">${c.phone_customer || '-'}</td>
                 <td class="py-3 text-truncate" style="max-width:180px" title="${adminEscapeHtml(c.email_customer || '')}">${c.email_customer || '-'}</td>
+                <td class="py-3">${c.department_customer || '-'}</td>
+                <td class="py-3">${c.city_customer || '-'}</td>
                 <td class="py-3"><span class="badge ${activo ? 'bg-success' : 'bg-danger'}">${activo ? 'Activo' : 'Inactivo'}</span></td>
                 <td class="py-3">
                     ${adminIconActions(
@@ -115,11 +134,13 @@ function renderTabla(clientes) {
                     initial: adminInitial(c.name_customer),
                     name: `${c.name_customer} ${c.lastname_customer}`,
                     phone: c.phone_customer,
+                    city: c.city_customer,
                     subHtml: adminEscapeHtml(c.email_customer || ''),
                     subTitle: c.email_customer || '',
                 })) +
                 `<div class="admin-mobile-row__fields">
                     <div class="admin-mobile-row__field"><div class="text-muted small">ID</div><div class="fw-bold">#${c.id_customer}</div></div>
+                    <div class="admin-mobile-row__field"><div class="text-muted small">Departamento</div><div>${adminEscapeHtml(c.department_customer || '—')}</div></div>
                 </div>` +
                 adminMobileKpi(`<span class="badge ${activo ? 'bg-success' : 'bg-danger'}">${activo ? 'Activo' : 'Inactivo'}</span>`) +
                 adminMobileBottom('', adminIconActions(
@@ -142,6 +163,16 @@ function editarCliente(id) {
     setVal('email', c.email_customer);
     setVal('estado', c.status_customer);
 
+    if (c.department_customer) {
+        $('#departamento').val(c.department_customer).trigger('change');
+        if (c.city_customer) {
+
+            setTimeout(() => {
+                $('#ciudad').val(c.city_customer).trigger('change');
+            }, 350);
+        }
+    }
+
     document.getElementById('modalTitle').textContent = 'Editar Cliente';
     if(modalCliente) modalCliente.show();
 }
@@ -155,6 +186,8 @@ async function guardarCliente() {
     formData.append('lastname_customer', document.getElementById('apellido').value.trim());
     formData.append('phone_customer', document.getElementById('telefono').value.trim());
     formData.append('email_customer', document.getElementById('email').value.trim());
+    formData.append('department_customer', $('#departamento').val() || '');
+    formData.append('city_customer', $('#ciudad').val() || '');
     formData.append('status_customer', document.getElementById('estado').value);
     formData.append('csrf_token', window.APP_CSRF_TOKEN || '');
     if (typeof showPreloader === 'function') showPreloader();

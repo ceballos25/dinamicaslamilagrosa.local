@@ -1,6 +1,11 @@
 <?php
-$checkoutTransferKey = trim((string)(AppContainer::get()->config()->get('transfer_breb_key', '')));
-$checkoutTransferName = trim((string)(AppContainer::get()->config()->get('transfer_breb_name', '')));
+$config = AppContainer::get()->config();
+$checkoutTransferKey = trim((string)$config->get('transfer_breb_key', ''));
+$checkoutTransferName = trim((string)$config->get('transfer_breb_name', ''));
+$checkoutBancolombia = trim((string)$config->get('transfer_bancolombia', ''));
+$checkoutBancolombiaName = trim((string)$config->get('transfer_bancolombia_name', $checkoutTransferName));
+$checkoutNequi = trim((string)$config->get('transfer_nequi', ''));
+$checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutTransferName));
 ?>
     <div class="modal cr-checkout-sheet" id="modalCheckout" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-scrollable">
@@ -65,6 +70,23 @@ $checkoutTransferName = trim((string)(AppContainer::get()->config()->get('transf
                                 <input type="email" class="form-control" id="emailCliente" required placeholder="Correo" autocomplete="email">
                                 <label for="emailCliente">Correo electrónico</label>
                             </div>
+
+                            <div class="row g-2">
+                                <div class="col-sm-6">
+                                    <div class="select-floating-label-group">
+                                        <select class="form-select select2-ubicacion" id="departamento" required>
+                                            <option value="">Departamento...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="select-floating-label-group">
+                                        <select class="form-select select2-ubicacion" id="ciudad" required>
+                                            <option value="">Ciudad...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </section>
 
                         <section class="cr-checkout-panel">
@@ -75,8 +97,9 @@ $checkoutTransferName = trim((string)(AppContainer::get()->config()->get('transf
 
                             <div id="contenedorMetodoPago" class="cr-checkout-pay-details">
                                 <div id="metodoTransferencia" class="metodo-pago">
-                                    <p class="cr-checkout-pay-hint">Transfiere el total exacto y luego sube el comprobante:</p>
+                                    <p class="cr-checkout-pay-hint">Transfiere el total exacto a una de estas cuentas y luego sube el comprobante:</p>
                                     <div class="cr-cuentas-grid">
+                                        <?php if ($checkoutTransferKey !== ''): ?>
                                         <div class="cr-cuenta-card">
                                             <div class="cr-cuenta-card__head">
                                                 <span class="cr-cuenta-card__bank">Bre-B · Llave</span>
@@ -85,6 +108,27 @@ $checkoutTransferName = trim((string)(AppContainer::get()->config()->get('transf
                                             <span class="cr-cuenta-card__num" id="breb"><?= htmlspecialchars($checkoutTransferKey, ENT_QUOTES, 'UTF-8') ?></span>
                                             <span class="cr-cuenta-card__name" id="brebName"><?= htmlspecialchars($checkoutTransferName, ENT_QUOTES, 'UTF-8') ?></span>
                                         </div>
+                                        <?php endif; ?>
+                                        <?php if ($checkoutBancolombia !== ''): ?>
+                                        <div class="cr-cuenta-card">
+                                            <div class="cr-cuenta-card__head">
+                                                <span class="cr-cuenta-card__bank">Bancolombia · Ahorros</span>
+                                                <button type="button" class="btn btn-sm btn-copy-cuenta" onclick="copiarTexto('bancolombia')">Copiar</button>
+                                            </div>
+                                            <span class="cr-cuenta-card__num" id="bancolombia"><?= htmlspecialchars($checkoutBancolombia, ENT_QUOTES, 'UTF-8') ?></span>
+                                            <span class="cr-cuenta-card__name"><?= htmlspecialchars($checkoutBancolombiaName, ENT_QUOTES, 'UTF-8') ?></span>
+                                        </div>
+                                        <?php endif; ?>
+                                        <?php if ($checkoutNequi !== ''): ?>
+                                        <div class="cr-cuenta-card">
+                                            <div class="cr-cuenta-card__head">
+                                                <span class="cr-cuenta-card__bank">Nequi</span>
+                                                <button type="button" class="btn btn-sm btn-copy-cuenta" onclick="copiarTexto('nequi')">Copiar</button>
+                                            </div>
+                                            <span class="cr-cuenta-card__num" id="nequi"><?= htmlspecialchars($checkoutNequi, ENT_QUOTES, 'UTF-8') ?></span>
+                                            <span class="cr-cuenta-card__name"><?= htmlspecialchars($checkoutNequiName, ENT_QUOTES, 'UTF-8') ?></span>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                     <label class="cr-upload-zone" id="comprobantePagoZone" for="comprobantePago">
                                         <i class="ti ti-cloud-upload" id="comprobantePagoIcon" aria-hidden="true"></i>

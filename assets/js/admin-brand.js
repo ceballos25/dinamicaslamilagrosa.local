@@ -8,7 +8,7 @@
                 if (!data.success || !data.data?.images) return;
                 const img = data.data.images;
                 const pick = (k) => img[k]?.url || img[k]?.fallback || '';
-                const logoUrl = pick('logo') || (window.location.origin + '/assets/images/logo.png');
+                const logoUrl = pick('logo') || (window.location.origin + '/assets/images/logo-transparent.png');
                 document.querySelectorAll('[data-site-logo], [data-site-logo-white], [data-site-logo-nav], [data-site-logo-footer]').forEach((el) => {
                     el.src = logoUrl;
                 });

@@ -12,7 +12,7 @@
   <?php include_once "pagination_script.php"; ?>
   <?php include_once "preloader.php"; ?>
   <?php include_once "btn-share.php"; ?>
-  <script src="<?= ASSETS_URL ?>/js/admin-brand.js?v=2"></script>
+  <script src="<?= ASSETS_URL ?>/js/admin-brand.js?v=3"></script>
   <script src="<?= ASSETS_URL ?>/js/admin-fetch.js?v=5"></script>
   <?php if(isset($extra_js)) echo $extra_js; ?>
 

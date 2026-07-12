@@ -1,10 +1,31 @@
+<?php
+$heroTitle = function_exists('landing_setting')
+    ? landing_setting('landing_hero_title', '¡Gana una Yamaha NMAX!')
+    : '¡Gana una Yamaha NMAX!';
+$premioMayorTitulo = function_exists('landing_setting')
+    ? landing_setting('landing_premio_mayor_titulo', 'Premio mayor')
+    : 'Premio mayor';
+$premioMayorDesc = function_exists('landing_setting')
+    ? landing_setting('landing_premio_mayor_desc', '')
+    : '';
+$premioExtraTitulo = function_exists('landing_setting')
+    ? landing_setting('landing_premio_extra_titulo', 'Premios adicionales')
+    : 'Premios adicionales';
+$premioExtraLabel = function_exists('landing_setting')
+    ? landing_setting('landing_premio_extra_label', '')
+    : '';
+$premioExtraDesc = function_exists('landing_setting')
+    ? landing_setting('landing_premio_extra_desc', '')
+    : '';
+$heroBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
+?>
 <section class="cr-hero-section py-3">
     <div class="container">
         <div class="cr-hero-layout">
 
             <div class="cr-hero-title-wrap">
                 <h2 class="hero-title mb-0" id="landingHeroTitle">
-                    ¡Gana <span class="millonario">$4.000.000!</span> 🍀
+                    <?= htmlspecialchars($heroTitle, ENT_QUOTES, 'UTF-8') ?>
                 </h2>
             </div>
 
@@ -14,17 +35,23 @@
                         <div class="splide__track">
                             <ul class="splide__list" id="heroMainSlides">
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-evento-principal.png', ENT_QUOTES, 'UTF-8') ?>" alt="Premios Combo Stickers — $4.000.000, $1.000.000 y $100.000 c/u" data-site-hero-banner loading="eager">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-evento-principal.png', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — premio Yamaha NMAX', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-banner loading="eager">
+                                </li>
+                                <li class="splide__slide">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Yamaha NMAX', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-gallery-2 loading="lazy">
                                 </li>
                             </ul>
                         </div>
                     </section>
 
-                    <section id="thumbnail-carousel" class="splide mt-3 mx-auto d-none" style="max-width: 420px;" aria-hidden="true">
+                    <section id="thumbnail-carousel" class="splide mt-3 mx-auto" style="max-width: 420px;" aria-label="Miniaturas del premio">
                         <div class="splide__track">
                             <ul class="splide__list" id="heroThumbSlides">
                                 <li class="splide__slide">
-                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-evento-principal.png', ENT_QUOTES, 'UTF-8') ?>" alt="" loading="lazy">
+                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-evento-principal.png', ENT_QUOTES, 'UTF-8') ?>" alt="" data-site-hero-banner loading="lazy">
+                                </li>
+                                <li class="splide__slide">
+                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="" data-site-hero-gallery-2 loading="lazy">
                                 </li>
                             </ul>
                         </div>
@@ -40,8 +67,8 @@
                                 <i class="ti ti-trophy fs-4"></i>
                             </div>
                             <div>
-                                <p class="premio-mayor-label mb-1" id="landingPremioMayorTitulo">Primer G4nador</p>
-                                <p class="premio-mayor-desc mb-0" id="landingPremioMayorDesc">$4.000.000 en efectivo · Con las 3 últimas de Medellín</p>
+                                <p class="premio-mayor-label mb-1" id="landingPremioMayorTitulo"><?= htmlspecialchars($premioMayorTitulo, ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="premio-mayor-desc mb-0" id="landingPremioMayorDesc"><?= htmlspecialchars($premioMayorDesc, ENT_QUOTES, 'UTF-8') ?></p>
                             </div>
                         </div>
                     </div>
@@ -52,23 +79,20 @@
                         <div class="col-12">
                             <div class="card border-0 shadow-sm text-center w-100 cr-puesto-card">
                                 <div class="card-body py-3">
-                                    <p class="cr-puesto-label mb-1">Segundo G4nador</p>
+                                    <p class="cr-puesto-label mb-1" id="landingPremioExtraTitulo"><?= htmlspecialchars($premioExtraTitulo, ENT_QUOTES, 'UTF-8') ?></p>
                                     <h3 class="fw-bold mb-1">
-                                        <span class="color-dinero-premio">$1.000.000</span>
+                                        <span class="color-dinero-premio" id="landingPremioExtraLabel"><?= htmlspecialchars($premioExtraLabel, ENT_QUOTES, 'UTF-8') ?></span>
                                     </h3>
-                                    <small class="fw-bold text-muted d-block">En efectivo · invertido de las 3 últimas de la Medellín</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm text-center w-100 cr-puesto-card">
-                                <div class="card-body py-3">
-                                    <p class="cr-puesto-label mb-1">10 G4nadores Por las 2 últimas cifras</p>
-                                    <h3 class="fw-bold mb-1">
-                                        <span class="color-dinero-premio">$100.000</span>
-                                    </h3>
-                                    <small class="fw-bold text-muted d-block">En efectivo · $100.000 c/u</small>
+                                    <small class="fw-bold text-muted d-block mb-2" id="landingPremioExtraDesc"><?= htmlspecialchars($premioExtraDesc, ENT_QUOTES, 'UTF-8') ?></small>
+                                    <div id="bendecidosCardsContainer" class="cr-bendecidos-chips d-flex flex-wrap justify-content-center gap-1">
+                                        <?php if (!empty($bendecidosCards)): ?>
+                                            <?php foreach ($bendecidosCards as $c): ?>
+                                                <div class="bendecidos-numeros<?= !empty($c['premiado_vendido']) ? ' premiado' : '' ?>"><?= htmlspecialchars((string)$c['number'], ENT_QUOTES, 'UTF-8') ?></div>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <p class="small text-muted mb-0 w-100">Los nros bendecidos se publican aquí al marcarlos premium en Inventario.</p>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -40,20 +40,21 @@ function readPricingInt(value, fallback) {
 function pricingTierConfigVenta() {
     const p = estado.pricing;
     if (!p || p.mode === 'packages' || !isPricingTierEnabled(p.enabled)) {
-        return { enabled: false, firstUnit: 0, secondUnit: 0, thirdPlusUnit: 0 };
+        return { enabled: false, firstUnit: 0, secondUnit: 0, thirdPlusUnit: 0, bulkThreshold: 0 };
     }
     return {
         enabled: true,
-        firstUnit: readPricingInt(p.first_unit, 150),
-        secondUnit: readPricingInt(p.second_unit ?? p.tier1_unit, 150),
-        thirdPlusUnit: readPricingInt(p.third_plus_unit ?? p.tier2_unit, 150),
+        firstUnit: readPricingInt(p.first_unit, 1500),
+        secondUnit: readPricingInt(p.second_unit ?? p.tier1_unit, 1500),
+        thirdPlusUnit: readPricingInt(p.third_plus_unit ?? p.tier2_unit, 1200),
+        bulkThreshold: readPricingInt(p.bulk_threshold, 0),
     };
 }
 
 function packagePricingConfigVenta() {
     const p = estado.pricing;
     if (!p || p.mode !== 'packages' || !isPricingTierEnabled(p.enabled ?? true)) {
-        return { enabled: false, unitPrice: 150, minQuantity: 66, packages: {} };
+        return { enabled: false, unitPrice: 1500, bulkUnitPrice: 1200, bulkThreshold: 40, minQuantity: 10, packages: {} };
     }
     const packages = {};
     (Array.isArray(p.packages) ? p.packages : []).forEach(item => {
@@ -63,8 +64,10 @@ function packagePricingConfigVenta() {
     });
     return {
         enabled: true,
-        unitPrice: readPricingInt(p.unit_price, 150),
-        minQuantity: readPricingInt(p.min_quantity, 66),
+        unitPrice: readPricingInt(p.unit_price, 1500),
+        bulkUnitPrice: 1200,
+        bulkThreshold: 40,
+        minQuantity: readPricingInt(p.min_quantity, 10),
         packages,
     };
 }
@@ -84,7 +87,8 @@ function calcularDesglosePrecioVenta(cantidad) {
             return { total: pkg.packages[qty], promoActive: true };
         }
         if (qty >= pkg.minQuantity) {
-            return { total: qty * pkg.unitPrice, promoActive: false };
+            const unit = qty >= pkg.bulkThreshold ? pkg.bulkUnitPrice : pkg.unitPrice;
+            return { total: qty * unit, promoActive: qty >= pkg.bulkThreshold };
         }
         return { total: 0, promoActive: false };
     }
@@ -96,6 +100,14 @@ function calcularDesglosePrecioVenta(cantidad) {
         return {
             total: unit > 0 ? Math.round(qty * unit) : 0,
             promoActive: false,
+        };
+    }
+
+    if (tier.bulkThreshold > 0) {
+        const priceUnit = qty >= tier.bulkThreshold ? tier.thirdPlusUnit : tier.firstUnit;
+        return {
+            total: Math.round(priceUnit * qty),
+            promoActive: qty >= tier.bulkThreshold,
         };
     }
 
@@ -246,6 +258,13 @@ async function parseAjaxJson(res) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (typeof inicializarUbicacion === 'function') {
+        inicializarUbicacion();
+    }
+    if ($('.select2-ubicacion').length) {
+        $('.select2-ubicacion').select2({ theme: 'bootstrap-5', width: '100%' });
+    }
+
     inyectarEstilosMarca();
     initComponentes();
     cargarRifasActivas();
@@ -731,9 +750,11 @@ async function aplicarModoVenta() {
     const manual = esRifaManual();
     const manualBox = document.getElementById('selectorManualVenta');
     const bloquePremiado = document.getElementById('bloqueNumeroPremiado');
+    const bloquePaquetes = document.getElementById('bloquePaquetesVenta');
 
     if (manualBox) manualBox.classList.toggle('d-none', !manual);
     if (bloquePremiado) bloquePremiado.classList.toggle('d-none', manual);
+    if (bloquePaquetes) bloquePaquetes.classList.toggle('d-none', manual);
 
     estado.numerosSeleccionados = [];
     estado.cantidadSeleccionada = 0;
@@ -1046,6 +1067,8 @@ function obtenerDatosFormularioVenta() {
             apellido: $('#apellidoCliente').val().trim(),
             celular: $('#celularCliente').val().trim(),
             email: $('#emailCliente').val().trim(),
+            depto: $('#departamento').val(),
+            ciudad: $('#ciudad').val(),
         },
         metodo:
             $('input[name="metodoPago"]:checked').val()
@@ -1078,6 +1101,10 @@ function validarDatosVenta(form) {
 
     if (!cliente.nombre || !cliente.apellido || !cliente.celular || !cliente.email) {
         return 'Todos los campos obligatorios (*) deben estar llenos.';
+    }
+
+    if (!cliente.depto || !cliente.ciudad) {
+        return 'Selecciona departamento y ciudad.';
     }
 
     if (!metodo) {
@@ -1216,6 +1243,8 @@ async function ejecutarVentaRegistro(opts) {
     fd.append('lastname_customer', cliente.apellido);
     fd.append('phone_customer', cliente.celular);
     fd.append('email_customer', cliente.email);
+    fd.append('department_customer', cliente.depto);
+    fd.append('city_customer', cliente.ciudad);
 
     if (esRifaManual()) {
         estado.numerosSeleccionados.forEach(id => fd.append('ticket_ids[]', id));
@@ -1367,6 +1396,12 @@ function llenarFormulario(c) {
     $('#nombreCliente').val(c.name_customer);
     $('#apellidoCliente').val(c.lastname_customer);
     $('#celularCliente').val(c.phone_customer);
+    if (c.department_customer) {
+        $('#departamento').val(c.department_customer).trigger('change');
+        if (c.city_customer) {
+            setTimeout(() => $('#ciudad').val(c.city_customer).trigger('change'), 150);
+        }
+    }
     $('#emailCliente').val(c.email_customer);
 
     $('#btnLimpiarCliente').removeClass('d-none');

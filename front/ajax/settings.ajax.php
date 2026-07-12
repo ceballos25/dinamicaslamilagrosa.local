@@ -9,11 +9,21 @@ use App\Shared\Http\Response;
 $method = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 $action = trim((string)($_POST['action'] ?? $_GET['action'] ?? ''));
 
-// Lectura pública de settings para landing/index (sin pasar por RBAC).
+// Lectura de settings: pública para landing; completa si hay admin con permiso.
 if ($method !== 'POST' || $action === 'obtener') {
     require_once dirname(__DIR__, 2) . '/config/config.php';
     require_once dirname(__DIR__, 2) . '/controllers/settings.controller.php';
-    Response::json(SettingsController::obtenerSettingsPublicas());
+
+    $isAdminSettings = $method === 'POST'
+        && $action === 'obtener'
+        && function_exists('adminCan')
+        && adminCan('settings', 'manage');
+
+    Response::json(
+        $isAdminSettings
+            ? SettingsController::obtenerSettings()
+            : SettingsController::obtenerSettingsPublicas()
+    );
 }
 
 /** @var \App\Shared\Routing\Router $router */

@@ -59,6 +59,14 @@ include_once ROOT_PATH . "/includes/head.php";
                                                 <label class="small fw-bold text-dark mb-1">Email <span class="text-danger">*</span></label>
                                                 <input type="email" class="form-control shadow-sm text-lowercase" id="emailCliente">
                                             </div>
+                                            <div class="col-6 col-md-4">
+                                                <label class="small fw-bold text-dark mb-1">Depto <span class="text-danger">*</span></label>
+                                                <select class="form-select shadow-sm select2-ubicacion" id="departamento"></select>
+                                            </div>
+                                            <div class="col-6 col-md-4">
+                                                <label class="small fw-bold text-dark mb-1">Ciudad <span class="text-danger">*</span></label>
+                                                <select class="form-select shadow-sm select2-ubicacion" id="ciudad" disabled></select>
+                                            </div>
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-3">
@@ -82,6 +90,13 @@ include_once ROOT_PATH . "/includes/head.php";
                                 <div class="px-3 pt-3 px-lg-0 pt-lg-0 vender-rifa-select-wrap">
                                     <select class="form-select form-select fw-bold shadow-sm text-dark border-secondary" id="selectRifa">
                                     </select>
+                                </div>
+
+                                <div id="bloquePaquetesVenta" class="px-3 px-lg-0 vender-paquetes-wrap">
+                                    <?php
+                                    $crPaquetesRowClass = 'row g-2';
+                                    include ROOT_PATH . '/includes/components/cr-paquetes-grid.php';
+                                    ?>
                                 </div>
 
                                 <div id="bloqueNumeroPremiado" class="px-3 px-lg-0 d-none">
@@ -222,8 +237,9 @@ $extra_js = '
 <script src="' . ASSETS_URL . '/js/money-cop.js?v=1"></script>
 <script src="' . ASSETS_URL . '/js/admin-mobile.js?v=18"></script>
 <script src="' . ASSETS_URL . '/libs/select2/js/select2.min.js"></script>
+<script src="' . ASSETS_URL . '/js/departamentos-ciudades.js?v=1"></script>
 <script src="' . ASSETS_URL . '/js/cr-grilla-numeros.js?v=10"></script>
-<script src="' . ASSETS_URL . '/js/vender.js?v=26"></script>
+<script src="' . ASSETS_URL . '/js/vender.js?v=28"></script>
 ';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

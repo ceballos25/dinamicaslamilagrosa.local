@@ -6,8 +6,22 @@
             <div class="row g-4">
 
                 <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm" id="bloquePaquetesLanding">
+
+                        <div class="card-header bg-white py-3 px-3">
+                            <p class="fw-semibold mb-0 text-dark">
+                                <i class="ti ti-grid-dots me-2" style="color: var(--cr-gold);"></i>
+                                Selecciona la cantidad
+                            </p>
+                        </div>
+
+                        <div class="card-body bg-light cr-theme">
+                            <?php include ROOT_PATH . '/includes/components/cr-paquetes-grid.php'; ?>
+                        </div>
+                    </div>
+
                     <?php
-                    $crGrillaWrapperClass = 'card border-0 shadow-sm cr-grilla-panel';
+                    $crGrillaWrapperClass = 'card border-0 shadow-sm cr-grilla-panel d-none';
                     include ROOT_PATH . '/includes/components/cr-grilla-manual.php';
                     ?>
                 </div>

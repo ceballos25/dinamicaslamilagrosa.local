@@ -11,7 +11,7 @@ function cr_site_favicon_url(): string
         return $cached;
     }
 
-    $default = defined('LOGO_NAV_URL') ? LOGO_NAV_URL : (ASSETS_URL . '/images/logo.png');
+    $default = defined('LOGO_NAV_URL') ? LOGO_NAV_URL : (ASSETS_URL . '/images/logo-transparent.png');
 
     try {
         if (class_exists(\App\Infrastructure\Repository\PdoSiteImageRepository::class)) {

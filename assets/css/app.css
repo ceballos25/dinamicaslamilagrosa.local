@@ -100,11 +100,17 @@ body.landing .bendecidos-numeros {
 
 .cr-numero-chip--libre,
 .cr-theme .cr-numero-chip--libre,
-body.landing .cr-numero-chip--libre,
-.bendecidos-numeros:not(.premiado) {
+body.landing .cr-numero-chip--libre {
     background-color: var(--cr-num-libre-bg) !important;
     color: var(--cr-num-libre-text) !important;
     border: 2px solid var(--cr-num-libre-border) !important;
+}
+
+body.landing .cr-bendecidos-chips .bendecidos-numeros:not(.premiado),
+.cr-bendecidos-chips .bendecidos-numeros:not(.premiado) {
+    background-color: var(--cr-num-premium-bg) !important;
+    color: var(--cr-num-premium-text) !important;
+    border: 2px solid var(--cr-num-premium-border) !important;
 }
 
 .cr-theme .cr-numero-chip--vendido,
@@ -270,6 +276,25 @@ body.landing .cr-numero-chip--reservado {
     font-size: 0.95rem;
     padding: 6px 12px;
     border-width: 2px;
+    border-radius: var(--cr-chip-radius);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    text-align: center;
+}
+
+body.landing .cr-bendecidos-chips {
+    margin-top: 0.35rem;
+}
+
+body.landing .cr-bendecidos-chips .bendecidos-numeros {
+    font-size: 0.95rem;
+    padding: 6px 12px;
+    min-width: 2.75rem;
+    width: auto;
+    margin: 0 4px 6px 0;
+    letter-spacing: 0.02em;
 }
 
 .cr-theme .bendecidos-numeros.premiado::before,
@@ -516,7 +541,7 @@ body.landing .cr-grilla-numeros {
     body.landing .cr-grilla-numeros--grid {
         max-height: none;
         overflow-y: visible;
-        padding-right: 3rem;
+        padding-right: 0.5rem;
     }
 }
 
@@ -1413,18 +1438,20 @@ body.landing .site-footer-logo img {
 .social-float-rail {
     position: fixed;
     right: 6px;
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-    z-index: 1035;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    z-index: 1025;
     display: flex;
     flex-direction: column-reverse;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     pointer-events: none;
 }
 
 @media (min-width: 992px) {
     .social-float-rail {
-        bottom: 12px;
+        bottom: 16px;
+        right: 12px;
+        gap: 8px;
     }
 }
 
@@ -1432,15 +1459,18 @@ body.landing .site-footer-logo img {
     position: relative;
     right: auto;
     bottom: auto;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     flex-shrink: 0;
     pointer-events: auto;
 }
 
 .btn-whatsapp,
 .btn-instagram,
-.btn-facebook {
+.btn-facebook,
+.btn-tiktok {
+    width: 48px;
+    height: 48px;
     bottom: auto;
 }
 
@@ -1448,38 +1478,97 @@ body.landing .site-footer-logo img {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
     position: relative;
     overflow: visible;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-social > a:hover {
+    transform: scale(1.06);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.btn-social > a i {
+    font-size: 1.55rem;
+    line-height: 1;
+    color: #fff;
 }
 
 .btn-social > a img,
 .btn-social > a svg {
-    display: block;
-    margin: 0;
+    display: none;
 }
 
-.btn-whatsapp {
-    width: 58px;
-    height: 58px;
+.btn-instagram > a {
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
 }
 
 .btn-whatsapp > a {
-    width: 58px;
-    height: 58px;
+    background: #25d366;
 }
 
-.btn-whatsapp svg {
-    width: 46px;
-    height: 46px;
+.btn-facebook > a {
+    background: #1877f2;
 }
 
-.btn-facebook img,
-.btn-instagram img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
+.btn-tiktok > a {
+    background: #010101;
+}
+
+.btn-tiktok > a i {
+    color: #fff;
+}
+
+.btn-social .notification-bubble {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    z-index: 2;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #e53935;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+/* Móvil: sin botones flotantes; redes solo en el footer */
+@media (max-width: 991.98px) {
+    .social-float-rail {
+        display: none !important;
+    }
+}
+
+body.landing .site-footer .social-instagram,
+body.landing .site-footer .social-facebook,
+body.landing .site-footer .social-tiktok,
+body.landing .site-footer .social-whatsapp {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    line-height: 1;
+}
+
+body.landing .site-footer .social-instagram i,
+body.landing .site-footer .social-facebook i,
+body.landing .site-footer .social-tiktok i,
+body.landing .site-footer .social-whatsapp i {
+    font-size: 1.15rem;
+    line-height: 1;
 }
 
 @media (max-width: 991.98px) {
@@ -4469,8 +4558,8 @@ body.landing .ganador-one {
 }
 
 body.landing .cr-nav-badge {
-    background: var(--cr-gold-muted) !important;
-    color: var(--cr-dark) !important;
+    background: rgba(242, 181, 0, 0.18) !important;
+    color: #ffffff !important;
     border: 1px solid var(--cr-primary) !important;
     font-weight: 600;
     font-size: 0.8125rem;

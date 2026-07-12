@@ -652,6 +652,8 @@ class VentasController
             'lastname_customer' => ucwords(strtolower($lastname)),
             'phone_customer' => $phone,
             'email_customer' => trim((string)($data['email_customer'] ?? '')),
+            'department_customer' => trim((string)($data['department_customer'] ?? '')),
+            'city_customer' => trim((string)($data['city_customer'] ?? '')),
             'status_customer' => 1,
         ]);
     }
@@ -759,7 +761,7 @@ class VentasController
         $fecha = new DateTime($venta->date_created_sale);
         $fecha->setTimezone(new DateTimeZone('America/Bogota'));
 
-        $nombreRifa = defined('SITE_NAME') ? SITE_NAME : 'Combo Stickers';
+        $nombreRifa = defined('SITE_NAME') ? SITE_NAME : 'Dinámicas La Milagrosa';
 
         $settingsRows = Db::fetchAll('SELECT key_setting, value_setting FROM settings');
         foreach ($settingsRows as $item) {
@@ -777,8 +779,8 @@ class VentasController
         $textoEvento = $descripcionPremio !== '' ? $descripcionPremio : $tituloEvento;
         $fechaEvento = EventDateFormatter::formatDayMonth((string)($venta->date_raffle ?? ''));
 
-        $siteName = defined('SITE_NAME') ? SITE_NAME : 'Combo Stickers';
-        $logoUrl = defined('LOGO_NAV_URL') ? LOGO_NAV_URL : (ASSETS_URL . '/images/logo.png');
+        $siteName = defined('SITE_NAME') ? SITE_NAME : 'Dinámicas La Milagrosa';
+        $logoUrl = defined('LOGO_LIGHT_URL') ? LOGO_LIGHT_URL : (defined('LOGO_NAV_URL') ? LOGO_NAV_URL : (ASSETS_URL . '/images/logo-transparent.png'));
 
         $htmlTickets = self::htmlNumerosReciboGrid($tickets);
 

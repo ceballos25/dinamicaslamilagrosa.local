@@ -25,18 +25,39 @@ class SettingsController
             'web_compras_habilitadas',
             'web_mensaje_compras_bloqueadas',
             'barra',
+            'barra_modo',
+            'barra_fija',
             'pricing_packages_enabled',
             'pricing_tiered_enabled',
             'pricing_first_unit',
             'pricing_tier1_unit',
             'pricing_tier2_unit',
+            'pricing_bulk_threshold',
             'social_instagram_url',
             'social_facebook_url',
+            'social_tiktok_url',
             'whatsapp',
             'whatsapp_chat_url',
+            'whatsapp_secondary',
             'transfer_breb_key',
             'transfer_breb_name',
+            'transfer_bancolombia',
+            'transfer_bancolombia_name',
+            'transfer_nequi',
+            'transfer_nequi_name',
             'nombre_rifa',
+            'landing_meta_description',
+            'landing_hero_title',
+            'landing_premio_mayor_titulo',
+            'landing_premio_mayor_desc',
+            'landing_premio_extra_titulo',
+            'landing_premio_extra_label',
+            'landing_premio_extra_desc',
+            'footer_tagline',
+            'footer_phones',
+            'contact_email',
+            'footer_location',
+            'footer_payments',
         ];
 
         $placeholders = implode(',', array_fill(0, count($allowed), '?'));
@@ -61,6 +82,32 @@ class SettingsController
             $key = trim((string)$key);
             $value = trim((string)$value);
 
+            if ($key === '' || !preg_match('/^[a-z0-9_]+$/i', $key)) {
+                return [
+                    'success' => false,
+                    'message' => "Key inválida: $key",
+                ];
+            }
+
+            $exists = Db::fetchOne(
+                'SELECT id_setting, value_setting FROM settings WHERE key_setting = :k LIMIT 1',
+                [':k' => $key]
+            );
+
+            if (!$exists) {
+                Db::insert(self::TABLE, [
+                    'key_setting' => strtolower($key),
+                    'value_setting' => $value,
+                    'date_created_setting' => date('Y-m-d'),
+                    'date_updated_setting' => date('Y-m-d H:i:s'),
+                ]);
+                continue;
+            }
+
+            if ((string)($exists->value_setting ?? '') === $value) {
+                continue;
+            }
+
             $n = Db::update(
                 self::TABLE,
                 [
@@ -74,9 +121,13 @@ class SettingsController
             if ($n < 1) {
                 return [
                     'success' => false,
-                    'message' => "Setting no encontrado o sin cambios: $key",
+                    'message' => "No se pudo actualizar: $key",
                 ];
             }
+        }
+
+        if (class_exists(\App\Shared\Config\DynamicConfig::class)) {
+            (new \App\Shared\Config\DynamicConfig())->flush();
         }
 
         return ['success' => true, 'message' => 'Settings actualizados'];
