@@ -1,0 +1,37 @@
+# Entorno — .env FUERA de public_html (ver config/envLoader.php)
+# Local/CyberPanel: ../.env  ($VH_ROOT/.env)
+../.env
+../.env.*
+!../.env-co.example
+.env
+.env.*
+!.env-co.example
+
+config/paths.php
+
+# Dependencias de PHP
+
+# Logs privados fuera de public_html ($VH_ROOT/logs)
+../../logs/*
+!../../logs/.gitkeep
+
+# Datos privados fuera de public_html ($VH_ROOT/data)
+../../data/*
+!../../data/.gitkeep
+!../../data/cache/.gitkeep
+!../../data/locks/.gitkeep
+
+*.log
+
+.phpunit.cache/
+.phpunit.result.cache
+
+# Comprobantes de transferencia (archivos subidos; conservar la carpeta en git)
+/uploads/comprobantes/*
+!/uploads/comprobantes/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store

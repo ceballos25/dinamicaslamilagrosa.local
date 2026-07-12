@@ -1,0 +1,193 @@
+<?php
+
+class ClientesController
+{
+    public const TABLE = 'customers';
+
+    public static function mensajeClienteInactivo(): string
+    {
+        return 'Estamos presentando algunos problemas técnicos, inténtalo más tarde.';
+    }
+
+    /**
+     * @return array{allowed: bool, phone: string, message: string}
+     */
+    public static function telefonoPermiteCompra(string $phoneRaw): array
+    {
+        $phone = preg_replace('/[^0-9]/', '', $phoneRaw);
+        if (strpos($phone, '57') === 0 && strlen($phone) === 12) {
+            $phone = substr($phone, 2);
+        }
+
+        if (!preg_match('/^\d{10}$/', $phone)) {
+            return ['allowed' => true, 'phone' => $phone, 'message' => ''];
+        }
+
+        $row = Db::fetchOne(
+            'SELECT status_customer FROM customers WHERE phone_customer = :p LIMIT 1',
+            [':p' => $phone]
+        );
+
+        if ($row && (int)($row->status_customer ?? 1) !== 1) {
+            return [
+                'allowed' => false,
+                'phone' => $phone,
+                'message' => self::mensajeClienteInactivo(),
+            ];
+        }
+
+        return ['allowed' => true, 'phone' => $phone, 'message' => ''];
+    }
+
+    public static function obtenerClientes()
+    {
+        $search = !empty($_POST['search']) ? trim((string)$_POST['search']) : '';
+        $status = (isset($_POST['status']) && $_POST['status'] !== '') ? $_POST['status'] : '';
+
+        $where = ['1=1'];
+        $params = [];
+
+        if ($status !== '') {
+            $where[] = 'status_customer = :st';
+            $params[':st'] = (int)$status;
+        }
+
+        if ($search !== '') {
+            $telefonoLimpio = preg_replace('/[^0-9]/', '', $search);
+            if (strpos($search, '@') !== false) {
+                $where[] = 'email_customer LIKE :s';
+                $params[':s'] = '%' . $search . '%';
+            } elseif (is_numeric($telefonoLimpio) && strlen($telefonoLimpio) >= 3) {
+                $where[] = 'phone_customer LIKE :p';
+                $params[':p'] = '%' . $telefonoLimpio . '%';
+            } else {
+                $where[] = '(name_customer LIKE :n OR lastname_customer LIKE :n2)';
+                $params[':n'] = '%' . $search . '%';
+                $params[':n2'] = '%' . $search . '%';
+            }
+        }
+
+        $sql = 'SELECT id_customer,name_customer,lastname_customer,phone_customer,email_customer,status_customer
+            FROM customers WHERE ' . implode(' AND ', $where) . ' ORDER BY id_customer DESC';
+
+        $rows = Db::fetchAll($sql, $params);
+
+        return [
+            'success' => true,
+            'data' => $rows,
+            'total' => count($rows),
+        ];
+    }
+
+    public static function crearCliente($data)
+    {
+        if (
+            empty($data['name_customer']) ||
+            empty($data['lastname_customer']) ||
+            empty($data['phone_customer']) ||
+            empty($data['email_customer'])
+        ) {
+            return ['success' => false, 'message' => 'Error: Todos los campos son obligatorios'];
+        }
+
+        $datos = [
+            'name_customer' => trim($data['name_customer']),
+            'lastname_customer' => trim($data['lastname_customer']),
+            'phone_customer' => trim($data['phone_customer']),
+            'email_customer' => trim($data['email_customer']),
+            'status_customer' => isset($data['status_customer']) ? (int)$data['status_customer'] : 1,
+        ];
+
+        $id = Db::insert(self::TABLE, $datos);
+
+        return [
+            'success' => true,
+            'message' => 'Cliente creado exitosamente',
+            'id_customer' => $id,
+        ];
+    }
+
+    public static function actualizarCliente($data)
+    {
+        if (empty($data['id_customer'])) {
+            return ['success' => false, 'message' => 'ID requerido'];
+        }
+
+        if (
+            empty($data['name_customer']) ||
+            empty($data['lastname_customer']) ||
+            empty($data['phone_customer']) ||
+            empty($data['email_customer'])
+        ) {
+            return ['success' => false, 'message' => 'Error: No puedes dejar campos vacíos'];
+        }
+
+        $datosActualizar = [
+            'name_customer' => trim($data['name_customer']),
+            'lastname_customer' => trim($data['lastname_customer']),
+            'phone_customer' => trim($data['phone_customer']),
+            'email_customer' => trim($data['email_customer']),
+            'status_customer' => isset($data['status_customer']) ? (int)$data['status_customer'] : 1,
+        ];
+
+        $n = Db::update(self::TABLE, $datosActualizar, 'id_customer = :id', [':id' => (int)$data['id_customer']]);
+
+        return $n > 0
+            ? ['success' => true, 'message' => 'Cliente actualizado correctamente']
+            : ['success' => false, 'message' => 'Error al actualizar'];
+    }
+
+    public static function eliminarCliente($data)
+    {
+        if (empty($data['id_customer'])) {
+            return ['success' => false, 'message' => 'ID requerido'];
+        }
+
+        $n = Db::delete(self::TABLE, 'id_customer = :id', [':id' => (int)$data['id_customer']]);
+
+        return $n > 0
+            ? ['success' => true, 'message' => 'Cliente eliminado']
+            : ['success' => false, 'message' => 'Error al eliminar'];
+    }
+
+    public static function obtenerOCrearCliente(array $data): int
+    {
+        $check = self::telefonoPermiteCompra((string)($data['phone_customer'] ?? ''));
+        if (!$check['allowed']) {
+            throw new Exception($check['message']);
+        }
+
+        $_POST['search'] = $data['phone_customer'];
+        $_POST['status'] = '';
+
+        $res = self::obtenerClientes();
+
+        if (!empty($res['data'])) {
+            $customer = $res['data'][0];
+            if ((int)($customer->status_customer ?? 1) !== 1) {
+                throw new Exception(self::mensajeClienteInactivo());
+            }
+
+            return (int)$customer->id_customer;
+        }
+
+        $crear = self::crearCliente($data);
+
+        if (!$crear['success']) {
+            throw new Exception('No se pudo crear el cliente');
+        }
+
+        if (!empty($crear['id_customer'])) {
+            return (int)$crear['id_customer'];
+        }
+
+        $_POST['search'] = $data['phone_customer'];
+        $res = self::obtenerClientes();
+
+        if (empty($res['data'])) {
+            throw new Exception('Cliente creado pero no encontrado');
+        }
+
+        return (int)$res['data'][0]->id_customer;
+    }
+}

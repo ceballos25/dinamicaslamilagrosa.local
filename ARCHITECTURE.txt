@@ -1,0 +1,225 @@
+Combo Stickers — guía de arquitectura
+=====================================
+
+Stack: PHP 8.1+, MySQL 8, Bootstrap 5, jQuery. Composer (PHPMailer, PHPUnit).
+No hay framework MVC completo: código nuevo en src/ (PSR-4) y lógica histórica en
+controllers/.
+
+
+Modelo de negocio (estado actual)
+---------------------------------
+
+  - Rifa activa con selección manual de números en la landing (grilla).
+  - Precio unitario desde BD (campo price_raffle de la rifa; ej. $10.000 c/u).
+  - Checkout solo por transferencia Bre-B (llave y titular en settings).
+  - Comprobante obligatorio: OCR en modo strict → si aprueba, venta automática.
+  - Sin pasarela PSE/OpenPay ni checkout con tarjeta.
+  - Paquetes por volumen (cs_package_*): legacy desactivado (pricing_packages_enabled=0).
+
+
+Mapa de carpetas
+----------------
+
+  combostickers.local/          ← DocumentRoot (index.php visible)
+  │
+  ├── index.php                 Landing pública + checkout
+  ├── transferencia.php         Confirmación post-compra (HTML + poll AJAX)
+  ├── dash.php                  Login del panel admin
+  │
+  ├── config/                   Carga .env-co, sesión, constantes
+  ├── bootstrap/                AppContainer (DI) + Router AJAX
+  ├── controllers/              Negocio legacy (ventas, rifas, transferencias…)
+  ├── src/                      Capas modernas (ver abajo)
+  ├── includes/                 Vistas PHP (landing/, admin, componentes)
+  ├── front/                    Módulos del panel + front/ajax/*.ajax.php
+  ├── assets/                   CSS (brand.css, app.css), JS, imágenes
+  ├── uploads/comprobantes/     Comprobantes (HTTP bloqueado por .htaccess)
+  ├── tests/                    PHPUnit (unit + integration)
+  └── vendor/                   Dependencias Composer (bloqueado por HTTP)
+
+  Fuera del docroot (ver config/paths.php):
+    ../.env-co                    Variables de entorno
+    ../logs/                      PHP errors, sesiones
+    ../data/                      cache/, locks/
+
+
+Capas en src/
+-------------
+
+  Domain/           Contratos (repositorios, value objects).
+  Application/      Casos de uso: checkout web, OCR, tickets, reportes, Meta CAPI.
+  Infrastructure/   PDO (PdoFactory), repositorios, lectores OCR.
+  Presentation/     Controladores HTTP, middleware (CSRF, RBAC, rate limit).
+  Shared/           DynamicConfig, auditoría, routing, utilidades HTTP.
+
+Regla práctica: lógica nueva → Application/ + Infrastructure/. Si tocas ventas
+o rifas del panel, probablemente también controllers/ventas.controller.php o
+rifas.controller.php.
+
+
+Dos “bootstrap” distintos (no mezclar)
+--------------------------------------
+
+  bootstrap/app.php           Router de peticiones POST a front/ajax/*.ajax.php
+  bootstrap/container.php     AppContainer: instancias compartidas (singleton)
+
+  includes/landing/init.php     Solo la landing: config, mantenimiento, helpers.
+                                Se carga desde index.php (no usa bootstrap/app.php).
+
+
+Flujo de una petición
+---------------------
+
+  Landing (index.php)
+      → includes/landing/init.php
+      → includes/landing/*.php (vistas)
+      → assets/js/frontend.js (grilla, checkout, AJAX)
+
+  Panel admin (front/*.php)
+      → config/config.php (sesión, auth)
+      → includes/head.php, sidebar, header, footer
+
+  AJAX del panel y checkout web (front/ajax/*.ajax.php)
+      → config/config.php (vía bootstrap/app.php)
+      → bootstrap/app.php → Router → *HttpController
+      → src/Application/* y/o controllers/*
+
+  Excepción — settings públicos:
+    GET front/ajax/settings.ajax.php  (o POST action=obtener)
+      → SettingsController::obtenerSettingsPublicas() (whitelist, sin API keys)
+      → No pasa por RBAC ni router completo
+
+  Excepción — transferencia.php:
+      → config/config.php + controllers/ directamente
+      → Página HTML de estado + endpoint ?poll=1 para actualizar sin recargar
+
+
+Endpoints AJAX registrados (bootstrap/app.php)
+----------------------------------------------
+
+  ventas.ajax.php        TicketSalesController (ventas panel)
+  web.ajax.php           WebCheckoutController (checkout público)
+  settings.ajax.php      SettingsHttpController (escritura admin; lectura pública arriba)
+  meta.ajax.php          MetaEventsController (pixel / CAPI)
+  rifas.ajax.php         RaffleHttpController
+  usuarios.ajax.php      UserHttpController
+  auditoria.ajax.php     AuditHttpController
+  visual.ajax.php        SiteImageHttpController (imágenes del sitio)
+  clientes.ajax.php      ClientesHttpController
+  numeros.ajax.php       NumerosHttpController
+  transferencias.ajax.php TransferenciasHttpController (revisión manual admin)
+  dashboard.ajax.php     DashboardHttpController
+  reports.ajax.php       ReportHttpController
+
+
+Compra en línea (flujo principal)
+---------------------------------
+
+  1. index.php carga grilla manual (includes/components/cr-grilla-manual.php).
+  2. frontend.js reserva números y abre modal de checkout (Bre-B desde settings).
+  3. POST front/ajax/web.ajax.php → action crear_transferencia_completa + comprobante.
+  4. ComprobanteValidator (OCR.space, modo strict por defecto).
+  5. Si el comprobante es válido: TransfersController crea transferencia y la aprueba
+     al instante (venta + tickets).
+  6. Redirección a transferencia.php?code=… (timeline, números, recibo).
+
+  Servicios y clases clave:
+    WebCheckoutService              acciones del checkout público
+    ComprobanteValidator            validación OCR, monto, anti-duplicados
+    TicketReservationService        reserva TTL; libera expiradas en cada reserva
+    RaffleCheckoutAllocationService asignación de números al crear venta
+    TransfersController             persistencia y aprobación de transferencias
+    VentasController                creación de venta y tickets (legacy)
+
+
+Panel administrador
+-------------------
+
+  dash.php                  Login → redirige a front/dashboard.php
+  front/dashboard.php       Métricas
+  front/rifas.php           Campañas / rifas
+  front/ventas.php          Ventas
+  front/vender.php          Venta manual (misma grilla que la landing)
+  front/transferencias.php  Revisión de comprobantes (casos edge / legacy)
+  front/numeros.php         Inventario de números
+  front/numeros-vendidos.php
+  front/clientes.php
+  front/reportes.php        Reportes SQL guardados
+  front/settings.php        Ajustes del sitio
+  front/configuracion-visual.php  Logo, banners, favicon
+  front/usuarios.php        Usuarios y permisos
+  front/auditoria.php       Log de acciones
+
+
+Acceso a datos
+--------------
+
+  PdoFactory + repositorios en src/Infrastructure/   ← preferido en código nuevo
+  Db (controllers/db.php)                            ← legacy, whitelist de tablas
+  DynamicConfig                                      ← settings en tabla settings
+
+
+Archivos y rutas sensibles
+--------------------------
+
+  .env-co                         Fuera del docroot; API key OCR en env, no en settings públicos
+  logs/, data/                    Fuera de public_html
+  uploads/comprobantes/           Solo lectura interna vía PHP; .htaccess deniega HTTP
+  config/, bootstrap/, src/, tests/, vendor/   Bloqueados por .htaccess
+
+
+Seguridad
+---------
+
+  - Sesión admin: httponly, secure, SameSite (variables en .env-co).
+  - CSRF en escrituras del checkout y panel.
+  - settings.ajax.php lectura pública: lista blanca (sin claves OCR ni tokens Meta).
+  - Errores 500 genéricos si DEBUG_MODE=false (WebCheckoutController).
+  - Rate limit en checkout web (RateLimitMiddleware).
+  - Headers: X-Content-Type-Options, X-Frame-Options, Referrer-Policy.
+
+
+
+
+Settings importantes (tabla settings)
+-------------------------------------
+
+  transfer_breb_key, transfer_breb_name     Cuenta Bre-B en checkout
+  web_compras_habilitadas                   1/0 — cortar compras sin tocar código
+  comprobante_validation_mode               strict (recomendado en producción)
+  pricing_packages_enabled                  0 — paquetes legacy desactivados
+  nombre_rifa, whatsapp, barra              Branding y contacto
+
+  En .env-co (no expuesto al público):
+    COMPROBANTE_OCR_SPACE_API_KEY
+    META_PIXEL_ID, META_ACCESS_TOKEN
+    SALE_PREFIX=CS, SITE_URL, credenciales DB/SMTP
+
+
+Despliegue
+----------
+
+  1. DocumentRoot = raíz del proyecto (donde está index.php).
+  2. cp .env-co.example ../.env-co — ajustar SITE_URL, DB, OCR, Meta.
+  3. composer install --no-dev
+  4. Permisos: uploads/comprobantes/, ../logs/, ../data/ escribibles por PHP.
+  5. Producción: DEBUG_MODE=false, DISPLAY_ERRORS=false, SESSION_COOKIE_SECURE=true.
+  6. Base de datos MySQL `combostickers` (esquema aplicado en el servidor).
+
+
+Tests
+-----
+
+  ./vendor/bin/phpunit
+
+  Cubre sobre todo: validación de comprobantes, OCR, asignación de tickets,
+  repositorios PDO. Los tests no se despliegan al hosting (carpeta tests/ bloqueada).
+
+
+Helpers procedurales (includes/)
+--------------------------------
+
+  includes/pricing-packages.php   cs_package_* — paquetes legacy (siempre off)
+  includes/meta-pixel.php           cs_meta_pixel_head() — pixel en <head>
+  includes/components/cr-*.php      Grilla manual, chips de número, etc.
+  Prefijo CSS cr-* en landing/checkout: convención del tema, no nombres de cliente.
