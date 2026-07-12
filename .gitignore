@@ -7,8 +7,6 @@
 .env.*
 !.env-co.example
 
-config/paths.php
-
 # Dependencias de PHP
 
 # Logs privados fuera de public_html ($VH_ROOT/logs)
