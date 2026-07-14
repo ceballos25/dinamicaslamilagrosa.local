@@ -20,6 +20,7 @@ final class HeuristicReceiptScorer implements ReceiptScorerInterface
         'nequi' => 'Nequi',
         'daviplata' => 'Daviplata',
         'bancolombia' => 'Bancolombia',
+        'boavivienda' => 'Davivienda',
         'davivienda' => 'Davivienda',
         'bbva' => 'BBVA',
         'banco de bogota' => 'Banco de Bogotá',

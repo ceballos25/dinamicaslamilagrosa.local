@@ -24,6 +24,8 @@ final class ComprobanteValidationTest extends TestCase
     {
         self::assertSame('M1234567890', ReferenceNormalizer::normalize('M-1234567890'));
         self::assertNull(ReferenceNormalizer::normalize('123'));
+        self::assertNull(ReferenceNormalizer::normalize('ESCANEANDO'));
+        self::assertTrue(ReferenceNormalizer::isNonTransactional('ESCANEANDO'));
     }
 
     public function testCopAmountParserHandlesColombianFormat(): void
@@ -58,6 +60,67 @@ final class ComprobanteValidationTest extends TestCase
 
         self::assertSame('948372819201', $result['raw']);
         self::assertSame('948372819201', $result['normalized']);
+    }
+
+    public function testReferenceExtractorPrefersReferenciaNoOverDestinationLlave(): void
+    {
+        $extractor = new ColombianBankReferenceExtractor();
+        $ocrText = <<<'TXT'
+BOAVIVIENDA
+Martes 14 julio, 2026 - 9:34 a.m.
+Transferencia exitosa
+Usted envió
+$30.000,00
+a la llave BBVA 0091706852
+de Martin Rodriguez Causil
+Referencia No. 52f6cf0d-e315-4272-a59e-6774f6eb6550
+TXT;
+
+        $result = $extractor->extract($ocrText);
+
+        self::assertSame('52f6cf0d-e315-4272-a59e-6774f6eb6550', $result['raw']);
+        self::assertSame('52F6CF0DE3154272A59E6774F6EB6550', $result['normalized']);
+    }
+
+    public function testReferenceExtractorIgnoresNequiDestinationLlaveWithoutRealReference(): void
+    {
+        $extractor = new ColombianBankReferenceExtractor();
+        $ocrText = <<<'TXT'
+Detalle del movimiento
+Pago realizado
+Para Martin Rodriguez Causil
+Llave 0091706852
+Banco destino Bbva
+Fecha 14 de julio de 2026 a las 10:04 a. m.
+Cuanto $ 10.000,00
+Referencia
+TXT;
+
+        $result = $extractor->extract($ocrText);
+
+        self::assertNull($result['raw']);
+        self::assertNull($result['normalized']);
+    }
+
+    public function testReferenceExtractorUsesDaviplataApprovalNotQrPhrase(): void
+    {
+        $extractor = new ColombianBankReferenceExtractor();
+        $ocrText = <<<'TXT'
+Transaccion exitosa
+Confirma la autenticidad del comprobante escaneando este QR desde tu app DaviPlata
+Pasaste Plata por Bre-B
+Martin Rodriguez Causil
+0091706852
+Valor $10.000
+Entidad destino BBVA
+Numero de aprobacion
+12037814920647677652989320593372981
+TXT;
+
+        $result = $extractor->extract($ocrText);
+
+        self::assertSame('12037814920647677652989320593372981', $result['raw']);
+        self::assertSame('12037814920647677652989320593372981', $result['normalized']);
     }
 
     public function testReferenceExtractorFindsBreBComprobanteReference(): void
@@ -208,6 +271,55 @@ TXT;
         self::assertSame('2026-07-02', $extractor->extract('2 de julio de 2026')['date']);
         self::assertSame('2026-07-03', $extractor->extract('Jul. 03, 2026')['date']);
         self::assertSame('2026-12-25', $extractor->extract('25 dic 2026')['date']);
+        self::assertSame('2026-07-14', $extractor->extract('Martes 14 julio, 2026 - 9:34 a.m.')['date']);
+        self::assertSame('2026-07-14', $extractor->extract('Julio 14 de 2026 - 09:34 a.m.')['date']);
+    }
+
+    public function testValidatorAcceptsBoaviviendaReferenciaNoIgnoringLlave(): void
+    {
+        $repo = new InMemoryProofReferenceRepository();
+        $repo->seedReference('0091706852'); // llave destino ya guardada por bug anterior
+
+        $validator = $this->makeValidator($repo, ComprobanteValidationMode::STRICT);
+        $today = (new \DateTimeImmutable('today'))->format('d/m/Y');
+        $ocrText = <<<TXT
+BOAVIVIENDA
+Transferencia exitosa
+Usted envió \$30.000,00
+a la llave BBVA 0091706852
+de Martin Rodriguez Causil
+Referencia No. 52f6cf0d-e315-4272-a59e-6774f6eb6550
+fecha {$today}
+TXT;
+
+        $result = $validator->validate(new ComprobanteValidationRequest(
+            $this->fakeImagePath($ocrText),
+            'png',
+            5,
+            30000.0
+        ));
+
+        self::assertTrue($result->accepted, $result->message);
+        self::assertSame('52F6CF0DE3154272A59E6774F6EB6550', $result->referenceNorm);
+    }
+
+    public function testValidatorDoesNotTreatPoisonReferenceAsDuplicate(): void
+    {
+        $repo = new InMemoryProofReferenceRepository();
+        $repo->seedReference('ESCANEANDO');
+
+        $validator = $this->makeValidator($repo, ComprobanteValidationMode::PERMISSIVE);
+        $today = (new \DateTimeImmutable('today'))->format('d/m/Y');
+        $ocrText = "Comprobante transferencia Daviplata valor \$100.000 referencia 112233445566 fecha {$today}";
+
+        $result = $validator->validate(new ComprobanteValidationRequest(
+            $this->fakeImagePath($ocrText),
+            'jpg',
+            5,
+            100000.0
+        ));
+
+        self::assertTrue($result->accepted, $result->message);
     }
 
     public function testDateExtractorParsesIsoFormat(): void

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Comprobante;
 
+use App\Application\Comprobante\ReferenceNormalizer;
 use App\Domain\Comprobante\Repository\ProofReferenceRepositoryInterface;
 
 final class PdoProofReferenceRepository implements ProofReferenceRepositoryInterface
@@ -10,7 +11,7 @@ final class PdoProofReferenceRepository implements ProofReferenceRepositoryInter
     public function existsByReferenceNorm(string $referenceNorm, ?int $excludeTransferId = null): bool
     {
         $referenceNorm = trim($referenceNorm);
-        if ($referenceNorm === '') {
+        if ($referenceNorm === '' || ReferenceNormalizer::isNonTransactional($referenceNorm)) {
             return false;
         }
 

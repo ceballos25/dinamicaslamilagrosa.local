@@ -64,8 +64,12 @@ final class ColombianReceiptDateExtractor implements DateExtractorInterface
     {
         $months = implode('|', array_keys(self::MONTHS));
 
-        // "2 de julio de 2026", "02 julio 2026", "2 jul 2026", "2-jul-2026"
-        if (preg_match('/\b(\d{1,2})\s*(?:de\s+)?(' . $months . ')[a-z]*\.?\s*(?:de\s+)?(\d{4})\b/u', $normalized, $m)) {
+        // "2 de julio de 2026", "02 julio 2026", "14 julio, 2026", "2-jul-2026"
+        if (preg_match(
+            '/\b(\d{1,2})\s*(?:de\s+)?(' . $months . ')[a-z]*\.?\s*(?:de\s+|,)?\s*(\d{4})\b/u',
+            $normalized,
+            $m
+        )) {
             return $this->build((int)$m[3], self::MONTHS[$m[2]] ?? 0, (int)$m[1], $m[0]);
         }
 

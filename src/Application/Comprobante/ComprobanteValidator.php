@@ -66,6 +66,10 @@ final class ComprobanteValidator
         $reference = $this->referenceExtractor->extract($ocrText);
         $referenceRaw = $reference['raw'] ?? null;
         $referenceNorm = $reference['normalized'] ?? null;
+        if ($referenceNorm !== null && ReferenceNormalizer::isNonTransactional($referenceNorm)) {
+            $referenceRaw = null;
+            $referenceNorm = null;
+        }
         if ($detectedBank === null && isset($reference['bank'])) {
             $detectedBank = $reference['bank'];
         }
