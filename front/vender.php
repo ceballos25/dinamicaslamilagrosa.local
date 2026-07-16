@@ -33,31 +33,44 @@ include_once ROOT_PATH . "/includes/head.php";
                             <div class="card-body p-3 p-lg-4">
                                 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">BUSCAR (Opcional)</label>
-                                    <select id="buscadorCliente" class="form-control w-100"></select>
+                                    <label class="form-label small fw-bold text-muted" for="buscadorCliente">BUSCAR (Opcional)</label>
+                                    <select id="buscadorCliente" class="form-control w-100"
+                                        autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other"></select>
                                 </div>
 
                                 <div class="bg-white p-1 rounded-3">
-                                    <form id="formClienteVenta">
+                                    <form id="formClienteVenta" autocomplete="off">
+                                        <div class="visually-hidden" aria-hidden="true">
+                                            <input type="text" name="fake_user" tabindex="-1" autocomplete="username">
+                                            <input type="password" name="fake_pass" tabindex="-1" autocomplete="current-password">
+                                        </div>
                                         <input type="hidden" id="idCliente" name="id_customer">
                                         
                                         <div class="row g-3">
                                             <div class="col-12 col-md-4">
                                                 <label class="small fw-bold text-dark mb-1">Celular <span class="text-danger">*</span></label>
-                                                <input type="tel" class="form-control shadow-sm" id="celularCliente" required>
+                                                <input type="tel" class="form-control shadow-sm" id="celularCliente"
+                                                    name="venta_phone" autocomplete="off" required
+                                                    data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                                             </div>
                                             <div class="col-6 col-md-4">
                                                 <label class="small fw-bold text-dark mb-1">Nombre <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control shadow-sm text-capitalize" id="nombreCliente" required>
+                                                <input type="text" class="form-control shadow-sm text-capitalize" id="nombreCliente"
+                                                    name="venta_first_name" autocomplete="off" required
+                                                    data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                                             </div>
                                             <div class="col-6 col-md-4">
                                                 <label class="small fw-bold text-dark mb-1">Apellido <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control shadow-sm text-capitalize" id="apellidoCliente" required>
+                                                <input type="text" class="form-control shadow-sm text-capitalize" id="apellidoCliente"
+                                                    name="venta_last_name" autocomplete="off" required
+                                                    data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                                             </div>
 
                                             <div class="col-12 col-md-4">
                                                 <label class="small fw-bold text-dark mb-1">Email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control shadow-sm text-lowercase" id="emailCliente">
+                                                <input type="email" class="form-control shadow-sm text-lowercase" id="emailCliente"
+                                                    name="venta_email" autocomplete="off"
+                                                    data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                                             </div>
                                             <div class="col-6 col-md-4">
                                                 <label class="small fw-bold text-dark mb-1">Depto <span class="text-danger">*</span></label>
@@ -239,7 +252,7 @@ $extra_js = '
 <script src="' . ASSETS_URL . '/libs/select2/js/select2.min.js"></script>
 <script src="' . ASSETS_URL . '/js/departamentos-ciudades.js?v=1"></script>
 <script src="' . ASSETS_URL . '/js/cr-grilla-numeros.js?v=10"></script>
-<script src="' . ASSETS_URL . '/js/vender.js?v=28"></script>
+<script src="' . ASSETS_URL . '/js/vender.js?v=29"></script>
 ';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

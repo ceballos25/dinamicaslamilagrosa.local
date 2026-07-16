@@ -2115,9 +2115,15 @@ function initCheckoutModalUi() {
     });
 }
 
+let transferenciaCheckoutEnCurso = false;
+
 async function procesarTransferencia(e) {
 
     e.preventDefault();
+
+    if (transferenciaCheckoutEnCurso) {
+        return;
+    }
 
     if (!comprasPermitidas()) {
         avisarComprasNoPermitidas();
@@ -2177,6 +2183,12 @@ async function procesarTransferencia(e) {
     appendTicketIdsToPayload(formData);
     appendPublicCsrf(formData);
 
+    transferenciaCheckoutEnCurso = true;
+    const btnPago = document.getElementById('btnConfirmarTransferencia');
+    if (btnPago) {
+        btnPago.disabled = true;
+    }
+
     showPreloader();
 
     let redirecting = false;
@@ -2214,6 +2226,10 @@ async function procesarTransferencia(e) {
 
     } finally {
         if (!redirecting) {
+            transferenciaCheckoutEnCurso = false;
+            if (btnPago) {
+                btnPago.disabled = false;
+            }
             hidePreloader();
         }
     }

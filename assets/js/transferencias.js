@@ -544,9 +544,16 @@ function paramsAprobarTransferencia(t) {
     return fd;
 }
 
+const aprobacionesTransferEnCurso = new Set();
+
 function aprobarTransferenciaVenta(id) {
     const t = transferencias.find(x => Number(x.id_transfer) === Number(id));
     if (!t) return;
+
+    const idTransfer = Number(t.id_transfer);
+    if (aprobacionesTransferEnCurso.has(idTransfer)) {
+        return;
+    }
 
     Swal.fire({
         title: '¿Aprobar esta compra?',
@@ -561,6 +568,10 @@ function aprobarTransferenciaVenta(id) {
         reverseButtons: true,
     }).then(result => {
         if (!result.isConfirmed) return;
+        if (aprobacionesTransferEnCurso.has(idTransfer)) {
+            return;
+        }
+        aprobacionesTransferEnCurso.add(idTransfer);
 
         Swal.fire({
             title: 'Procesando…',
@@ -598,7 +609,8 @@ function aprobarTransferenciaVenta(id) {
                 }
                 cargarTransferencias();
             })
-            .catch(() => Swal.fire('Error', 'Fallo en la solicitud', 'error'));
+            .catch(() => Swal.fire('Error', 'Fallo en la solicitud', 'error'))
+            .finally(() => aprobacionesTransferEnCurso.delete(idTransfer));
     });
 }
 

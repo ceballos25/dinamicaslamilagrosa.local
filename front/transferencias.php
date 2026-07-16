@@ -42,14 +42,24 @@ include_once ROOT_PATH . "/includes/head.php";
                             <option value="3">Rechazadas</option>
                         </select>
 
-                        <div class="row g-2 align-items-end">
+                        <div class="row g-2 align-items-end" autocomplete="off">
+                            <?php /* Señuelos: evitan que el gestor de contraseñas rellene el buscador con el usuario de login */ ?>
+                            <div class="visually-hidden" aria-hidden="true">
+                                <input type="text" name="fake_user" tabindex="-1" autocomplete="username">
+                                <input type="password" name="fake_pass" tabindex="-1" autocomplete="current-password">
+                            </div>
                             <div class="col-12 col-lg-5">
                                 <label class="form-label small fw-bold mb-1" for="searchTransfer">Buscar</label>
                                 <div class="input-group input-group-sm transfer-search-group">
                                     <span class="input-group-text"><i class="ti ti-search"></i></span>
-                                    <input type="search" id="searchTransfer" class="form-control transfer-search-input"
+                                    <input type="text" id="searchTransfer" name="admin_transfer_q"
+                                        class="form-control transfer-search-input"
                                         placeholder="Nombre, celular, código o ref. comprobante"
-                                        autocomplete="off" enterkeyhint="search">
+                                        autocomplete="off" autocapitalize="off" autocorrect="off"
+                                        spellcheck="false" enterkeyhint="search" readonly
+                                        onfocus="this.removeAttribute('readonly')"
+                                        data-lpignore="true" data-1p-ignore="true" data-form-type="other"
+                                        role="searchbox">
                                 </div>
                             </div>
                             <div class="col-6 col-lg-3">
@@ -122,6 +132,6 @@ include_once ROOT_PATH . "/includes/head.php";
 </div>
 
 <?php
-$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/transferencias.js?v=27"></script>';
+$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/transferencias.js?v=28"></script>';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

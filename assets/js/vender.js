@@ -18,6 +18,9 @@ const estado = {
     }
 };
 
+/** Evita doble clic / doble confirmación → dos ventas con códigos distintos. */
+let ventaManualEnCurso = false;
+
 function parsePrecioRifaValue(value) {
     if (typeof parsePrecioCOP === 'function') return parsePrecioCOP(value);
     if (typeof adminParseCOP === 'function') return adminParseCOP(value);
@@ -664,7 +667,19 @@ function initComponentes() {
         }
     })
         .on('select2:select', e => llenarFormulario(e.params.data.cliente))
-        .on('select2:unselecting', resetClienteForm);
+        .on('select2:unselecting', resetClienteForm)
+        .on('select2:open', () => {
+            const $search = $('.select2-container--open .select2-search__field');
+            $search.attr({
+                autocomplete: 'off',
+                autocapitalize: 'off',
+                autocorrect: 'off',
+                spellcheck: 'false',
+                'data-lpignore': 'true',
+                'data-1p-ignore': 'true',
+                'data-form-type': 'other',
+            });
+        });
 }
 
 async function cargarRifasActivas() {
@@ -1123,6 +1138,7 @@ async function confirmarVentaDesdeSheet() {
     const btnM = document.getElementById('btnCompletarVentaMobile');
     const spinnerHtml = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
 
+    if (ventaManualEnCurso) return;
     if ((btnD && btnD.disabled) || (btnM && btnM.disabled)) return;
 
     const form = obtenerDatosFormularioVenta();
@@ -1202,6 +1218,7 @@ function buildVentaConfirmHtml(cliente, total, metodo, cantidad) {
 }
 
 function resetBotonesVenta(btnD, btnM) {
+    ventaManualEnCurso = false;
     setCheckoutSheetProcessing(false);
     if (btnD) {
         btnD.disabled = false;
@@ -1217,6 +1234,11 @@ async function ejecutarVentaRegistro(opts) {
     const {
         btnD, btnM, spinnerHtml, cliente, metodo, total, numeroForzado,
     } = opts;
+
+    if (ventaManualEnCurso) {
+        return;
+    }
+    ventaManualEnCurso = true;
 
     const codigoVenta = 'AP' + Date.now() + Math.floor(Math.random() * 100);
     const action = (!esRifaManual() && numeroForzado) ? 'crear_venta_mixta' : 'crear_venta';
@@ -1309,6 +1331,7 @@ async function procesarVenta() {
     const btnM = document.getElementById('btnCompletarVentaMobile');
     const spinnerHtml = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
 
+    if (ventaManualEnCurso) return;
     if ((btnD && btnD.disabled) || (btnM && btnM.disabled)) return;
 
     const form = obtenerDatosFormularioVenta();
