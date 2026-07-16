@@ -1038,6 +1038,8 @@ function defaultPackageGridItems() {
         { qty: 40, price: 48000, badge: 'Ahorro', badge_slug: 'ahorro' },
         { qty: 60, price: 72000, badge: null, badge_slug: null },
         { qty: 100, price: 120000, badge: 'Más vendido', badge_slug: 'mas-vendido' },
+        { qty: 200, price: 240000, badge: null, badge_slug: null },
+        { qty: 300, price: 360000, badge: 'Mega', badge_slug: 'mega' },
     ];
 }
 
@@ -1075,8 +1077,8 @@ function packagePricingConfig() {
     });
 
     if (!Object.keys(packages).length) {
-        [10, 18, 30, 40, 60, 100].forEach((qty, i) => {
-            const prices = [15000, 27000, 45000, 48000, 72000, 120000];
+        [10, 18, 30, 40, 60, 100, 200, 300].forEach((qty, i) => {
+            const prices = [15000, 27000, 45000, 48000, 72000, 120000, 240000, 360000];
             packages[qty] = prices[i];
         });
     }

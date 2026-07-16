@@ -16,6 +16,8 @@ function cs_package_prices(): array
         40 => 48000,
         60 => 72000,
         100 => 120000,
+        200 => 240000,
+        300 => 360000,
     ];
 }
 
@@ -97,5 +99,7 @@ function cs_package_grid_items(): array
         ['id' => 'paq40', 'qty' => 40, 'price' => 48000, 'badge' => 'Ahorro', 'badge_slug' => 'ahorro'],
         ['id' => 'paq60', 'qty' => 60, 'price' => 72000, 'badge' => null, 'badge_slug' => null],
         ['id' => 'paq100', 'qty' => 100, 'price' => 120000, 'badge' => 'Más vendido', 'badge_slug' => 'mas-vendido'],
+        ['id' => 'paq200', 'qty' => 200, 'price' => 240000, 'badge' => null, 'badge_slug' => null],
+        ['id' => 'paq300', 'qty' => 300, 'price' => 360000, 'badge' => 'Mega', 'badge_slug' => 'mega'],
     ];
 }

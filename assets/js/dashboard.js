@@ -3,6 +3,8 @@ let chartMediosDineroInst = null;
 let chartMediosCantInst = null;
 let chartMediosTransInst = null;
 let chartTopCliInst = null;
+let chartTopCiuInst = null;
+let chartTopVendInst = null;
 let chartHeatmapInst = null;
 let chartPaquetesInst = null;
 const DASHBOARD_ENDPOINT = '/front/ajax/dashboard.ajax.php';
@@ -225,6 +227,60 @@ function renderCharts(graficas) {
     if(chartTopCliInst) chartTopCliInst.destroy();
     chartTopCliInst = new ApexCharts(document.querySelector("#chartTopClientes"), optTopCli);
     chartTopCliInst.render();
+
+    const topCiudades = Array.isArray(graficas.topCiudades) ? graficas.topCiudades : [];
+    const optTopCiu = {
+        series: [{ name: 'Recaudo', data: topCiudades.map(x => x.total) }],
+        chart: { type: 'bar', height: 360, toolbar: { show: false }, fontFamily: 'inherit' },
+        plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '65%' } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: topCiudades.map(x => x.name), labels: { style: { fontSize: '11px' } } },
+        colors: ['#4361ee'],
+        grid: { show: false },
+        noData: { text: 'Sin datos de ciudad' },
+        tooltip: {
+            custom: function({ dataPointIndex }) {
+                const c = topCiudades[dataPointIndex];
+                if (!c) return '';
+                return `<div class="px-3 py-2 border rounded shadow bg-white text-dark text-start" style="font-size: 0.85rem; min-width: 190px;"><div class="fw-bold mb-2 border-bottom pb-1 text-uppercase text-primary">${c.name}</div><div class="d-flex justify-content-between mb-1"><span>💰 Dinero:</span><span class="fw-bold">${fmtMoney(c.total)}</span></div><div class="d-flex justify-content-between mb-1"><span>🎟️ Números:</span><span class="fw-bold">${fmtNum(c.cantidad)}</span></div><div class="d-flex justify-content-between"><span>🧾 Ventas:</span><span class="fw-bold">${fmtNum(c.ventas || 0)}</span></div></div>`;
+            }
+        }
+    };
+    if (chartTopCiuInst) chartTopCiuInst.destroy();
+    const elCiu = document.querySelector('#chartTopCiudades');
+    if (elCiu) {
+        chartTopCiuInst = new ApexCharts(elCiu, optTopCiu);
+        chartTopCiuInst.render();
+    }
+
+    const topVendedores = Array.isArray(graficas.topVendedores) ? graficas.topVendedores : [];
+    const optTopVend = {
+        series: [{ name: 'Recaudo', data: topVendedores.map(x => x.total) }],
+        chart: { type: 'bar', height: 360, toolbar: { show: false }, fontFamily: 'inherit' },
+        plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '65%' } },
+        dataLabels: { enabled: false },
+        xaxis: {
+            categories: topVendedores.map(x => dashboardFormatVendedorShort(x.name)),
+            labels: { style: { fontSize: '11px' } }
+        },
+        colors: ['#0f766e'],
+        grid: { show: false },
+        noData: { text: 'Sin datos de vendedor' },
+        tooltip: {
+            custom: function({ dataPointIndex }) {
+                const v = topVendedores[dataPointIndex];
+                if (!v) return '';
+                const nombre = adminEscapeHtml(dashboardFormatVendedor(v.name));
+                return `<div class="px-3 py-2 border rounded shadow bg-white text-dark text-start" style="font-size: 0.85rem; min-width: 200px;"><div class="fw-bold mb-2 border-bottom pb-1 text-uppercase text-primary">${nombre}</div><div class="d-flex justify-content-between mb-1"><span>💰 Dinero:</span><span class="fw-bold">${fmtMoney(v.total)}</span></div><div class="d-flex justify-content-between mb-1"><span>🎟️ Números:</span><span class="fw-bold">${fmtNum(v.cantidad)}</span></div><div class="d-flex justify-content-between"><span>🧾 Ventas:</span><span class="fw-bold">${fmtNum(v.ventas || 0)}</span></div></div>`;
+            }
+        }
+    };
+    if (chartTopVendInst) chartTopVendInst.destroy();
+    const elVend = document.querySelector('#chartTopVendedores');
+    if (elVend) {
+        chartTopVendInst = new ApexCharts(elVend, optTopVend);
+        chartTopVendInst.render();
+    }
 
     const optHeat = {
         series: graficas.heatmap,

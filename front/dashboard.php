@@ -196,6 +196,29 @@ include_once ROOT_PATH . "/includes/head.php";
                     </div>
                 </div>
 
+                <div class="row mb-4 g-3">
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white py-3 border-0">
+                                <h5 class="card-title fw-bold mb-0">📍 Top 10 Ciudades</h5>
+                            </div>
+                            <div class="card-body pt-0">
+                                <div id="chartTopCiudades" style="height: 360px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white py-3 border-0">
+                                <h5 class="card-title fw-bold mb-0">🧑‍💼 Ventas por vendedor</h5>
+                            </div>
+                            <div class="card-body pt-0">
+                                <div id="chartTopVendedores" style="height: 360px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 
                 
                 <div class="row mb-4 g-3">
@@ -266,6 +289,6 @@ include_once ROOT_PATH . "/includes/head.php";
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <?php
-$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/dashboard.js?v=7"></script>';
+$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/dashboard.js?v=8"></script>';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

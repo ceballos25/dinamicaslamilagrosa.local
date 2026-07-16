@@ -21,7 +21,7 @@ final class DashboardDbService
         $sql = <<<'SQL'
 SELECT s.id_sale, s.total_sale, s.quantity_sale, s.date_created_sale, s.payment_method_sale,
        s.source_sale, s.id_admin_sale,
-       c.name_customer, c.lastname_customer, c.phone_customer,
+       c.name_customer, c.lastname_customer, c.phone_customer, c.city_customer,
        r.title_raffle, s.code_sale,
        COALESCE(a.email_admin, 'Sistema') AS email_admin
 FROM sales s
@@ -66,6 +66,8 @@ SQL;
                 'mediosPagoDinero' => [],
                 'mediosPagoLabels' => [],
                 'topClientes' => [],
+                'topCiudades' => [],
+                'topVendedores' => [],
                 'heatmap' => [],
                 'paquetes' => [],
             ],
@@ -77,6 +79,8 @@ SQL;
         $mediosTickets = [];
         $mediosDinero = [];
         $clientesDetalle = [];
+        $ciudadesDetalle = [];
+        $vendedoresDetalle = [];
         $heatmapRaw = [];
         for ($d = 1; $d <= 7; $d++) {
             for ($h = 0; $h <= 23; $h++) {
@@ -112,6 +116,36 @@ SQL;
             }
             $clientesDetalle[$nombreFull]['total'] += $monto;
             $clientesDetalle[$nombreFull]['cantidad'] += $cantidad;
+
+            $ciudad = trim((string)($v['city_customer'] ?? ''));
+            if ($ciudad === '') {
+                $ciudad = 'Sin ciudad';
+            }
+            if (!isset($ciudadesDetalle[$ciudad])) {
+                $ciudadesDetalle[$ciudad] = [
+                    'total' => 0.0,
+                    'cantidad' => 0,
+                    'ventas' => 0,
+                ];
+            }
+            $ciudadesDetalle[$ciudad]['total'] += $monto;
+            $ciudadesDetalle[$ciudad]['cantidad'] += $cantidad;
+            $ciudadesDetalle[$ciudad]['ventas']++;
+
+            $vendedor = trim((string)($v['email_admin'] ?? 'Sistema'));
+            if ($vendedor === '') {
+                $vendedor = 'Sistema';
+            }
+            if (!isset($vendedoresDetalle[$vendedor])) {
+                $vendedoresDetalle[$vendedor] = [
+                    'total' => 0.0,
+                    'cantidad' => 0,
+                    'ventas' => 0,
+                ];
+            }
+            $vendedoresDetalle[$vendedor]['total'] += $monto;
+            $vendedoresDetalle[$vendedor]['cantidad'] += $cantidad;
+            $vendedoresDetalle[$vendedor]['ventas']++;
 
             $diaSemana = (int)date('N', $ts);
             $horaDia = (int)date('G', $ts);
@@ -235,6 +269,34 @@ SQL;
                 'total' => $datos['total'],
                 'cantidad' => $datos['cantidad'],
                 'telefono' => $datos['telefono'],
+            ];
+        }
+
+        uasort($ciudadesDetalle, static fn (array $a, array $b): int => $b['total'] <=> $a['total']);
+        $i = 0;
+        foreach ($ciudadesDetalle as $ciudad => $datos) {
+            if ($i++ >= 10) {
+                break;
+            }
+            $response['graficas']['topCiudades'][] = [
+                'name' => $ciudad,
+                'total' => $datos['total'],
+                'cantidad' => $datos['cantidad'],
+                'ventas' => $datos['ventas'],
+            ];
+        }
+
+        uasort($vendedoresDetalle, static fn (array $a, array $b): int => $b['total'] <=> $a['total']);
+        $i = 0;
+        foreach ($vendedoresDetalle as $vendedor => $datos) {
+            if ($i++ >= 5) {
+                break;
+            }
+            $response['graficas']['topVendedores'][] = [
+                'name' => $vendedor,
+                'total' => $datos['total'],
+                'cantidad' => $datos['cantidad'],
+                'ventas' => $datos['ventas'],
             ];
         }
 
