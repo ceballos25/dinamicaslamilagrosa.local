@@ -20,8 +20,18 @@ include_once ROOT_PATH . "/includes/head.php";
                     <div class="card-body py-3">
                         <div class="row g-2 align-items-end">
                             <div class="col-md-5">
-                                <label class="small fw-bold">Buscador</label>
-                                <input type="text" id="searchRifas" class="form-control form-control-sm" placeholder="Buscar título o descripción...">
+                                <label class="small fw-bold" for="searchRifas">Buscador</label>
+                                <div class="visually-hidden" aria-hidden="true">
+                                    <input type="text" name="fake_user" tabindex="-1" autocomplete="username">
+                                    <input type="password" name="fake_pass" tabindex="-1" autocomplete="current-password">
+                                </div>
+                                <input type="text" id="searchRifas" name="admin_rifas_q"
+                                    class="form-control form-control-sm"
+                                    placeholder="Buscar título o descripción..."
+                                    autocomplete="off" autocapitalize="off" spellcheck="false"
+                                    readonly onfocus="this.removeAttribute('readonly')"
+                                    data-lpignore="true" data-1p-ignore="true" data-form-type="other"
+                                    role="searchbox">
                             </div>
                             <div class="col-md-4">
                                 <label class="small fw-bold">Estado</label>

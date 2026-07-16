@@ -76,10 +76,18 @@ include_once ROOT_PATH . "/includes/head.php";
                             </div>
 
                             <div class="col-md-3">
-                                <label class="form-label small fw-bold">Buscar número</label>
-                                <input type="text" id="searchNumeros" class="form-control form-control-sm"
+                                <label class="form-label small fw-bold" for="searchNumeros">Buscar número</label>
+                                <div class="visually-hidden" aria-hidden="true">
+                                    <input type="text" name="fake_user" tabindex="-1" autocomplete="username">
+                                    <input type="password" name="fake_pass" tabindex="-1" autocomplete="current-password">
+                                </div>
+                                <input type="text" id="searchNumeros" name="admin_numeros_q"
+                                    class="form-control form-control-sm"
                                     placeholder="Ej: 197" inputmode="numeric" pattern="[0-9]*" maxlength="10"
-                                    autocomplete="off">
+                                    autocomplete="off" autocapitalize="off" spellcheck="false"
+                                    readonly onfocus="this.removeAttribute('readonly')"
+                                    data-lpignore="true" data-1p-ignore="true" data-form-type="other"
+                                    role="searchbox">
                             </div>
 
                             <div class="col-md-2">

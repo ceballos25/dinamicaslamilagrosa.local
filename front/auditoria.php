@@ -12,7 +12,16 @@ include_once ROOT_PATH . "/includes/head.php";
 <h2 class="fw-bold mb-4"><i class="ti ti-history me-1"></i> Auditoría</h2>
 <div class="card border-0 shadow-sm mb-3"><div class="card-body">
   <div class="row g-2">
-    <div class="col-md-3"><input type="text" id="filtroAccion" class="form-control form-control-sm" placeholder="Acción..."></div>
+    <div class="col-md-3">
+      <div class="visually-hidden" aria-hidden="true">
+        <input type="text" name="fake_user" tabindex="-1" autocomplete="username">
+        <input type="password" name="fake_pass" tabindex="-1" autocomplete="current-password">
+      </div>
+      <input type="text" id="filtroAccion" name="admin_auditoria_q" class="form-control form-control-sm"
+        placeholder="Acción..." autocomplete="off" autocapitalize="off" spellcheck="false"
+        readonly onfocus="this.removeAttribute('readonly')"
+        data-lpignore="true" data-1p-ignore="true" data-form-type="other" role="searchbox">
+    </div>
     <div class="col-md-2"><input type="date" id="filtroDesde" class="form-control form-control-sm"></div>
     <div class="col-md-2"><input type="date" id="filtroHasta" class="form-control form-control-sm"></div>
     <div class="col-md-2"><button class="btn btn-primary btn-sm w-100" onclick="cargarAuditoria()">Buscar</button></div>
