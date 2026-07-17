@@ -12,11 +12,12 @@ final class MetaConversionsApi
     public const BROWSER_TRACK_EVENTS = ['PageView'];
 
     /** Eventos enviados por CAPI en servidor. */
-    public const CAPI_TRACK_EVENTS = ['PageView', 'Purchase'];
+    public const CAPI_TRACK_EVENTS = ['PageView', 'InitiateCheckout', 'Purchase'];
 
     /** @var list<string> */
     public const STANDARD_EVENTS = [
         'PageView',
+        'InitiateCheckout',
         'Purchase',
     ];
 
@@ -95,6 +96,57 @@ final class MetaConversionsApi
             null,
             false
         );
+    }
+
+    /**
+     * Pago iniciado (checkout web con comprobante). Solo CAPI.
+     *
+     * @param array<string, mixed> $checkout
+     */
+    public static function sendInitiateCheckout(array $checkout, ?string $eventId = null): bool
+    {
+        $idTransfer = (int)($checkout['id_transfer'] ?? 0);
+        $codeTransfer = trim((string)($checkout['code_transfer'] ?? ''));
+        $customData = self::buildInitiateCheckoutCustomData($checkout);
+
+        $userData = array_merge(
+            self::userDataFromCustomer($checkout),
+            self::userDataFromStoredMeta(self::buildCheckoutMetaContext($checkout))
+        );
+
+        return self::sendEvent(
+            'InitiateCheckout',
+            $customData,
+            array_filter($userData),
+            $eventId ?? self::initiateCheckoutEventId($idTransfer, $codeTransfer),
+            null,
+            false
+        );
+    }
+
+    public static function initiateCheckoutEventId(int $idTransfer, string $codeTransfer = ''): string
+    {
+        $reference = $idTransfer > 0
+            ? (string)$idTransfer
+            : (trim($codeTransfer) !== '' ? trim($codeTransfer) : null);
+
+        return self::eventId('InitiateCheckout', $reference);
+    }
+
+    /**
+     * @param array<string, mixed> $checkout
+     * @return array{currency: string, value: float, num_items: int}
+     */
+    public static function buildInitiateCheckoutCustomData(array $checkout): array
+    {
+        $value = (float)($checkout['value'] ?? $checkout['amount'] ?? $checkout['amount_transfer'] ?? 0);
+        $numItems = (int)($checkout['num_items'] ?? $checkout['quantity'] ?? $checkout['quantity_transfer'] ?? 0);
+
+        return [
+            'currency' => 'COP',
+            'value' => round($value, 2),
+            'num_items' => max(1, $numItems),
+        ];
     }
 
     public static function purchaseEventId(int $idSale, string $codeSale = ''): string

@@ -9,6 +9,8 @@ use App\Application\Comprobante\ComprobanteValidationRequest;
 use App\Application\Comprobante\ComprobanteValidator;
 use App\Application\Comprobante\ComprobanteValidatorFactory;
 use App\Application\Maintenance\MaintenanceService;
+use App\Application\Marketing\MetaConversionsApi;
+use App\Application\Marketing\MetaPixelGuard;
 use App\Infrastructure\Repository\PdoRaffleRepository;
 use App\Infrastructure\Repository\PdoSiteImageRepository;
 use App\Shared\Config\DynamicConfig;
@@ -164,11 +166,71 @@ final class WebCheckoutService
             return ['success' => false, 'message' => 'Error actualizando transferencia'];
         }
 
+        $this->sendInitiateCheckoutCapi($payload, $transfer, (float)$expectedAmount);
+
         return [
             'success' => true,
             'code_transfer' => $transfer['code_transfer'] ?? null,
             'approved' => false,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $transfer
+     */
+    private function sendInitiateCheckoutCapi(array $payload, array $transfer, float $amount): void
+    {
+        try {
+            if (!MetaConversionsApi::isCapiConfigured()) {
+                return;
+            }
+
+            $codeTransfer = trim((string)($transfer['code_transfer'] ?? ''));
+            $idTransfer = (int)($transfer['id_transfer'] ?? 0);
+            if ($codeTransfer === '' || $idTransfer <= 0) {
+                return;
+            }
+
+            $guard = new MetaPixelGuard();
+            if (!$guard->shouldSendInitiateCheckout($codeTransfer)) {
+                return;
+            }
+
+            $eventId = MetaConversionsApi::initiateCheckoutEventId($idTransfer, $codeTransfer);
+            $sent = MetaConversionsApi::sendInitiateCheckout([
+                'id_transfer' => $idTransfer,
+                'code_transfer' => $codeTransfer,
+                'value' => $amount,
+                'quantity' => (int)($payload['quantity'] ?? 0),
+                'name_customer' => $payload['name_customer'] ?? '',
+                'lastname_customer' => $payload['lastname_customer'] ?? '',
+                'phone_customer' => $payload['phone_customer'] ?? '',
+                'email_customer' => $payload['email_customer'] ?? '',
+                'meta_fbp' => $payload['meta_fbp'] ?? '',
+                'meta_fbc' => $payload['meta_fbc'] ?? '',
+            ], $eventId);
+
+            if (!$sent) {
+                return;
+            }
+
+            $guard->markInitiateCheckoutSent($codeTransfer);
+
+            if (class_exists('AppContainer')) {
+                try {
+                    \AppContainer::get()->audit()->record(
+                        'meta.initiate_checkout.sent',
+                        'transfer',
+                        $idTransfer,
+                        null,
+                        ['code_transfer' => $codeTransfer]
+                    );
+                } catch (\Throwable) {
+                }
+            }
+        } catch (\Throwable) {
+        }
     }
 
     private function areWebPurchasesEnabled(): bool

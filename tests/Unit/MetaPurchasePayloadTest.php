@@ -57,4 +57,35 @@ final class MetaPurchasePayloadTest extends TestCase
         self::assertFalse(MetaConversionsApi::isAllowedTrackEvent('Purchase'));
         self::assertTrue(MetaConversionsApi::isStandardEvent('Purchase'));
     }
+
+    public function testInitiateCheckoutIsServerOnlyCapiEvent(): void
+    {
+        self::assertFalse(MetaConversionsApi::isAllowedTrackEvent('InitiateCheckout'));
+        self::assertTrue(MetaConversionsApi::isStandardEvent('InitiateCheckout'));
+    }
+
+    public function testInitiateCheckoutCustomDataIncludesValueAndNumItems(): void
+    {
+        $customData = MetaConversionsApi::buildInitiateCheckoutCustomData([
+            'id_transfer' => 99,
+            'code_transfer' => '0123456789',
+            'value' => 240000,
+            'quantity' => 200,
+        ]);
+
+        self::assertSame([
+            'currency' => 'COP',
+            'value' => 240000.0,
+            'num_items' => 200,
+        ], $customData);
+    }
+
+    public function testInitiateCheckoutEventIdIsDeterministicByTransferId(): void
+    {
+        $first = MetaConversionsApi::initiateCheckoutEventId(15, '0123456789');
+        $second = MetaConversionsApi::initiateCheckoutEventId(15, '0123456789');
+
+        self::assertSame($first, $second);
+        self::assertStringStartsWith('initiatecheckout-', $first);
+    }
 }
