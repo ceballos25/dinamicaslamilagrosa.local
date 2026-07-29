@@ -79,13 +79,13 @@
 
   <footer class="admin-panel-footer text-center small text-muted py-3 border-top">
     Desarrollado por
-    <a href="https://cristianceballos.com"
+    <a href="https://ccmsoftware.com.co"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="ccm-footer-brand admin-panel-footer__link"
-                    title="Visitar CCM Software — cristianceballos.com"
+                    title="Visitar CCM Software — ccmsoftware.com.co"
                     aria-label="CCM Software">
-                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/logos/logo-ccm-software.png', ENT_QUOTES, 'UTF-8') ?>"
+                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/logos/logo-ccm-software-light.png', ENT_QUOTES, 'UTF-8') ?>"
                          alt="CCM Software"
                          class="ccm-footer-brand__logo"
                          width="163"
