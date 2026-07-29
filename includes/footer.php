@@ -85,8 +85,8 @@
                     class="ccm-footer-brand admin-panel-footer__link"
                     title="Visitar CCM Software — cristianceballos.com"
                     aria-label="CCM Software">
-                    <img src="https://cristianceballos.com/assets/logo-ccm-software-light.png"
-                         alt="&lt;/&gt; CCM Software_"
+                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/logos/logo-ccm-software.png', ENT_QUOTES, 'UTF-8') ?>"
+                         alt="CCM Software"
                          class="ccm-footer-brand__logo"
                          width="163"
                          height="32"
