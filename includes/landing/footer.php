@@ -99,14 +99,20 @@ $footerTk = function_exists('landing_setting') ? landing_setting('social_tiktok_
                 <br>
                 <span class="site-footer-credit">
                     Desarrollado por
-                    <a href="https://cristianceballos.com/"
-                        class="site-footer-dev"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Sitio web de Cristian Ceballos">
-                        Cristian Ceballos
-                        <i class="ti ti-external-link" aria-hidden="true"></i>
-                    </a>
+                    <a href="https://cristianceballos.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="ccm-footer-brand site-footer-dev"
+                    title="Visitar CCM Software — cristianceballos.com"
+                    aria-label="CCM Software">
+                    <img src="https://cristianceballos.com/assets/logo-ccm-software.png"
+                         alt="&lt;/&gt; CCM Software_"
+                         class="ccm-footer-brand__logo"
+                         width="163"
+                         height="32"
+                         decoding="async">
+                    <span class="ccm-footer-brand__hint" aria-hidden="true" title="Abrir sitio">↗</span>
+                </a>
                 </span>
             </div>
 

@@ -79,7 +79,20 @@
 
   <footer class="admin-panel-footer text-center small text-muted py-3 border-top">
     Desarrollado por
-    <a href="https://cristianceballos.com/" target="_blank" rel="noopener noreferrer" class="admin-panel-footer__link">Cristian Ceballos</a>
+    <a href="https://cristianceballos.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="ccm-footer-brand admin-panel-footer__link"
+                    title="Visitar CCM Software — cristianceballos.com"
+                    aria-label="CCM Software">
+                    <img src="https://cristianceballos.com/assets/logo-ccm-software-light.png"
+                         alt="&lt;/&gt; CCM Software_"
+                         class="ccm-footer-brand__logo"
+                         width="163"
+                         height="32"
+                         decoding="async">
+                    <span class="ccm-footer-brand__hint" aria-hidden="true" title="Abrir sitio">↗</span>
+                </a>
   </footer>
 
 </body>
