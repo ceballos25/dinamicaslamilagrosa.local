@@ -1835,7 +1835,7 @@ img.premios-primer-sorteo {
     width: 100%;
     border-radius: 20px;
     object-fit: cover;
-    max-width: 450px;
+    max-width: 640px;
 }
 
 li#main-carousel-slide01.premio-dos-combo img {
@@ -2176,14 +2176,15 @@ h1.hero-title-dos.mb-3 {
 @media (max-width: 768px) {
     img.premios-primer-sorteo {
         width: 100%;
-        max-width:309px;
+        max-width: 100%;
         border-radius: 20px;
         object-fit: cover;
 
     }
 
     body.landing img.premios-primer-sorteo{
-        height: 309px !important;
+        height: auto !important;
+        max-height: min(72vh, 560px);
     }
 
     li#main-carousel-slide01.premio-dos-combo img {
@@ -4663,10 +4664,24 @@ body.landing img.premios-primer-sorteo {
     display: block;
     width: 100%;
     height: auto;
-    max-height: min(78vh, 720px);
+    max-width: min(100%, 680px);
+    max-height: min(88vh, 900px);
     margin: 0 auto;
     border-radius: var(--cr-radius-lg);
     object-fit: contain;
+}
+
+@media (min-width: 992px) {
+    body.landing .cr-hero-photo #main-carousel {
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    body.landing img.premios-primer-sorteo {
+        max-width: 680px;
+        max-height: min(90vh, 920px);
+    }
 }
 
 body.landing .ticket-mini {

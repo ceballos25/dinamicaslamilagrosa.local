@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" href="<?= cr_site_favicon_href() ?>" data-site-favicon />
   <link rel="shortcut icon" type="image/png" href="<?= cr_site_favicon_href() ?>" data-site-favicon />
   <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/brand.css?v=42" />
-  <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/app.css?v=87" />
+  <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/app.css?v=88" />
   <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/styles.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/alertify.min.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/bootstrap.min.css"/>
