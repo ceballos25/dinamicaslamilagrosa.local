@@ -323,7 +323,7 @@ function aplicarImagenesSitio() {
         document.querySelectorAll('link[data-site-favicon]').forEach(link => { link.href = favUrl; });
     }
 
-    const heroPlaceholder = window.location.origin + '/assets/images/hero-evento-principal.png';
+    const heroPlaceholder = window.location.origin + '/assets/images/hero-combo-pareja-2027.png';
     const isLogoAsset = (url) => /\/logo(?:[-_]?white|-transparent)?\.(?:png|jpe?g|webp|svg)(\?|$)/i.test(String(url || ''));
     const resolveHeroAssetUrl = (entry) => {
         const primary = resolveAssetUrl(entry);
@@ -355,10 +355,10 @@ function aplicarImagenesSitio() {
 
     const gallery2Url = resolveHeroAssetUrl(img.hero_gallery_2)
         || resolveHeroAssetUrl(img.section_info_1)
-        || (window.location.origin + '/assets/images/premio-nmax.jpeg');
+        || (window.location.origin + '/assets/images/premio-nmax-mt15-2027.jpeg');
     document.querySelectorAll('[data-site-hero-gallery-2]').forEach((el) => {
         el.src = gallery2Url;
-        el.dataset.fallbackSrc = window.location.origin + '/assets/images/premio-nmax.jpeg';
+        el.dataset.fallbackSrc = window.location.origin + '/assets/images/premio-nmax-mt15-2027.jpeg';
         el.onerror = function onHeroGallery2Error() {
             const fb = this.dataset.fallbackSrc;
             if (fb && this.src !== fb) {

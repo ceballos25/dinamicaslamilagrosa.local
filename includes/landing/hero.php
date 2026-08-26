@@ -43,10 +43,10 @@ $premioMayorFacts = array_values(array_filter(array_map(
                         <div class="splide__track">
                             <ul class="splide__list" id="heroMainSlides">
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-evento-principal.png', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — COMBO PAREJA NMAX 2027 + MT-15', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-banner loading="eager">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-combo-pareja-2027.png', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — COMBO PAREJA NMAX 2027 + MT-15', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-banner loading="eager">
                                 </li>
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 y MT-15 2027', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-gallery-2 loading="lazy">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax-mt15-2027.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 y MT-15 2027', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-gallery-2 loading="lazy">
                                 </li>
                             </ul>
                         </div>
@@ -56,10 +56,10 @@ $premioMayorFacts = array_values(array_filter(array_map(
                         <div class="splide__track">
                             <ul class="splide__list" id="heroThumbSlides">
                                 <li class="splide__slide">
-                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-evento-principal.png', ENT_QUOTES, 'UTF-8') ?>" alt="" data-site-hero-banner loading="lazy">
+                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-combo-pareja-2027.png', ENT_QUOTES, 'UTF-8') ?>" alt="" data-site-hero-banner loading="lazy">
                                 </li>
                                 <li class="splide__slide">
-                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="" data-site-hero-gallery-2 loading="lazy">
+                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax-mt15-2027.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="" data-site-hero-gallery-2 loading="lazy">
                                 </li>
                             </ul>
                         </div>
