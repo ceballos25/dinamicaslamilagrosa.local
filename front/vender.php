@@ -252,7 +252,7 @@ $extra_js = '
 <script src="' . ASSETS_URL . '/libs/select2/js/select2.min.js"></script>
 <script src="' . ASSETS_URL . '/js/departamentos-ciudades.js?v=1"></script>
 <script src="' . ASSETS_URL . '/js/cr-grilla-numeros.js?v=10"></script>
-<script src="' . ASSETS_URL . '/js/vender.js?v=29"></script>
+<script src="' . ASSETS_URL . '/js/vender.js?v=30"></script>
 ';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

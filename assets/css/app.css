@@ -1118,6 +1118,46 @@ body.landing .progress-carrera .meta {
     line-height: 1.55;
 }
 
+.premio-mayor-facts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+}
+
+.premio-mayor-facts__item {
+    position: relative;
+    margin: 0;
+    padding: 0.55rem 0.75rem 0.55rem 1.85rem;
+    font-size: 0.95rem;
+    font-weight: 560;
+    line-height: 1.35;
+    color: var(--cr-dark);
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 0.65rem;
+}
+
+.premio-mayor-facts__item::before {
+    content: "";
+    position: absolute;
+    left: 0.7rem;
+    top: 0.95rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--cr-primary);
+}
+
+body.landing .premio-mayor-facts__item {
+    background: rgba(242, 181, 0, 0.08);
+}
+
+body.landing .premio-mayor-facts__item:first-child {
+    font-weight: 700;
+    font-size: 1.02rem;
+}
+
 .hero-title {
     text-align: center;
     font-weight: 800;
@@ -5967,11 +6007,12 @@ a.site-footer-dev--brand:focus-visible {
 .footer-dev-logo,
 .site-footer-dev__logo {
     display: inline-block;
-    height: 1.65rem;
+    height: 1.35rem;
     width: auto;
-    max-width: min(100%, 10.5rem);
+    max-width: min(100%, 9.5rem);
     vertical-align: middle;
     pointer-events: none;
+    object-fit: contain;
     transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .ccm-footer-brand:hover .ccm-footer-brand__logo,

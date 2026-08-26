@@ -1,23 +1,31 @@
 <?php
 $heroTitle = function_exists('landing_setting')
-    ? landing_setting('landing_hero_title', '¡Gana una Yamaha NMAX!')
-    : '¡Gana una Yamaha NMAX!';
+    ? landing_setting('landing_hero_title', "¡Gana el COMBO PAREJA!\nNMAX 2027 + MT-15")
+    : "¡Gana el COMBO PAREJA!\nNMAX 2027 + MT-15";
 $premioMayorTitulo = function_exists('landing_setting')
-    ? landing_setting('landing_premio_mayor_titulo', 'Premio mayor')
-    : 'Premio mayor';
+    ? landing_setting('landing_premio_mayor_titulo', '3era Dinámica · COMBO PAREJA')
+    : '3era Dinámica · COMBO PAREJA';
 $premioMayorDesc = function_exists('landing_setting')
-    ? landing_setting('landing_premio_mayor_desc', '')
-    : '';
+    ? landing_setting(
+        'landing_premio_mayor_desc',
+        "NMAX 2027 + MT-15 2027\nJuega con Lotería de Boyacá\n19 sep y 10 oct · 2 sorteos de \$4M en tecnología\nFinal probable 24 oct (si hay 70% vendido)"
+    )
+    : "NMAX 2027 + MT-15 2027\nJuega con Lotería de Boyacá\n19 sep y 10 oct · 2 sorteos de \$4M en tecnología\nFinal probable 24 oct (si hay 70% vendido)";
 $premioExtraTitulo = function_exists('landing_setting')
-    ? landing_setting('landing_premio_extra_titulo', 'Premios adicionales')
-    : 'Premios adicionales';
+    ? landing_setting('landing_premio_extra_titulo', 'Bendecidos')
+    : 'Bendecidos';
 $premioExtraLabel = function_exists('landing_setting')
-    ? landing_setting('landing_premio_extra_label', '')
-    : '';
+    ? landing_setting('landing_premio_extra_label', '6 nros · $500.000 c/u')
+    : '6 nros · $500.000 c/u';
 $premioExtraDesc = function_exists('landing_setting')
     ? landing_setting('landing_premio_extra_desc', '')
     : '';
 $heroBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
+
+$premioMayorFacts = array_values(array_filter(array_map(
+    static fn($line) => trim((string)$line),
+    preg_split('/\r\n|\r|\n/u', (string)$premioMayorDesc) ?: []
+), static fn($line) => $line !== ''));
 ?>
 <section class="cr-hero-section py-3">
     <div class="container">
@@ -35,16 +43,16 @@ $heroBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
                         <div class="splide__track">
                             <ul class="splide__list" id="heroMainSlides">
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-evento-principal.png', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — premio Yamaha NMAX', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-banner loading="eager">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-evento-principal.png', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — COMBO PAREJA NMAX 2027 + MT-15', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-banner loading="eager">
                                 </li>
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Yamaha NMAX', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-gallery-2 loading="lazy">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 y MT-15 2027', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-gallery-2 loading="lazy">
                                 </li>
                             </ul>
                         </div>
                     </section>
 
-                    <section id="thumbnail-carousel" class="splide mt-3 mx-auto" style="max-width: 420px;" aria-label="Miniaturas del premio">
+                    <section id="thumbnail-carousel" class="splide mt-2 mx-auto d-none d-md-block" style="max-width: 320px;" aria-label="Miniaturas del premio">
                         <div class="splide__track">
                             <ul class="splide__list" id="heroThumbSlides">
                                 <li class="splide__slide">
@@ -62,38 +70,35 @@ $heroBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
             <div class="cr-hero-puestos">
                 <div class="cr-hero-premio">
                     <div class="card border-0 shadow-sm premio-mayor-card">
-                        <div class="card-body d-flex align-items-start gap-3">
-                            <div class="premio-mayor-icon">
-                                <i class="ti ti-trophy fs-4"></i>
-                            </div>
-                            <div>
-                                <p class="premio-mayor-label mb-1" id="landingPremioMayorTitulo"><?= htmlspecialchars($premioMayorTitulo, ENT_QUOTES, 'UTF-8') ?></p>
-                                <p class="premio-mayor-desc mb-0" id="landingPremioMayorDesc"><?= htmlspecialchars($premioMayorDesc, ENT_QUOTES, 'UTF-8') ?></p>
-                            </div>
+                        <div class="card-body py-3">
+                            <p class="premio-mayor-label mb-2" id="landingPremioMayorTitulo"><?= htmlspecialchars($premioMayorTitulo, ENT_QUOTES, 'UTF-8') ?></p>
+                            <ul class="premio-mayor-facts mb-0" id="landingPremioMayorDesc" aria-label="Detalle del premio">
+                                <?php if ($premioMayorFacts === []): ?>
+                                    <li class="premio-mayor-facts__item">Premio mayor por confirmar</li>
+                                <?php else: ?>
+                                    <?php foreach ($premioMayorFacts as $fact): ?>
+                                        <li class="premio-mayor-facts__item"><?= htmlspecialchars($fact, ENT_QUOTES, 'UTF-8') ?></li>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </ul>
                         </div>
                     </div>
                 </div>
 
                 <div class="cr-hero-extras">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm text-center w-100 cr-puesto-card">
-                                <div class="card-body py-3">
-                                    <p class="cr-puesto-label mb-1" id="landingPremioExtraTitulo"><?= htmlspecialchars($premioExtraTitulo, ENT_QUOTES, 'UTF-8') ?></p>
-                                    <h3 class="fw-bold mb-1">
-                                        <span class="color-dinero-premio" id="landingPremioExtraLabel"><?= htmlspecialchars($premioExtraLabel, ENT_QUOTES, 'UTF-8') ?></span>
-                                    </h3>
-                                    <small class="fw-bold text-muted d-block mb-2" id="landingPremioExtraDesc"><?= htmlspecialchars($premioExtraDesc, ENT_QUOTES, 'UTF-8') ?></small>
-                                    <div id="bendecidosCardsContainer" class="cr-bendecidos-chips d-flex flex-wrap justify-content-center gap-1">
-                                        <?php if (!empty($bendecidosCards)): ?>
-                                            <?php foreach ($bendecidosCards as $c): ?>
-                                                <div class="bendecidos-numeros<?= !empty($c['premiado_vendido']) ? ' premiado' : '' ?>"><?= htmlspecialchars((string)$c['number'], ENT_QUOTES, 'UTF-8') ?></div>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <p class="small text-muted mb-0 w-100">Los nros bendecidos se publican aquí al marcarlos premium en Inventario.</p>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
+                    <div class="card border-0 shadow-sm text-center w-100 cr-puesto-card">
+                        <div class="card-body py-3">
+                            <p class="cr-puesto-label mb-1" id="landingPremioExtraTitulo"><?= htmlspecialchars($premioExtraTitulo, ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="fw-bold mb-2 color-dinero-premio" id="landingPremioExtraLabel"><?= htmlspecialchars($premioExtraLabel, ENT_QUOTES, 'UTF-8') ?></p>
+                            <small class="fw-semibold text-muted d-block mb-2<?= trim((string)$premioExtraDesc) === '' ? ' d-none' : '' ?>" id="landingPremioExtraDesc"><?= htmlspecialchars($premioExtraDesc, ENT_QUOTES, 'UTF-8') ?></small>
+                            <div id="bendecidosCardsContainer" class="cr-bendecidos-chips d-flex flex-wrap justify-content-center gap-1">
+                                <?php if (!empty($bendecidosCards)): ?>
+                                    <?php foreach ($bendecidosCards as $c): ?>
+                                        <div class="bendecidos-numeros<?= !empty($c['premiado_vendido']) ? ' premiado' : '' ?>"><?= htmlspecialchars((string)$c['number'], ENT_QUOTES, 'UTF-8') ?></div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <p class="small text-muted mb-0 w-100">Pronto publicamos los nros bendecidos.</p>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

@@ -51,4 +51,5 @@ $paquetesOficiales = cs_package_grid_items();
 <p class="small text-muted text-center mt-2 mb-0 cr-paquetes-hint">
     Compra mínima <?= $minQty ?> nros · $<?= number_format(cs_package_unit_price(), 0, ',', '.') ?> c/u
     · desde <?= cs_package_bulk_threshold() ?>: $<?= number_format(cs_package_bulk_unit_price(), 0, ',', '.') ?> c/u
+    · desde <?= cs_package_bulk2_threshold() ?>: $<?= number_format(cs_package_bulk2_unit_price(), 0, ',', '.') ?> c/u
 </p>

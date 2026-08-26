@@ -88,8 +88,8 @@
                     <img src="<?= htmlspecialchars(ASSETS_URL . '/images/logos/logo-ccm-software-light.png', ENT_QUOTES, 'UTF-8') ?>"
                          alt="CCM Software"
                          class="ccm-footer-brand__logo"
-                         width="163"
-                         height="32"
+                         width="152"
+                         height="18"
                          decoding="async">
                     <span class="ccm-footer-brand__hint" aria-hidden="true" title="Abrir sitio">↗</span>
                 </a>

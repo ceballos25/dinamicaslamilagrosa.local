@@ -57,7 +57,16 @@ function pricingTierConfigVenta() {
 function packagePricingConfigVenta() {
     const p = estado.pricing;
     if (!p || p.mode !== 'packages' || !isPricingTierEnabled(p.enabled ?? true)) {
-        return { enabled: false, unitPrice: 1500, bulkUnitPrice: 1200, bulkThreshold: 40, minQuantity: 10, packages: {} };
+        return {
+            enabled: false,
+            unitPrice: 2000,
+            bulkUnitPrice: 1700,
+            bulkThreshold: 40,
+            bulk2UnitPrice: 1500,
+            bulk2Threshold: 100,
+            minQuantity: 10,
+            packages: {},
+        };
     }
     const packages = {};
     (Array.isArray(p.packages) ? p.packages : []).forEach(item => {
@@ -67,9 +76,11 @@ function packagePricingConfigVenta() {
     });
     return {
         enabled: true,
-        unitPrice: readPricingInt(p.unit_price, 1500),
-        bulkUnitPrice: 1200,
+        unitPrice: readPricingInt(p.unit_price, 2000),
+        bulkUnitPrice: 1700,
         bulkThreshold: 40,
+        bulk2UnitPrice: 1500,
+        bulk2Threshold: 100,
         minQuantity: readPricingInt(p.min_quantity, 10),
         packages,
     };
@@ -90,7 +101,9 @@ function calcularDesglosePrecioVenta(cantidad) {
             return { total: pkg.packages[qty], promoActive: true };
         }
         if (qty >= pkg.minQuantity) {
-            const unit = qty >= pkg.bulkThreshold ? pkg.bulkUnitPrice : pkg.unitPrice;
+            const unit = qty >= pkg.bulk2Threshold
+                ? pkg.bulk2UnitPrice
+                : (qty >= pkg.bulkThreshold ? pkg.bulkUnitPrice : pkg.unitPrice);
             return { total: qty * unit, promoActive: qty >= pkg.bulkThreshold };
         }
         return { total: 0, promoActive: false };

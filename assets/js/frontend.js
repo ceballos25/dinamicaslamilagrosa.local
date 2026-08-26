@@ -419,27 +419,60 @@ function formatHeroTitleHtml(rawTitle) {
         return box.innerHTML;
     }
 
-    let title = escapeHeroTitleText(raw);
+    return raw.split(/\n/).map((line) => formatHeroTitleLine(line)).join('<br>');
+}
+
+function formatHeroTitleLine(line) {
+    const text = String(line || '').trim();
+    if (!text) return '';
+
+    let title = escapeHeroTitleText(text);
     title = title.replace(/\*\*([^*]+)\*\*/g, '<span class="millonario">$1</span>');
     title = title.replace(/\|([^|]+)\|/g, '<span class="millonario">$1</span>');
 
-    if (!/<span/i.test(title)) {
-        const unaMatch = raw.match(/^(.*?\buna\s+)(.+?)([!?.…].*)?$/iu);
-        if (unaMatch && unaMatch[2]) {
-            title = escapeHeroTitleText(unaMatch[1])
-                + '<span class="millonario">' + escapeHeroTitleText(unaMatch[2].trim()) + '</span>'
-                + escapeHeroTitleText(unaMatch[3] || '');
-        } else {
-            const lastWord = raw.match(/^(.+?\s)([^\s!?.…,]+)([!?.…,\s]*)$/u);
-            if (lastWord) {
-                title = escapeHeroTitleText(lastWord[1])
-                    + '<span class="millonario">' + escapeHeroTitleText(lastWord[2]) + '</span>'
-                    + escapeHeroTitleText(lastWord[3] || '');
-            }
+    if (/<span/i.test(title)) {
+        return title;
+    }
+
+    // "¡Gana el COMBO PAREJA!" / "¡Gana una Yamaha NMAX!"
+    const articleMatch = text.match(/^(.*?\b(?:una|un|el|la|los|las)\s+)(.+?)([!?.…].*)?$/iu);
+    if (articleMatch && articleMatch[2]) {
+        return escapeHeroTitleText(articleMatch[1])
+            + '<span class="millonario">' + escapeHeroTitleText(articleMatch[2].trim()) + '</span>'
+            + escapeHeroTitleText(articleMatch[3] || '');
+    }
+
+    // Solo resaltar última palabra si la línea termina en exclamación/interrogación
+    if (/[!?…]$/u.test(text)) {
+        const lastWord = text.match(/^(.+?\s)([^\s!?.…,]+)([!?.…,\s]*)$/u);
+        if (lastWord) {
+            return escapeHeroTitleText(lastWord[1])
+                + '<span class="millonario">' + escapeHeroTitleText(lastWord[2]) + '</span>'
+                + escapeHeroTitleText(lastWord[3] || '');
         }
     }
 
-    return title.replace(/\n/g, '<br>');
+    return title;
+}
+
+function formatPremioMayorFactsHtml(rawDesc) {
+    const raw = String(rawDesc || '').trim();
+    if (!raw) {
+        return '<li class="premio-mayor-facts__item">Premio mayor por confirmar</li>';
+    }
+
+    const parts = raw
+        .split(/\r\n|\r|\n/u)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    if (!parts.length) {
+        return '<li class="premio-mayor-facts__item">' + escapeHeroTitleText(raw) + '</li>';
+    }
+
+    return parts
+        .map((part) => '<li class="premio-mayor-facts__item">' + escapeHeroTitleText(part) + '</li>')
+        .join('');
 }
 
 function aplicarTextosRifa() {
@@ -460,13 +493,27 @@ function aplicarTextosRifa() {
         if (!el || typeof getSetting !== 'function') return;
         const val = String(getSetting(key, '') || '').trim();
         if (val !== '') el.textContent = val;
+        return val;
     };
 
     setText('landingPremioMayorTitulo', 'landing_premio_mayor_titulo');
-    setText('landingPremioMayorDesc', 'landing_premio_mayor_desc');
+
+    const premioDescEl = document.getElementById('landingPremioMayorDesc');
+    if (premioDescEl && typeof getSetting === 'function') {
+        const desc = String(getSetting('landing_premio_mayor_desc', '') || '').trim();
+        if (desc !== '') {
+            premioDescEl.innerHTML = formatPremioMayorFactsHtml(desc);
+        }
+    }
+
     setText('landingPremioExtraTitulo', 'landing_premio_extra_titulo');
     setText('landingPremioExtraLabel', 'landing_premio_extra_label');
-    setText('landingPremioExtraDesc', 'landing_premio_extra_desc');
+    const extraDesc = setText('landingPremioExtraDesc', 'landing_premio_extra_desc');
+    const extraDescEl = document.getElementById('landingPremioExtraDesc');
+    if (extraDescEl) {
+        extraDescEl.classList.toggle('d-none', !extraDesc);
+    }
+
     setText('landingFooterTagline', 'footer_tagline');
     setText('landingFooterPhones', 'footer_phones');
     setText('landingFooterLocation', 'footer_location');
@@ -1032,14 +1079,12 @@ function pricingTierConfig() {
 
 function defaultPackageGridItems() {
     return [
-        { qty: 10, price: 15000, badge: null, badge_slug: null },
-        { qty: 18, price: 27000, badge: null, badge_slug: null },
-        { qty: 30, price: 45000, badge: 'Popular', badge_slug: 'popular' },
-        { qty: 40, price: 48000, badge: 'Ahorro', badge_slug: 'ahorro' },
-        { qty: 60, price: 72000, badge: null, badge_slug: null },
-        { qty: 100, price: 120000, badge: 'Más vendido', badge_slug: 'mas-vendido' },
-        { qty: 200, price: 240000, badge: null, badge_slug: null },
-        { qty: 300, price: 360000, badge: 'Mega', badge_slug: 'mega' },
+        { qty: 10, price: 20000, badge: null, badge_slug: null },
+        { qty: 18, price: 36000, badge: null, badge_slug: null },
+        { qty: 30, price: 60000, badge: 'Popular', badge_slug: 'popular' },
+        { qty: 40, price: 68000, badge: 'Ahorro', badge_slug: 'ahorro' },
+        { qty: 60, price: 102000, badge: null, badge_slug: null },
+        { qty: 100, price: 150000, badge: 'Más vendido', badge_slug: 'mas-vendido' },
     ];
 }
 
@@ -1077,17 +1122,19 @@ function packagePricingConfig() {
     });
 
     if (!Object.keys(packages).length) {
-        [10, 18, 30, 40, 60, 100, 200, 300].forEach((qty, i) => {
-            const prices = [15000, 27000, 45000, 48000, 72000, 120000, 240000, 360000];
+        [10, 18, 30, 40, 60, 100].forEach((qty, i) => {
+            const prices = [20000, 36000, 60000, 68000, 102000, 150000];
             packages[qty] = prices[i];
         });
     }
 
     return {
         enabled,
-        unitPrice: readPricingInt(p?.unit_price ?? 1500, 1500),
-        bulkUnitPrice: 1200,
+        unitPrice: readPricingInt(p?.unit_price ?? 2000, 2000),
+        bulkUnitPrice: 1700,
         bulkThreshold: 40,
+        bulk2UnitPrice: 1500,
+        bulk2Threshold: 100,
         minQuantity: readPricingInt(p?.min_quantity ?? 10, 10),
         packages,
     };
@@ -1112,7 +1159,9 @@ function packagePriceForQuantity(qty) {
     }
 
     if (quantity >= pkg.minQuantity) {
-        const unit = quantity >= pkg.bulkThreshold ? pkg.bulkUnitPrice : pkg.unitPrice;
+        const unit = quantity >= (pkg.bulk2Threshold || 100)
+            ? (pkg.bulk2UnitPrice || 1500)
+            : (quantity >= pkg.bulkThreshold ? pkg.bulkUnitPrice : pkg.unitPrice);
         return { total: quantity * unit, isPackage: false };
     }
 
