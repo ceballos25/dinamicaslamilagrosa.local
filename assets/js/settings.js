@@ -132,7 +132,7 @@ const SETTING_UI_META = {
     footer_phones: {
         title: 'Footer — teléfonos',
         help: 'Números visibles en contacto del pie.',
-        placeholder: '320 259 5153 · 320 259 5184',
+        placeholder: '313 399 2903 · 320 259 5184',
         type: 'text',
         section: 'landing',
     },
