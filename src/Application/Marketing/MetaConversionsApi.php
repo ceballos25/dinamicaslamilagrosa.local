@@ -426,8 +426,11 @@ final class MetaConversionsApi
             ))),
         ];
 
-        if ($eventName !== 'Purchase') {
-            $event['event_source_url'] = self::eventSourceUrl();
+        // Meta exige event_source_url en todos los eventos con action_source=website
+        // (incluye Purchase). Sin esto, atribución y optimización de campañas fallan.
+        $sourceUrl = self::eventSourceUrl();
+        if ($sourceUrl !== '') {
+            $event['event_source_url'] = $sourceUrl;
         }
 
         if ($eventId !== null && trim($eventId) !== '') {
@@ -726,17 +729,36 @@ final class MetaConversionsApi
         return defined('META_CAPI_TIMEOUT') ? (int)\META_CAPI_TIMEOUT : 8;
     }
 
+    /**
+     * URL pública donde ocurrió el evento (requerida por Meta CAPI).
+     * En aprobaciones desde admin/AJAX usa la URL del sitio, no la del panel.
+     */
     private static function eventSourceUrl(): string
     {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host = (string)($_SERVER['HTTP_HOST'] ?? parse_url((string)(defined('BASE_URL') ? \BASE_URL : ''), \PHP_URL_HOST));
-        $uri = (string)($_SERVER['REQUEST_URI'] ?? '/');
+        $base = defined('BASE_URL') ? rtrim((string)\BASE_URL, '/') : '';
+        $uri = (string)($_SERVER['REQUEST_URI'] ?? '');
+        $host = (string)($_SERVER['HTTP_HOST'] ?? '');
 
-        if ($host === '') {
-            return defined('BASE_URL') ? (string)\BASE_URL : '';
+        $isBackendRequest = $uri !== '' && (bool)preg_match(
+            '#/(front/|ajax/|controllers/|api/)|dash\.php#i',
+            $uri
+        );
+
+        if (!$isBackendRequest && $host !== '') {
+            $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+            $forwardedProto = strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+            $scheme = ($https || $forwardedProto === 'https') ? 'https' : 'http';
+            if ($base !== '') {
+                $baseScheme = parse_url($base, \PHP_URL_SCHEME);
+                if (is_string($baseScheme) && $baseScheme !== '') {
+                    $scheme = $baseScheme;
+                }
+            }
+
+            return $scheme . '://' . $host . ($uri !== '' ? $uri : '/');
         }
 
-        return $scheme . '://' . $host . $uri;
+        return $base !== '' ? $base . '/' : '';
     }
 
     private static function firstName(string $value): string
