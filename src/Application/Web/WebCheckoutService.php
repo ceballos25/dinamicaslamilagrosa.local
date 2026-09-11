@@ -182,7 +182,7 @@ final class WebCheckoutService
     private function sendInitiateCheckoutCapi(array $payload, array $transfer, float $amount): void
     {
         try {
-            if (!MetaConversionsApi::isCapiConfigured()) {
+            if (!MetaConversionsApi::isCapiReady()) {
                 return;
             }
 

@@ -465,12 +465,18 @@ final class MetaConversionsApi
         return self::isPixelConfigured() && self::accessToken() !== '';
     }
 
-    public static function isConfigured(): bool
+    /** Credenciales presentes y CAPI activada (listo para enviar). */
+    public static function isCapiReady(): bool
     {
-        return self::isCapiConfigured();
+        return self::isEnabled() && self::isCapiConfigured();
     }
 
-    private static function isEnabled(): bool
+    public static function isConfigured(): bool
+    {
+        return self::isCapiReady();
+    }
+
+    public static function isEnabled(): bool
     {
         return !defined('META_CAPI_ENABLED') || (bool)\META_CAPI_ENABLED;
     }

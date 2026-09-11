@@ -20,7 +20,8 @@ function cs_meta_pixel_head(): void
     $metaPixelId = MetaConversionsApi::pixelId();
     $metaPageViewEventId = '';
     $sendPageView = $guard->shouldSendPageView();
-    $sendCapiPageView = $sendPageView && MetaConversionsApi::isCapiConfigured();
+    // isCapiReady = token+pixel Y META_CAPI_ENABLED=true (antes solo miraba credenciales)
+    $sendCapiPageView = $sendPageView && MetaConversionsApi::isCapiReady();
     $pageViewRef = (string)(session_id() ?: 'guest') . '-' . $guard->pageViewStorageKey();
 
     if ($sendCapiPageView) {
@@ -28,6 +29,7 @@ function cs_meta_pixel_head(): void
         if (MetaConversionsApi::sendPageView($metaPageViewEventId)) {
             $guard->markPageViewSent();
         }
+        // Si CAPI falla, no marcamos: reintenta en la próxima carga.
     } elseif ($sendPageView) {
         $metaPageViewEventId = MetaConversionsApi::eventId('PageView', $pageViewRef);
         $guard->markPageViewSent();
@@ -53,7 +55,7 @@ function cs_meta_pixel_head(): void
     <script>
     window.META_EVENTS_CONFIG = {
         enabled: true,
-        capiEnabled: <?= MetaConversionsApi::isCapiConfigured() ? 'true' : 'false' ?>,
+        capiEnabled: <?= MetaConversionsApi::isCapiReady() ? 'true' : 'false' ?>,
         pixelId: <?= json_encode($metaPixelId, JSON_UNESCAPED_SLASHES) ?>,
         ajaxUrl: <?= json_encode(BASE_URL . '/front/ajax/meta.ajax.php', JSON_UNESCAPED_SLASHES) ?>,
         standardEvents: <?= json_encode(MetaConversionsApi::BROWSER_TRACK_EVENTS, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>

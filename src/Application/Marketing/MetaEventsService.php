@@ -36,8 +36,8 @@ final class MetaEventsService
             return ['success' => false, 'message' => 'Meta Pixel no configurado'];
         }
 
-        if (!MetaConversionsApi::isCapiConfigured()) {
-            return ['success' => false, 'message' => 'Meta Conversions API no configurada (falta META_ACCESS_TOKEN)'];
+        if (!MetaConversionsApi::isCapiReady()) {
+            return ['success' => false, 'message' => 'Meta Conversions API no configurada o desactivada'];
         }
 
         $eventName = trim((string)($payload['event_name'] ?? ''));
