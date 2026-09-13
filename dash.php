@@ -20,6 +20,7 @@ if ($detail) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php include_once ROOT_PATH . '/includes/admin-pwa-head.php'; ?>
     <title>Login - <?= SITE_NAME ?></title> 
     <link rel="shortcut icon" type="image/png" href="<?= htmlspecialchars(LOGO_NAV_URL, ENT_QUOTES, 'UTF-8') ?>" />
     <link rel="stylesheet" href="<?= htmlspecialchars(ASSETS_URL, ENT_QUOTES, 'UTF-8') ?>/css/brand.css?v=40" />

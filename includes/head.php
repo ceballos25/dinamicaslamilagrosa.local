@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <?php include_once ROOT_PATH . '/includes/admin-pwa-head.php'; ?>
   <?php if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['csrf_token'])): ?>
   <meta name="csrf-token" content="<?= htmlspecialchars((string)$_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
   <script>window.APP_CSRF_TOKEN = <?= json_encode($_SESSION['csrf_token'], JSON_UNESCAPED_UNICODE) ?>;</script>

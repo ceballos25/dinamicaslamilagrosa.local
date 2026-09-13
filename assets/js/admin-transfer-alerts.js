@@ -15,8 +15,15 @@
         return typeof adminCanCap === 'function' && adminCanCap('transferencias.view');
     }
 
+    function isIosChrome() {
+        const ua = navigator.userAgent || '';
+        return isIos() && /CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo|GSA\//i.test(ua);
+    }
+
     function notificationsSupported() {
-        return typeof window !== 'undefined' && 'Notification' in window;
+        return typeof window !== 'undefined'
+            && 'Notification' in window
+            && typeof Notification.requestPermission === 'function';
     }
 
     function formatMoney(n) {
@@ -148,19 +155,30 @@
         if (!notificationsSupported() || Notification.permission !== 'granted') {
             return;
         }
-        try {
-            const n = new Notification(alertTitle(items), {
-                body: alertBody(items),
-                tag: 'cr-nueva-transferencia',
-                icon: faviconHref() || undefined,
-            });
-            n.onclick = function () {
-                window.focus();
-                n.close();
-                if (!/transferencias\.php(?:$|\?)/.test(window.location.pathname)) {
-                    window.location.href = TRANSFERENCIAS_URL;
+        const title = alertTitle(items);
+        const options = {
+            body: alertBody(items),
+            tag: 'cr-nueva-transferencia',
+            icon: faviconHref() || undefined,
+            data: { url: TRANSFERENCIAS_URL },
+        };
+        const viaWorker = navigator.serviceWorker?.ready
+            ?.then((reg) => {
+                if (reg && typeof reg.showNotification === 'function') {
+                    return reg.showNotification(title, options);
                 }
-            };
+                throw new Error('no-sw-notify');
+            });
+        if (viaWorker) {
+            viaWorker.catch(() => {
+                try {
+                    new Notification(title, options);
+                } catch (e) {}
+            });
+            return;
+        }
+        try {
+            new Notification(title, options);
         } catch (e) {}
     }
 
@@ -240,29 +258,93 @@
             || window.navigator.standalone === true;
     }
 
+    function iosVersionLabel() {
+        const m = String(navigator.userAgent || '').match(/OS (\d+)[._](\d+)/);
+        if (!m) {
+            return 'desconocida';
+        }
+        return m[1] + '.' + m[2];
+    }
+
+    function iosSupportsWebPush() {
+        const m = String(navigator.userAgent || '').match(/OS (\d+)[._](\d+)/);
+        if (!m) {
+            return !isIos();
+        }
+        const major = Number(m[1]);
+        const minor = Number(m[2]);
+        return major > 16 || (major === 16 && minor >= 4);
+    }
+
+    function alertDebugText() {
+        const perm = notificationsSupported() ? Notification.permission : 'no-existe';
+        return [
+            'Modo app: ' + (isStandalone() ? 'sí (ícono de inicio)' : 'no (estás en Safari/Chrome)'),
+            'Google Chrome iPhone: ' + (isIosChrome() ? 'sí' : 'no'),
+            'API avisos: ' + (notificationsSupported() ? 'sí' : 'no'),
+            'Permiso: ' + perm,
+            'Service Worker: ' + ('serviceWorker' in navigator ? 'sí' : 'no'),
+            'iOS: ' + iosVersionLabel(),
+        ].join('\n');
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const raw = window.atob(base64);
+        const output = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i += 1) {
+            output[i] = raw.charCodeAt(i);
+        }
+        return output;
+    }
+
+    async function ensureServiceWorker() {
+        if (!('serviceWorker' in navigator)) {
+            return null;
+        }
+        const reg = await navigator.serviceWorker.register('/sw-admin.js', { scope: '/' });
+        await navigator.serviceWorker.ready;
+        return navigator.serviceWorker.ready;
+    }
+
     function notifyUser(mensaje) {
+        const text = String(mensaje || '') + '\n\n' + alertDebugText();
         if (typeof alertify !== 'undefined') {
-            alertify.alert('Avisos de compras', mensaje);
+            alertify.alert('Avisos de compras', text.replace(/\n/g, '<br>'));
             return;
         }
         if (typeof Swal !== 'undefined') {
-            Swal.fire({ icon: 'info', title: 'Avisos de compras', text: mensaje, confirmButtonText: 'Entendido' });
+            Swal.fire({
+                icon: 'info',
+                title: 'Avisos de compras',
+                html: text.replace(/\n/g, '<br>'),
+                confirmButtonText: 'Entendido',
+            });
             return;
         }
-        window.alert(mensaje);
+        window.alert(text);
     }
 
     function explainHowToEnable() {
+        if (!iosSupportsWebPush() && isIos()) {
+            notifyUser('Tu iPhone necesita iOS 16.4 o superior para avisos web. Actualízalo en Ajustes → General → Actualización de software.');
+            return;
+        }
+        if (isIosChrome()) {
+            notifyUser('Sigues en Google Chrome. En iPhone eso no activa avisos. Cierra esta app, abre Safari (brújula), entra al panel, Compartir → Agregar a pantalla de inicio, y abre el ícono nuevo.');
+            return;
+        }
+        if (isIos() && !isStandalone()) {
+            notifyUser('No estás dentro del ícono de inicio: estás en una pestaña de Safari. Cierra Safari, toca el ícono “Panel” en la pantalla de inicio y ahí pulsa Activar avisos. Si el ícono es el de Chrome, bórralo y créalo otra vez desde Safari.');
+            return;
+        }
         if (!notificationsSupported()) {
-            if (isIos() && !isStandalone()) {
-                notifyUser('En iPhone/iPad las notificaciones solo funcionan si agregas el panel a la pantalla de inicio: toca Compartir y luego Agregar a pantalla de inicio. Después ábrelo desde ese ícono.');
-                return;
-            }
-            notifyUser('Este navegador no permite avisos. Ábrelo en Chrome o Safari, no dentro de Instagram, WhatsApp o Facebook.');
+            notifyUser('Este iPhone no dejó activar avisos. Borra el ícono, agrégalo otra vez desde Safari y abre solo ese ícono. Si sigue igual, el código nuevo tiene que estar ya en el sitio que abres desde el celular.');
             return;
         }
         if (Notification.permission === 'denied') {
-            notifyUser('Los avisos están bloqueados. Toca el candado junto a la URL y permite las notificaciones para este sitio.');
+            notifyUser('Los avisos quedaron bloqueados. En el iPhone: Ajustes → Notificaciones → Panel (o Safari) → Permitir avisos.');
         }
     }
 
@@ -283,17 +365,42 @@
         btn.dataset.bound = '1';
         btn.addEventListener('click', async () => {
             unlockAudio();
-            if (!notificationsSupported() || Notification.permission === 'denied') {
+            playTilin();
+            if (isIosChrome() || (isIos() && !iosSupportsWebPush())) {
                 explainHowToEnable();
-                playTilin();
+                return;
+            }
+            if (isIos() && !isStandalone()) {
+                explainHowToEnable();
                 return;
             }
             try {
-                await Notification.requestPermission();
+                const reg = await ensureServiceWorker();
+                const vapid = String(window.ADMIN_VAPID_PUBLIC_KEY || '');
+                if (reg && reg.pushManager && vapid) {
+                    await reg.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(vapid),
+                    });
+                } else if (notificationsSupported()) {
+                    await Notification.requestPermission();
+                }
+                const granted = notificationsSupported() && Notification.permission === 'granted';
+                if (!granted) {
+                    explainHowToEnable();
+                    renderEnableButton();
+                    return;
+                }
+                if (reg && typeof reg.showNotification === 'function') {
+                    await reg.showNotification('Avisos activados', {
+                        body: 'Cuando alguien compre, te avisaremos aquí.',
+                        tag: 'cr-avisos-ok',
+                        data: { url: TRANSFERENCIAS_URL },
+                    });
+                }
             } catch (e) {
-                explainHowToEnable();
+                notifyUser('No se pudieron activar: ' + (e && e.message ? e.message : 'error del navegador'));
             }
-            playTilin();
             renderEnableButton();
         });
     }
