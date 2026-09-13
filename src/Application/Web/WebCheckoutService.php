@@ -182,6 +182,16 @@ final class WebCheckoutService
     private function sendInitiateCheckoutCapi(array $payload, array $transfer, float $amount): void
     {
         try {
+            $checkoutCustomer = [
+                'name_customer' => $payload['name_customer'] ?? '',
+                'lastname_customer' => $payload['lastname_customer'] ?? '',
+                'phone_customer' => $payload['phone_customer'] ?? '',
+                'email_customer' => $payload['email_customer'] ?? '',
+                'city_customer' => $payload['city_customer'] ?? '',
+                'department_customer' => $payload['department_customer'] ?? '',
+            ];
+            MetaConversionsApi::rememberMatchUserData(MetaConversionsApi::userDataFromInput($checkoutCustomer));
+
             if (!MetaConversionsApi::isCapiReady()) {
                 return;
             }
@@ -198,18 +208,14 @@ final class WebCheckoutService
             }
 
             $eventId = MetaConversionsApi::initiateCheckoutEventId($idTransfer, $codeTransfer);
-            $sent = MetaConversionsApi::sendInitiateCheckout([
+            $sent = MetaConversionsApi::sendInitiateCheckout(array_merge($checkoutCustomer, [
                 'id_transfer' => $idTransfer,
                 'code_transfer' => $codeTransfer,
                 'value' => $amount,
                 'quantity' => (int)($payload['quantity'] ?? 0),
-                'name_customer' => $payload['name_customer'] ?? '',
-                'lastname_customer' => $payload['lastname_customer'] ?? '',
-                'phone_customer' => $payload['phone_customer'] ?? '',
-                'email_customer' => $payload['email_customer'] ?? '',
                 'meta_fbp' => $payload['meta_fbp'] ?? '',
                 'meta_fbc' => $payload['meta_fbc'] ?? '',
-            ], $eventId);
+            ]), $eventId);
 
             if (!$sent) {
                 return;
@@ -561,6 +567,15 @@ final class WebCheckoutService
         if (!$row) {
             return ['success' => true, 'data' => null];
         }
+
+        MetaConversionsApi::rememberMatchUserData(MetaConversionsApi::userDataFromInput([
+            'email' => (string)($row->email_customer ?? ''),
+            'phone' => $phone,
+            'name' => (string)($row->name_customer ?? ''),
+            'lastname' => (string)($row->lastname_customer ?? ''),
+            'city' => (string)($row->city_customer ?? ''),
+            'state' => (string)($row->department_customer ?? ''),
+        ]));
 
         return [
             'success' => true,

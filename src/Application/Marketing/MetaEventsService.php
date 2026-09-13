@@ -72,6 +72,7 @@ final class MetaEventsService
         }
 
         $userData = MetaConversionsApi::userDataFromInput($userInput);
+        MetaConversionsApi::rememberMatchUserData($userData);
 
         if (!empty($payload['fbp'])) {
             $userData['fbp'] = trim((string)$payload['fbp']);

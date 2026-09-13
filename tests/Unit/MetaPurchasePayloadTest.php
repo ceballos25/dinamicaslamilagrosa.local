@@ -98,4 +98,75 @@ final class MetaPurchasePayloadTest extends TestCase
         self::assertSame($first, $second);
         self::assertStringStartsWith('initiatecheckout-', $first);
     }
+
+    public function testUserDataFromInputHashesEmailAndPhone(): void
+    {
+        $userData = MetaConversionsApi::userDataFromInput([
+            'email' => 'Ada@Example.com',
+            'phone' => '3001234567',
+            'name' => 'Ada Lovelace',
+            'lastname' => 'Byron',
+            'city' => 'Medellín',
+            'state' => 'Antioquia',
+        ]);
+
+        self::assertSame(hash('sha256', 'ada@example.com'), $userData['em']);
+        self::assertSame(hash('sha256', '573001234567'), $userData['ph']);
+        self::assertSame(hash('sha256', 'ada'), $userData['fn']);
+        self::assertArrayNotHasKey('email', $userData);
+    }
+
+    public function testRememberedMatchUserDataIsReusedForLaterPageViews(): void
+    {
+        $this->resetMetaMatchStorage();
+
+        $hashed = MetaConversionsApi::userDataFromInput([
+            'email' => 'ada@example.com',
+            'phone' => '3001234567',
+            'name' => 'Ada',
+            'lastname' => 'Lovelace',
+        ]);
+        MetaConversionsApi::rememberMatchUserData($hashed);
+
+        $stored = MetaConversionsApi::storedMatchUserData();
+        self::assertSame($hashed['em'], $stored['em']);
+        self::assertSame($hashed['ph'], $stored['ph']);
+        self::assertSame(64, strlen($stored['em']));
+        self::assertArrayNotHasKey('fbp', $stored);
+        self::assertArrayNotHasKey('client_ip_address', $stored);
+    }
+
+    public function testStoredMatchUserDataIgnoresTamperedValues(): void
+    {
+        $this->resetMetaMatchStorage();
+        $_COOKIE['_cs_mm'] = json_encode([
+            'em' => 'not-a-hash',
+            'ph' => str_repeat('a', 64),
+            'evil' => str_repeat('b', 64),
+        ], JSON_THROW_ON_ERROR);
+
+        $stored = MetaConversionsApi::storedMatchUserData();
+        self::assertArrayNotHasKey('em', $stored);
+        self::assertArrayNotHasKey('evil', $stored);
+        self::assertSame(str_repeat('a', 64), $stored['ph']);
+    }
+
+    public function testRememberMatchDoesNotOverwriteWithEmptyPayload(): void
+    {
+        $this->resetMetaMatchStorage();
+        $hashed = MetaConversionsApi::userDataFromInput(['email' => 'ada@example.com']);
+        MetaConversionsApi::rememberMatchUserData($hashed);
+        MetaConversionsApi::rememberMatchUserData([]);
+
+        $stored = MetaConversionsApi::storedMatchUserData();
+        self::assertSame($hashed['em'], $stored['em']);
+    }
+
+    private function resetMetaMatchStorage(): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+        unset($_SESSION['meta_match_user_data'], $_COOKIE['_cs_mm']);
+    }
 }

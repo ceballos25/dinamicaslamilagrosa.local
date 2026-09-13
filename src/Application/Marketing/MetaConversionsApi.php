@@ -7,6 +7,12 @@ final class MetaConversionsApi
 {
     private const DEFAULT_API_VERSION = 'v20.0';
     private const FBC_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
+    private const MATCH_COOKIE = '_cs_mm';
+    private const SESSION_MATCH_KEY = 'meta_match_user_data';
+    private const MATCH_COOKIE_TTL = 90 * 24 * 60 * 60;
+
+    /** @var list<string> */
+    private const MATCH_USER_DATA_KEYS = ['em', 'ph', 'fn', 'ln', 'ct', 'st', 'country', 'external_id'];
 
     /** Eventos permitidos en navegador (Pixel / meta.ajax.php). */
     public const BROWSER_TRACK_EVENTS = [
@@ -81,6 +87,9 @@ final class MetaConversionsApi
         $eventRef = self::sanitizeEventReference($eventRef);
 
         $eventId = self::eventId($eventName, $eventRef);
+        if ($includeRequestUserData) {
+            $userData = array_filter(array_merge(self::storedMatchUserData(), $userData));
+        }
         $sent = self::sendEvent($eventName, $customData, $userData, $eventId, null, $includeRequestUserData);
 
         return ['success' => true, 'event_id' => $eventId, 'sent' => $sent];
@@ -88,7 +97,7 @@ final class MetaConversionsApi
 
     public static function sendPageView(?string $eventId = null): bool
     {
-        return self::sendEvent('PageView', [], [], $eventId);
+        return self::sendEvent('PageView', [], self::storedMatchUserData(), $eventId);
     }
 
     /**
@@ -636,6 +645,86 @@ final class MetaConversionsApi
             'st' => self::hash(strtolower(trim($state))),
             'country' => self::hash('co'),
         ]);
+    }
+
+    /**
+     * Guarda identificadores ya hasheados (em, ph, fn…) para PageView posteriores.
+     * No guarda texto plano. No se llama desde aprobaciones de admin (Purchase).
+     *
+     * @param array<string, mixed> $userData
+     */
+    public static function rememberMatchUserData(array $userData): void
+    {
+        $clean = self::normalizeStoredMatchUserData($userData);
+        if ($clean === [] || (!isset($clean['em']) && !isset($clean['ph']))) {
+            return;
+        }
+
+        $merged = array_merge(self::storedMatchUserData(), $clean);
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION[self::SESSION_MATCH_KEY] = $merged;
+        }
+
+        if (!headers_sent()) {
+            setcookie(self::MATCH_COOKIE, json_encode($merged, JSON_UNESCAPED_SLASHES), [
+                'expires' => time() + self::MATCH_COOKIE_TTL,
+                'path' => '/',
+                'secure' => self::isHttpsRequest(),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+    }
+
+    /**
+     * Identificadores hasheados de visitas anteriores (sesión o cookie HttpOnly).
+     *
+     * @return array<string, string>
+     */
+    public static function storedMatchUserData(): array
+    {
+        $fromCookie = [];
+        $raw = trim((string)($_COOKIE[self::MATCH_COOKIE] ?? ''));
+        if ($raw !== '') {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $fromCookie = $decoded;
+            }
+        }
+
+        $fromSession = [];
+        if (session_status() === PHP_SESSION_ACTIVE && isset($_SESSION[self::SESSION_MATCH_KEY]) && is_array($_SESSION[self::SESSION_MATCH_KEY])) {
+            $fromSession = $_SESSION[self::SESSION_MATCH_KEY];
+        }
+
+        return self::normalizeStoredMatchUserData(array_merge($fromCookie, $fromSession));
+    }
+
+    /**
+     * @param array<string, mixed> $userData
+     * @return array<string, string>
+     */
+    private static function normalizeStoredMatchUserData(array $userData): array
+    {
+        $clean = [];
+        foreach (self::MATCH_USER_DATA_KEYS as $key) {
+            $value = strtolower(trim((string)($userData[$key] ?? '')));
+            if ($value !== '' && preg_match('/^[a-f0-9]{64}$/', $value) === 1) {
+                $clean[$key] = $value;
+            }
+        }
+
+        return $clean;
+    }
+
+    private static function isHttpsRequest(): bool
+    {
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+
+        return strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
     }
 
     /**

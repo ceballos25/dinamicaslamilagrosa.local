@@ -1782,6 +1782,37 @@ function setComprobanteUploadState(file) {
 // ==========================================
 // TRACKING DE META ADS (EMBUDO COMPLETO Y SEGURO)
 // ==========================================
+function checkoutMetaUserData() {
+    const tel = ($('#celularCliente').val() || '').replace(/\D/g, '');
+    const nom = ($('#nombreCliente').val() || '').trim();
+    const ape = ($('#apellidoCliente').val() || '').trim();
+    const email = ($('#emailCliente').val() || '').trim();
+    const dep = ($('#departamento').val() || '').trim();
+    const ciu = ($('#ciudad').val() || '').trim();
+    const data = {};
+
+    if (tel.length === 10) {
+        data.celular = tel;
+    }
+    if (nom.length >= 2) {
+        data.nombre = nom;
+    }
+    if (ape.length >= 2) {
+        data.apellido = ape;
+    }
+    if (email.includes('@')) {
+        data.email = email;
+    }
+    if (dep) {
+        data.departamento = dep;
+    }
+    if (ciu) {
+        data.ciudad = ciu;
+    }
+
+    return Object.keys(data).length ? data : null;
+}
+
 function trackLandingViewContent() {
     if (typeof MetaEvents === 'undefined') return;
     const basePrice = estado.pricing?.packages?.[0]?.price || (estado.rifa?.precio ? estado.rifa.precio * 10 : 20000);
@@ -1789,7 +1820,7 @@ function trackLandingViewContent() {
         currency: 'COP',
         value: basePrice,
         content_type: 'product'
-    }, 'combo-pareja');
+    }, 'combo-pareja', checkoutMetaUserData());
 }
 
 function trackMetaAddToCart(cant, total) {
@@ -1803,7 +1834,7 @@ function trackMetaAddToCart(cant, total) {
         value: val,
         num_items: qty,
         content_type: 'product'
-    }, 'pkg-' + qty, null, { allowRepeat: true });
+    }, 'pkg-' + qty, checkoutMetaUserData(), { allowRepeat: true });
 }
 
 function trackMetaInitiateCheckout(cant, total) {
@@ -1817,28 +1848,17 @@ function trackMetaInitiateCheckout(cant, total) {
         value: val,
         num_items: qty,
         content_type: 'product'
-    }, 'init-' + qty + '-' + Date.now().toString(36), null, { allowRepeat: true });
+    }, 'init-' + qty + '-' + Date.now().toString(36), checkoutMetaUserData(), { allowRepeat: true });
 }
 
 function trackMetaLead() {
     if (typeof MetaEvents === 'undefined') return;
-    const tel = ($('#celularCliente').val() || '').replace(/\D/g, '');
-    const nom = ($('#nombreCliente').val() || '').trim();
-    const ape = ($('#apellidoCliente').val() || '').trim();
-    const email = ($('#emailCliente').val() || '').trim();
-    const dep = $('#departamento').val() || '';
-    const ciu = $('#ciudad').val() || '';
+    const userData = checkoutMetaUserData();
+    const tel = userData && userData.celular ? userData.celular : '';
+    const nom = userData && userData.nombre ? userData.nombre : '';
 
     if (tel.length === 10 && nom.length >= 2) {
         const total = totalAPagarCOP();
-        const userData = {
-            celular: tel,
-            nombre: nom,
-            apellido: ape,
-            email: email,
-            departamento: dep,
-            ciudad: ciu
-        };
         MetaEvents.trackOnce('lead_' + tel, 'Lead', {
             currency: 'COP',
             value: total > 0 ? total : 20000
@@ -1857,7 +1877,7 @@ function trackMetaAddPaymentInfo() {
         value: total,
         num_items: cant,
         content_type: 'product'
-    }, 'payinfo-' + total);
+    }, 'payinfo-' + total, checkoutMetaUserData());
 }
 
 function abrirWhatsAppCheckout(e) {
@@ -1901,7 +1921,7 @@ function abrirWhatsAppCheckout(e) {
             value: total > 0 ? total : 20000,
             num_items: cant,
             content_type: 'product'
-        }, 'wa-checkout-' + cant, null, { allowRepeat: true });
+        }, 'wa-checkout-' + cant, checkoutMetaUserData(), { allowRepeat: true });
     }
 
     const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(waPhone) + '&text=' + encodeURIComponent(msg);
