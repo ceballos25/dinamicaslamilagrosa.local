@@ -230,34 +230,98 @@
         }, delay);
     }
 
+    function isIos() {
+        return /iPad|iPhone|iPod/i.test(navigator.userAgent)
+            || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function isStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true;
+    }
+
+    function notifyUser(mensaje) {
+        if (typeof alertify !== 'undefined') {
+            alertify.alert('Avisos de compras', mensaje);
+            return;
+        }
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'info', title: 'Avisos de compras', text: mensaje, confirmButtonText: 'Entendido' });
+            return;
+        }
+        window.alert(mensaje);
+    }
+
+    function explainHowToEnable() {
+        if (!notificationsSupported()) {
+            if (isIos() && !isStandalone()) {
+                notifyUser('En iPhone/iPad las notificaciones solo funcionan si agregas el panel a la pantalla de inicio: toca Compartir y luego Agregar a pantalla de inicio. Después ábrelo desde ese ícono.');
+                return;
+            }
+            notifyUser('Este navegador no permite avisos. Ábrelo en Chrome o Safari, no dentro de Instagram, WhatsApp o Facebook.');
+            return;
+        }
+        if (Notification.permission === 'denied') {
+            notifyUser('Los avisos están bloqueados. Toca el candado junto a la URL y permite las notificaciones para este sitio.');
+        }
+    }
+
+    function shouldShowEnableButton() {
+        if (!canWatchTransfers()) {
+            return false;
+        }
+        if (!notificationsSupported()) {
+            return true;
+        }
+        return Notification.permission !== 'granted';
+    }
+
+    function bindEnableButton(btn) {
+        if (!btn || btn.dataset.bound === '1') {
+            return;
+        }
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', async () => {
+            unlockAudio();
+            if (!notificationsSupported() || Notification.permission === 'denied') {
+                explainHowToEnable();
+                playTilin();
+                return;
+            }
+            try {
+                await Notification.requestPermission();
+            } catch (e) {
+                explainHowToEnable();
+            }
+            playTilin();
+            renderEnableButton();
+        });
+    }
+
     function renderEnableButton() {
-        if (!notificationsSupported() || Notification.permission !== 'default') {
-            document.getElementById('adminTransferAlertItem')?.remove();
+        const item = document.getElementById('adminTransferAlertItem');
+        const show = shouldShowEnableButton();
+        if (item) {
+            item.classList.toggle('d-none', !show);
+            bindEnableButton(document.getElementById('btnActivarAvisosTransfer'));
             return;
         }
-        if (document.getElementById('adminTransferAlertItem')) {
+        if (!show || document.getElementById('btnActivarAvisosTransfer')) {
             return;
         }
-        const nav = document.querySelector('.app-header .navbar-nav.flex-row');
+        const nav = document.querySelector('.app-header .navbar-nav');
         if (!nav) {
             return;
         }
         const li = document.createElement('li');
-        li.className = 'nav-item me-2';
+        li.className = 'nav-item';
         li.id = 'adminTransferAlertItem';
-        li.innerHTML = `<button type="button" class="btn btn-sm btn-outline-secondary admin-transfer-alert-btn" id="btnActivarAvisosTransfer" title="Avisar en el navegador cuando llegue un comprobante">
+        li.innerHTML = `<button type="button" class="btn btn-sm btn-outline-secondary admin-transfer-alert-btn" id="btnActivarAvisosTransfer" title="Avisar cuando llegue un comprobante">
             <i class="ti ti-bell"></i>
-            <span class="d-none d-md-inline ms-1">Activar avisos</span>
+            <span class="admin-transfer-alert-btn__label">Activar avisos</span>
         </button>`;
-        nav.insertBefore(li, nav.firstElementChild);
-        document.getElementById('btnActivarAvisosTransfer')?.addEventListener('click', async () => {
-            unlockAudio();
-            try {
-                await Notification.requestPermission();
-            } catch (e) {}
-            playTilin();
-            renderEnableButton();
-        });
+        nav.appendChild(li);
+        bindEnableButton(document.getElementById('btnActivarAvisosTransfer'));
     }
 
     function initChannel() {

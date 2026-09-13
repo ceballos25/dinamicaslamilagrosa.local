@@ -15,7 +15,7 @@
   <script src="<?= ASSETS_URL ?>/js/admin-brand.js?v=3"></script>
   <script src="<?= ASSETS_URL ?>/js/admin-fetch.js?v=5"></script>
   <?php if (!empty($_SESSION['user_id']) && function_exists('adminCan') && adminCan('transferencias', 'view')): ?>
-  <script src="<?= ASSETS_URL ?>/js/admin-transfer-alerts.js?v=4"></script>
+  <script src="<?= ASSETS_URL ?>/js/admin-transfer-alerts.js?v=5"></script>
   <?php endif; ?>
   <?php if(isset($extra_js)) echo $extra_js; ?>
 

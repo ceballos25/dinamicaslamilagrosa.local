@@ -1,10 +1,16 @@
       <header class="app-header">
         <nav class="navbar navbar-expand-lg navbar-light">
-          <ul class="navbar-nav">
+          <ul class="navbar-nav align-items-center flex-row">
             <li class="nav-item d-block d-xl-none">
               <a class="nav-link sidebartoggler " id="headerCollapse" href="javascript:void(0)">
                 <i class="ti ti-menu-2"></i>
               </a>
+            </li>
+            <li class="nav-item d-none" id="adminTransferAlertItem">
+              <button type="button" class="btn btn-sm btn-outline-secondary admin-transfer-alert-btn" id="btnActivarAvisosTransfer" title="Avisar cuando llegue un comprobante">
+                <i class="ti ti-bell"></i>
+                <span class="admin-transfer-alert-btn__label">Activar avisos</span>
+              </button>
             </li>
           </ul>
           <div class="navbar-collapse justify-content-end px-0" id="navbarNav">

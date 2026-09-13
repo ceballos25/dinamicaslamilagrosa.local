@@ -2449,11 +2449,23 @@ h1.hero-title-dos.mb-3 {
 .admin-transfer-alert-btn {
     white-space: nowrap;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    padding: 0.35rem 0.65rem;
 }
 
 .admin-transfer-alert-btn i {
     font-size: 1.05rem;
+}
+
+.admin-transfer-alert-btn__label {
+    margin-left: 0.25rem;
+}
+
+@media (max-width: 575.98px) {
+    .admin-transfer-alert-btn__label {
+        font-size: 0.72rem;
+    }
 }
 
 @media (min-width: 992px) {
