@@ -16,7 +16,7 @@ include_once ROOT_PATH . "/includes/head.php";
   </div>
 </div>
 
-<div class="row g-2 mb-3 row-cols-2 row-cols-md-3 row-cols-xl-6" id="funnelTracking"></div>
+<div class="row g-2 mb-3 row-cols-2 row-cols-md-3 row-cols-xl-6 tracking-funnel" id="funnelTracking"></div>
 
 <div class="card border-0 shadow-sm mb-3"><div class="card-body">
   <div class="row g-2 align-items-end">
@@ -36,14 +36,14 @@ include_once ROOT_PATH . "/includes/head.php";
         <option value="">Todos los eventos</option>
       </select>
     </div>
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <label class="form-label small fw-bold mb-1">Desde — Hasta</label>
-      <div class="input-group input-group-sm">
-        <input type="date" id="filtroDesde" class="form-control">
-        <input type="date" id="filtroHasta" class="form-control">
+      <div class="d-flex gap-2">
+        <input type="date" id="filtroDesde" class="form-control form-control-sm" aria-label="Desde">
+        <input type="date" id="filtroHasta" class="form-control form-control-sm" aria-label="Hasta">
       </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-12 col-md-2">
       <button class="btn btn-primary btn-sm w-100" type="button" onclick="cargarTracking(1)">Filtrar</button>
     </div>
   </div>
@@ -56,11 +56,11 @@ include_once ROOT_PATH . "/includes/head.php";
       <tbody id="bodyTracking"></tbody>
     </table>
   </div>
-  <div class="admin-cards-mobile p-3" id="cardsTracking"></div>
+  <div class="admin-cards-mobile tracking-events-mobile" id="cardsTracking"></div>
   <div class="card-footer bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
     <small class="text-muted" id="infoTracking"></small>
-    <nav><ul class="pagination pagination-sm mb-0" id="paginacionTracking"></ul></nav>
+    <nav class="tracking-pagination"><ul class="pagination pagination-sm mb-0 flex-wrap justify-content-end" id="paginacionTracking"></ul></nav>
   </div>
 </div>
 </div></div></div></div>
-<?php $extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=4"></script><script src="' . ASSETS_URL . '/js/tracking.js?v=6"></script>'; include_once ROOT_PATH . "/includes/footer.php"; ?>
+<?php $extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=4"></script><script src="' . ASSETS_URL . '/js/tracking.js?v=7"></script>'; include_once ROOT_PATH . "/includes/footer.php"; ?>

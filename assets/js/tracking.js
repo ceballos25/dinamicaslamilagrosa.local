@@ -136,13 +136,13 @@ function renderFunnel(funnel) {
         const active = selected === item.action ? ' border-primary' : '';
         return `
         <div class="col">
-            <button type="button" class="card border-0 shadow-sm h-100 w-100 text-start${active}" data-funnel-action="${adminEscapeHtml(item.action)}" style="cursor:pointer">
-                <div class="card-body py-3">
-                    <div class="text-muted small text-uppercase fw-bold mb-1">
-                        <i class="ti ${adminEscapeHtml(item.icon || 'ti-chart-dots')} me-1"></i>${adminEscapeHtml(item.label)}
+            <button type="button" class="card border-0 shadow-sm h-100 w-100 text-start tracking-funnel__card${active}" data-funnel-action="${adminEscapeHtml(item.action)}">
+                <div class="card-body tracking-funnel__body">
+                    <div class="tracking-funnel__label">
+                        <i class="ti ${adminEscapeHtml(item.icon || 'ti-chart-dots')}"></i>${adminEscapeHtml(item.label)}
                     </div>
-                    <div class="fs-3 fw-bolder">${Number(item.total || 0).toLocaleString('es-CO')}</div>
-                    <div class="text-muted small">${adminEscapeHtml(item.hint || '')}</div>
+                    <div class="tracking-funnel__value">${Number(item.total || 0).toLocaleString('es-CO')}</div>
+                    <div class="tracking-funnel__hint">${adminEscapeHtml(item.hint || '')}</div>
                 </div>
             </button>
         </div>`;
@@ -151,10 +151,12 @@ function renderFunnel(funnel) {
 
 function renderTabla(rows) {
     const body = document.getElementById('bodyTracking');
+    const cards = document.getElementById('cardsTracking');
+    const emptyMsg = 'No hay actividad en este periodo. Prueba <strong>Esta semana</strong> o <strong>Este mes</strong>.';
     if (!rows.length) {
-        body.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">No hay actividad en este periodo. Prueba <strong>Esta semana</strong> o <strong>Este mes</strong>.</td></tr>';
-        if (typeof renderAdminMobileRows === 'function') {
-            renderAdminMobileRows('cardsTracking', []);
+        body.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted">${emptyMsg}</td></tr>`;
+        if (cards) {
+            cards.innerHTML = `<div class="text-center text-muted py-4 px-3">${emptyMsg}</div>`;
         }
         return;
     }
@@ -169,20 +171,23 @@ function renderTabla(rows) {
         </tr>`;
     }).join('');
 
-    if (typeof renderAdminMobileRows === 'function') {
-        renderAdminMobileRows('cardsTracking', rows.map(r => {
-            const d = trackingDatos(r);
-            return adminMobileRow(
-                adminMobileSection(adminClientBlock({
-                    initial: adminInitial(r.action_label || 'E'),
-                    name: r.action_label || r.action_audit,
-                    phone: d.detalle || 'Landing',
-                    city: '',
-                })) +
-                adminMobileBottom(adminDateBlock(d.dt.fecha, d.dt.hora), '')
-            );
-        }));
+    if (cards) {
+        cards.innerHTML = rows.map(renderTrackingMobileRow).join('');
     }
+}
+
+function renderTrackingMobileRow(r) {
+    const d = trackingDatos(r);
+    const detalle = d.detalle && d.detalle !== '/' ? d.detalle : '';
+    return adminMobileRow(`
+        <div class="tracking-event">
+            <div class="tracking-event__top">
+                ${eventBadge(r)}
+                <span class="tracking-event__time">${adminEscapeHtml(d.dt.fecha)} · ${adminEscapeHtml(d.dt.hora)}</span>
+            </div>
+            ${detalle ? `<div class="tracking-event__detail">${detalle}</div>` : ''}
+        </div>
+    `);
 }
 
 function trackingDatos(r) {
@@ -217,7 +222,10 @@ function formatTrackingDetalle(r) {
             parts.push('Ref. ' + d.order_id);
         }
         if (d.path) {
-            parts.push(d.path);
+            const path = String(d.path);
+            if (path !== '/' && path !== '/index.php' && !path.includes('.ajax.php')) {
+                parts.push(path);
+            }
         }
         return esc(parts.join(' · '));
     } catch (e) {

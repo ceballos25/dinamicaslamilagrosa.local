@@ -6110,3 +6110,95 @@ a.site-footer-dev--brand:hover .site-footer-dev__logo {
     opacity: 1;
 }
 
+.tracking-funnel__card {
+    cursor: pointer;
+}
+
+.tracking-funnel__body {
+    padding: 0.85rem 1rem;
+}
+
+.tracking-funnel__label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 0.2rem;
+}
+
+.tracking-funnel__label .ti {
+    flex-shrink: 0;
+}
+
+.tracking-funnel__value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.tracking-funnel__hint {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.75rem;
+    margin-top: 0.15rem;
+}
+
+.tracking-event {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.tracking-event__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.tracking-event__time {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tracking-event__detail {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.82rem;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+@media (max-width: 767.98px) {
+    .tracking-funnel__body {
+        padding: 0.7rem 0.75rem;
+    }
+
+    .tracking-funnel__label {
+        font-size: 0.7rem;
+    }
+
+    .tracking-funnel__value {
+        font-size: 1.2rem;
+    }
+
+    .tracking-funnel__hint {
+        display: none;
+    }
+
+    .tracking-events-mobile {
+        padding: 0;
+    }
+
+    .tracking-events-mobile .admin-mobile-row {
+        padding: 0.8rem 1rem;
+    }
+
+    .tracking-pagination .pagination {
+        margin-left: auto;
+    }
+}
+
