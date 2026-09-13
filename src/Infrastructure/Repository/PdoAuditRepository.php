@@ -23,14 +23,20 @@ final class PdoAuditRepository implements AuditRepositoryInterface
         ?array $oldData,
         ?array $newData,
         ?int $adminId = null,
-        ?string $ip = null
+        ?string $ip = null,
+        bool $useSessionAdmin = true
     ): void {
+        $admin = $adminId;
+        if ($admin === null && $useSessionAdmin) {
+            $admin = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+        }
+
         $stmt = $this->pdo->prepare(
             'INSERT INTO audit_logs (admin_id, ip_address, action_audit, entity_type, entity_id, old_data, new_data)
              VALUES (:admin, :ip, :action, :etype, :eid, :old, :new)'
         );
         $stmt->execute([
-            ':admin' => $adminId ?? (isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null),
+            ':admin' => $admin,
             ':ip' => $ip ?? ($_SERVER['REMOTE_ADDR'] ?? null),
             ':action' => $action,
             ':etype' => $entityType,

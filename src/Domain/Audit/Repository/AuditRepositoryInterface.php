@@ -12,6 +12,7 @@ interface AuditRepositoryInterface
         ?array $oldData,
         ?array $newData,
         ?int $adminId = null,
-        ?string $ip = null
+        ?string $ip = null,
+        bool $useSessionAdmin = true
     ): void;
 }

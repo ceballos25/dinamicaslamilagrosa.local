@@ -24,15 +24,27 @@ function cs_meta_pixel_head(): void
     $sendCapiPageView = $sendPageView && MetaConversionsApi::isCapiReady();
     $pageViewRef = (string)(session_id() ?: 'guest') . '-' . $guard->pageViewStorageKey();
 
+    $pageViewPath = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+
     if ($sendCapiPageView) {
         $metaPageViewEventId = MetaConversionsApi::eventId('PageView', $pageViewRef);
         if (MetaConversionsApi::sendPageView($metaPageViewEventId)) {
             $guard->markPageViewSent();
+            \App\Application\Marketing\MetaTrafficAudit::record('PageView', [
+                'event_id' => $metaPageViewEventId,
+                'capi' => true,
+                'path' => $pageViewPath,
+            ]);
         }
         // Si CAPI falla, no marcamos: reintenta en la próxima carga.
     } elseif ($sendPageView) {
         $metaPageViewEventId = MetaConversionsApi::eventId('PageView', $pageViewRef);
         $guard->markPageViewSent();
+        \App\Application\Marketing\MetaTrafficAudit::record('PageView', [
+            'event_id' => $metaPageViewEventId,
+            'capi' => false,
+            'path' => $pageViewPath,
+        ]);
     }
     ?>
     <script>

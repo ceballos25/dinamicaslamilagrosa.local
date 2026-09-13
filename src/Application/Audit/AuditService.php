@@ -20,10 +20,20 @@ final class AuditService
         ?int $entityId = null,
         ?array $oldData = null,
         ?array $newData = null,
-        ?int $adminId = null
+        ?int $adminId = null,
+        bool $asSystem = false
     ): void {
         try {
-            $this->repository->log($action, $entityType, $entityId, $oldData, $newData, $adminId);
+            $this->repository->log(
+                $action,
+                $entityType,
+                $entityId,
+                $oldData,
+                $newData,
+                $asSystem ? null : $adminId,
+                null,
+                !$asSystem
+            );
         } catch (\Throwable $e) {
             if (function_exists('writeAppLog')) {
                 writeAppLog('audit.log', 'DB audit failed: ' . $e->getMessage());

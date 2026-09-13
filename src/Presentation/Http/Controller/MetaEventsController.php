@@ -26,10 +26,6 @@ final class MetaEventsController
             }
 
             $result = $this->service->execute($action, $request->all());
-            $this->audit->log('meta_events.' . $action, [
-                'success' => (bool)($result['success'] ?? false),
-                'event_name' => (string)($result['event_name'] ?? $request->input('event_name', '')),
-            ]);
             Response::json($result);
         } catch (Throwable $exception) {
             $this->audit->log('meta_events.error', ['error' => $exception->getMessage()]);

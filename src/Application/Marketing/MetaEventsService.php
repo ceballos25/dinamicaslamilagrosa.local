@@ -99,6 +99,15 @@ final class MetaEventsService
             }
         }
 
+        if (($result['sent'] ?? false) && MetaTrafficAudit::actionForEvent($eventName) !== null) {
+            MetaTrafficAudit::record($eventName, [
+                'event_id' => (string)($result['event_id'] ?? ''),
+                'value' => $customData['value'] ?? null,
+                'num_items' => $customData['num_items'] ?? null,
+                'capi' => true,
+            ]);
+        }
+
         return [
             'success' => true,
             'event_name' => $eventName,

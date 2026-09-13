@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Repository;
 
+use App\Application\Audit\AuditActionLabels;
 use App\Infrastructure\Database\PdoFactory;
 use PDO;
 
@@ -24,12 +25,74 @@ final class PdoAuditQueryRepository
         $limit = min(200, max(1, $limit));
         $offset = ($page - 1) * $limit;
 
+        [$whereSql, $params] = $this->buildWhere($filters);
+
+        $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM audit_logs a WHERE {$whereSql}");
+        $countStmt->execute($params);
+        $total = (int)$countStmt->fetchColumn();
+
+        $sql = "SELECT a.*, ad.email_admin
+                FROM audit_logs a
+                LEFT JOIN admins ad ON ad.id_admin = a.admin_id
+                WHERE {$whereSql}
+                ORDER BY a.created_at DESC
+                LIMIT {$limit} OFFSET {$offset}";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return ['data' => $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [], 'total' => $total];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public function countByAction(array $filters): array
+    {
+        [$whereSql, $params] = $this->buildWhere($filters);
+        $stmt = $this->pdo->prepare(
+            "SELECT a.action_audit, COUNT(*) AS total
+             FROM audit_logs a
+             WHERE {$whereSql}
+             GROUP BY a.action_audit"
+        );
+        $stmt->execute($params);
+
+        $counts = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+            $counts[(string)$row['action_audit']] = (int)$row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @return array{0: string, 1: array<string, mixed>}
+     */
+    private function buildWhere(array $filters): array
+    {
         $where = ['1=1'];
         $params = [];
 
+        if (!empty($filters['scope']) && $filters['scope'] === 'meta') {
+            $where[] = "a.action_audit LIKE 'meta.%'";
+        }
         if (!empty($filters['action'])) {
-            $where[] = 'a.action_audit LIKE :action';
-            $params[':action'] = '%' . $filters['action'] . '%';
+            $actionQuery = (string)$filters['action'];
+            $matched = AuditActionLabels::actionsMatching($actionQuery);
+            if ($matched !== []) {
+                $placeholders = [];
+                foreach ($matched as $i => $actionKey) {
+                    $ph = ':act' . $i;
+                    $placeholders[] = $ph;
+                    $params[$ph] = $actionKey;
+                }
+                $where[] = '(a.action_audit LIKE :action OR a.action_audit IN (' . implode(',', $placeholders) . '))';
+                $params[':action'] = '%' . $actionQuery . '%';
+            } else {
+                $where[] = 'a.action_audit LIKE :action';
+                $params[':action'] = '%' . $actionQuery . '%';
+            }
         }
         if (!empty($filters['entity_type'])) {
             $where[] = 'a.entity_type = :etype';
@@ -48,21 +111,6 @@ final class PdoAuditQueryRepository
             $params[':dt'] = $filters['date_to'];
         }
 
-        $whereSql = implode(' AND ', $where);
-
-        $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM audit_logs a WHERE {$whereSql}");
-        $countStmt->execute($params);
-        $total = (int)$countStmt->fetchColumn();
-
-        $sql = "SELECT a.*, ad.email_admin
-                FROM audit_logs a
-                LEFT JOIN admins ad ON ad.id_admin = a.admin_id
-                WHERE {$whereSql}
-                ORDER BY a.created_at DESC
-                LIMIT {$limit} OFFSET {$offset}";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-
-        return ['data' => $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [], 'total' => $total];
+        return [implode(' AND ', $where), $params];
     }
 }

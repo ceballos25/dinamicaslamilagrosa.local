@@ -1909,9 +1909,9 @@ function abrirWhatsAppCheckout(e) {
 
     let msg = '';
     if (nombreCompleto) {
-        msg = `¡Hola! 👋 Soy ${nombreCompleto}, quiero participar en el COMBO PAREJA con el paquete de ${cant} números (${totalStr}). ¿A qué cuenta puedo transferir? ¿Me indican por favor cómo realizar el pago por Nequi o Bancolombia? Gracias.`;
+        msg = `¡Hola! 👋 Soy ${nombreCompleto}. Quiero el paquete de ${cant} nums (${totalStr}) del COMBO PAREJA. ¿A dónde transfiero el dinero?`;
     } else {
-        msg = `¡Hola! 👋 Quiero participar en el COMBO PAREJA con el paquete de ${cant} números (${totalStr}). ¿A qué cuenta puedo transferir? ¿Me indican por favor cómo realizar el pago por Nequi o Bancolombia? Gracias.`;
+        msg = `¡Hola! 👋 Quiero el paquete de ${cant} nums (${totalStr}) del COMBO PAREJA. ¿A dónde transfiero el dinero?`;
     }
 
     trackMetaLead();
