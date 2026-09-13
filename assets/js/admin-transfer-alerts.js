@@ -336,7 +336,7 @@
             return;
         }
         if (isIos() && !isStandalone()) {
-            notifyUser('No estás dentro del ícono de inicio: estás en una pestaña de Safari. Cierra Safari, toca el ícono “Panel” en la pantalla de inicio y ahí pulsa Activar avisos. Si el ícono es el de Chrome, bórralo y créalo otra vez desde Safari.');
+            notifyUser('Si ves la barra de Safari abajo, el ícono viejo es solo un acceso directo. Bórralo. En Safari (brújula), entra al login del panel, toca Compartir → Agregar a pantalla de inicio y abre SOLO el ícono nuevo: no debe verse Safari. Ahí pulsa Activar avisos.');
             return;
         }
         if (!notificationsSupported()) {

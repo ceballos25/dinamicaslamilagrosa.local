@@ -1,22 +1,29 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/config/config.php';
-
 $size = (int)($_GET['s'] ?? 192);
 if (!in_array($size, [180, 192, 512], true)) {
     $size = 192;
 }
 
-$src = ROOT_PATH . '/assets/images/logo-transparent.png';
+header('Content-Type: image/png');
+header('Cache-Control: public, max-age=86400');
+
+$static = __DIR__ . '/assets/images/pwa/icon-' . $size . '.png';
+if (is_file($static)) {
+    readfile($static);
+    exit;
+}
+
+$src = __DIR__ . '/assets/images/logo-transparent.png';
 if (!is_file($src) || !function_exists('imagecreatetruecolor')) {
-    header('Location: ' . rtrim(BASE_URL, '/') . '/assets/images/logo-transparent.png', true, 302);
+    http_response_code(404);
     exit;
 }
 
 $img = @imagecreatefrompng($src);
 if ($img === false) {
-    header('Location: ' . rtrim(BASE_URL, '/') . '/assets/images/logo-transparent.png', true, 302);
+    http_response_code(404);
     exit;
 }
 
@@ -36,8 +43,6 @@ $dx = (int)(($size - $dw) / 2);
 $dy = (int)(($size - $dh) / 2);
 imagecopyresampled($out, $img, $dx, $dy, 0, 0, $dw, $dh, $sw, $sh);
 
-header('Content-Type: image/png');
-header('Cache-Control: public, max-age=86400');
 imagepng($out);
 imagedestroy($img);
 imagedestroy($out);

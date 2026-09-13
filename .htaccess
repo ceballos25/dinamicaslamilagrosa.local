@@ -15,6 +15,7 @@
 
     # Favicon en raíz (petición automática del navegador)
     RewriteRule ^favicon\.ico$ favicon.php [L]
+    RewriteRule ^manifest-admin\.webmanifest$ - [L]
 
     # .env en raíz o subcarpetas
     RewriteRule (?:^|/)\.env - [F,L,NC]
@@ -37,6 +38,10 @@
 
     # Comprobantes de pago: solo acceso interno vía PHP
     RewriteRule ^uploads/comprobantes/ - [F,L,NC]
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
 </IfModule>
 
 # Capa extra por nombre de archivo (compatibilidad Apache/OLS)
