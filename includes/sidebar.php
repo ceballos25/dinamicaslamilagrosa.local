@@ -53,12 +53,6 @@ $showConfigSection = $canRifas || $canUsuarios || $canAuditoria || $canSettings 
             <span class="hide-menu">Dashboard</span>
           </a>
         </li>
-        <li class="sidebar-item <?= isActive('tracking.php', $currentPage); ?>">
-          <a class="sidebar-link" href="tracking.php" aria-expanded="false">
-            <i class="ti ti-activity"></i>
-            <span class="hide-menu">Tracking</span>
-          </a>
-        </li>
         <?php endif; ?>
 
         <?php if ($canVender): ?>
@@ -75,6 +69,15 @@ $showConfigSection = $canRifas || $canUsuarios || $canAuditoria || $canSettings 
           <a class="sidebar-link" href="transferencias.php" aria-expanded="false">
             <i class="ti ti-building-bank"></i>
             <span class="hide-menu">Transferencias</span>
+          </a>
+        </li>
+        <?php endif; ?>
+
+        <?php if (adminCan('dashboard', 'view')): ?>
+        <li class="sidebar-item <?= isActive('tracking.php', $currentPage); ?>">
+          <a class="sidebar-link" href="tracking.php" aria-expanded="false">
+            <i class="ti ti-activity"></i>
+            <span class="hide-menu">Tracking Meta</span>
           </a>
         </li>
         <?php endif; ?>

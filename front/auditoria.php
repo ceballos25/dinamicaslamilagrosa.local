@@ -24,7 +24,7 @@ include_once ROOT_PATH . "/includes/head.php";
     </div>
     <div class="col-md-2"><input type="date" id="filtroDesde" class="form-control form-control-sm"></div>
     <div class="col-md-2"><input type="date" id="filtroHasta" class="form-control form-control-sm"></div>
-    <div class="col-md-2"><button class="btn btn-primary btn-sm w-100" onclick="cargarAuditoria()">Buscar</button></div>
+    <div class="col-md-2"><button class="btn btn-primary btn-sm w-100" onclick="cargarAuditoria(1)">Buscar</button></div>
   </div>
 </div></div>
 <div class="card border-0 shadow-sm">
@@ -35,7 +35,10 @@ include_once ROOT_PATH . "/includes/head.php";
     </table>
   </div>
   <div class="admin-cards-mobile p-3" id="cardsAuditoria"></div>
-  <div class="card-footer"><small id="infoAuditoria"></small></div>
+  <div class="card-footer bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+    <small class="text-muted" id="infoAuditoria"></small>
+    <nav><ul class="pagination pagination-sm mb-0" id="paginacionAuditoria"></ul></nav>
+  </div>
 </div>
 </div></div></div></div>
-<?php $extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=4"></script><script src="' . ASSETS_URL . '/js/auditoria.js?v=5"></script>'; include_once ROOT_PATH . "/includes/footer.php"; ?>
+<?php $extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=4"></script><script src="' . ASSETS_URL . '/js/auditoria.js?v=6"></script>'; include_once ROOT_PATH . "/includes/footer.php"; ?>

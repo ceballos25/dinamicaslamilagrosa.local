@@ -51,6 +51,8 @@ final class AuditHttpController
                 'success' => true,
                 'data' => $rows,
                 'total' => $result['total'],
+                'page' => $page,
+                'limit' => $limit,
             ]);
         } catch (Throwable $e) {
             Response::json(['success' => false, 'message' => $e->getMessage()], 500);
