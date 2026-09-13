@@ -70,7 +70,7 @@ final class MetaPurchasePayloadTest extends TestCase
 
     public function testStandardFunnelEventsAreAllowed(): void
     {
-        foreach (['PageView', 'ViewContent', 'AddToCart', 'InitiateCheckout', 'Lead', 'AddPaymentInfo'] as $ev) {
+        foreach (['PageView', 'ViewContent', 'AddToCart', 'InitiateCheckout', 'Lead', 'AddPaymentInfo', 'Contact'] as $ev) {
             self::assertTrue(MetaConversionsApi::isAllowedTrackEvent($ev), "Expected {$ev} to be allowed in browser track");
             self::assertTrue(MetaConversionsApi::isStandardEvent($ev), "Expected {$ev} to be a standard event");
         }

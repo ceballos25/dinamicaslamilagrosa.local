@@ -111,7 +111,8 @@
             'AddToCart',
             'InitiateCheckout',
             'Lead',
-            'AddPaymentInfo'
+            'AddPaymentInfo',
+            'Contact'
         ];
         if (!allowed.includes(eventName)) {
             return null;

@@ -6,11 +6,11 @@ let eventOptionsLoaded = false;
 
 const EVENT_BADGE = {
     'meta.page_view': 'secondary',
-    'meta.view_content': 'info',
     'meta.add_to_cart': 'primary',
     'meta.initiate_checkout': 'warning',
     'meta.lead': 'dark',
     'meta.add_payment_info': 'warning',
+    'meta.whatsapp_pay': 'success',
     'meta.initiate_checkout.sent': 'success',
 };
 
@@ -53,7 +53,7 @@ function formatDate(d) {
 }
 
 function aplicarPeriodo() {
-    const periodo = document.getElementById('filtroPeriodo')?.value || 'semana';
+    const periodo = document.getElementById('filtroPeriodo')?.value || 'hoy';
     const desdeEl = document.getElementById('filtroDesde');
     const hastaEl = document.getElementById('filtroHasta');
     if (!desdeEl || !hastaEl) {

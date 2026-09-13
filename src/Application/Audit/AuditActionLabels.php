@@ -7,12 +7,12 @@ final class AuditActionLabels
 {
     /** @var array<string, string> */
     public const LABELS = [
-        'meta.page_view' => 'Visita a la landing',
-        'meta.view_content' => 'Vio el premio',
+        'meta.page_view' => 'Vio la página',
         'meta.add_to_cart' => 'Agregó al carrito',
         'meta.initiate_checkout' => 'Inició el pago',
         'meta.lead' => 'Llenó el formulario',
         'meta.add_payment_info' => 'Abrió el pago',
+        'meta.whatsapp_pay' => 'Prefirió WhatsApp',
         'meta.initiate_checkout.sent' => 'Envió el comprobante',
         'sale.created' => 'Venta creada',
         'sale.cancelled.total' => 'Venta anulada',

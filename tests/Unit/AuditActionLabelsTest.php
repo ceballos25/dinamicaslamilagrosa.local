@@ -17,12 +17,15 @@ final class AuditActionLabelsTest extends TestCase
 
     public function testLandingTrackingLabels(): void
     {
-        self::assertSame('Visita a la landing', MetaTrafficAudit::label('meta.page_view'));
+        self::assertSame('Vio la página', MetaTrafficAudit::label('meta.page_view'));
         self::assertSame('Agregó al carrito', MetaTrafficAudit::label('meta.add_to_cart'));
         self::assertSame('Llenó el formulario', MetaTrafficAudit::label('meta.lead'));
         self::assertContains('meta.page_view', MetaTrafficAudit::LANDING_ACTIONS);
         self::assertContains('meta.add_to_cart', MetaTrafficAudit::LANDING_ACTIONS);
         self::assertContains('meta.lead', MetaTrafficAudit::LANDING_ACTIONS);
+        self::assertContains('meta.whatsapp_pay', MetaTrafficAudit::LANDING_ACTIONS);
+        self::assertSame('Prefirió WhatsApp', MetaTrafficAudit::label('meta.whatsapp_pay'));
+        self::assertNotContains('meta.view_content', MetaTrafficAudit::LANDING_ACTIONS);
         self::assertNotContains('meta.purchase.sent', MetaTrafficAudit::LANDING_ACTIONS);
     }
 
@@ -31,6 +34,7 @@ final class AuditActionLabelsTest extends TestCase
         self::assertSame('meta.page_view', MetaTrafficAudit::actionForEvent('PageView'));
         self::assertSame('meta.add_to_cart', MetaTrafficAudit::actionForEvent('AddToCart'));
         self::assertSame('meta.lead', MetaTrafficAudit::actionForEvent('Lead'));
+        self::assertNull(MetaTrafficAudit::actionForEvent('ViewContent'));
         self::assertNull(MetaTrafficAudit::actionForEvent('Purchase'));
     }
 }

@@ -10,7 +10,6 @@ final class MetaTrafficAudit
     /** @var array<string, string> */
     private const EVENT_ACTIONS = [
         'PageView' => 'meta.page_view',
-        'ViewContent' => 'meta.view_content',
         'AddToCart' => 'meta.add_to_cart',
         'InitiateCheckout' => 'meta.initiate_checkout',
         'Lead' => 'meta.lead',
@@ -20,31 +19,32 @@ final class MetaTrafficAudit
     /** @var list<string> */
     public const LANDING_ACTIONS = [
         'meta.page_view',
-        'meta.view_content',
         'meta.add_to_cart',
         'meta.initiate_checkout',
         'meta.lead',
         'meta.add_payment_info',
+        'meta.whatsapp_pay',
         'meta.initiate_checkout.sent',
     ];
 
     /** @var array<string, string> */
     public const LABELS = [
-        'meta.page_view' => 'Visita a la landing',
-        'meta.view_content' => 'Vio el premio',
+        'meta.page_view' => 'Vio la página',
         'meta.add_to_cart' => 'Agregó al carrito',
         'meta.initiate_checkout' => 'Inició el pago',
         'meta.lead' => 'Llenó el formulario',
         'meta.add_payment_info' => 'Abrió el pago',
+        'meta.whatsapp_pay' => 'Prefirió WhatsApp',
         'meta.initiate_checkout.sent' => 'Envió el comprobante',
     ];
 
     /** @var list<array{action: string, label: string, hint: string, icon: string}> */
     public const FUNNEL = [
-        ['action' => 'meta.page_view', 'label' => 'Visitas a la landing', 'hint' => 'Entraron a la página', 'icon' => 'ti-eye'],
+        ['action' => 'meta.page_view', 'label' => 'Vio la página', 'hint' => 'Entró a la página', 'icon' => 'ti-eye'],
         ['action' => 'meta.add_to_cart', 'label' => 'Agregó al carrito', 'hint' => 'Eligieron un paquete', 'icon' => 'ti-shopping-cart'],
         ['action' => 'meta.lead', 'label' => 'Llenó el formulario', 'hint' => 'Dejó nombre y celular', 'icon' => 'ti-user'],
         ['action' => 'meta.initiate_checkout', 'label' => 'Inició el pago', 'hint' => 'Abrió el checkout', 'icon' => 'ti-credit-card'],
+        ['action' => 'meta.whatsapp_pay', 'label' => 'Prefirió WhatsApp', 'hint' => 'Clic en pagar por WhatsApp', 'icon' => 'ti-brand-whatsapp'],
         ['action' => 'meta.initiate_checkout.sent', 'label' => 'Envió comprobante', 'hint' => 'Mandó el pago', 'icon' => 'ti-receipt'],
     ];
 
@@ -60,6 +60,18 @@ final class MetaTrafficAudit
     {
         $action = self::EVENT_ACTIONS[trim($eventName)] ?? '';
         if ($action === '') {
+            return;
+        }
+
+        self::recordAction($action, $detail);
+    }
+
+    /**
+     * @param array<string, mixed> $detail
+     */
+    public static function recordAction(string $action, array $detail = []): void
+    {
+        if (!isset(self::LABELS[$action])) {
             return;
         }
 

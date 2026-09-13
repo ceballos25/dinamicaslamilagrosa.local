@@ -6,7 +6,12 @@ namespace App\Application\Marketing;
 final class MetaEventsService
 {
     /** @var list<string> */
-    public const ALLOWED_ACTIONS = ['track_event', 'list_events'];
+    public const ALLOWED_ACTIONS = ['track_event', 'list_events', 'log_landing'];
+
+    /** @var array<string, string> */
+    private const LANDING_LOG_EVENTS = [
+        'whatsapp_pay' => 'meta.whatsapp_pay',
+    ];
 
     /**
      * @param array<string, mixed> $payload
@@ -16,6 +21,7 @@ final class MetaEventsService
     {
         return match ($action) {
             'track_event' => $this->trackEvent($payload),
+            'log_landing' => $this->logLanding($payload),
             'list_events' => [
                 'success' => true,
                 'events' => MetaConversionsApi::BROWSER_TRACK_EVENTS,
@@ -115,6 +121,31 @@ final class MetaEventsService
             'capi_sent' => $result['sent'],
             'custom_data' => $customData,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    private function logLanding(array $payload): array
+    {
+        $event = trim((string)($payload['event'] ?? ''));
+        $action = self::LANDING_LOG_EVENTS[$event] ?? '';
+        if ($action === '') {
+            return ['success' => false, 'message' => 'Evento no válido'];
+        }
+
+        $referer = trim((string)($_SERVER['HTTP_REFERER'] ?? ''));
+        $path = (string)(parse_url($referer, PHP_URL_PATH) ?: '/');
+
+        MetaTrafficAudit::recordAction($action, [
+            'value' => $payload['value'] ?? null,
+            'num_items' => $payload['num_items'] ?? null,
+            'path' => $path,
+            'capi' => false,
+        ]);
+
+        return ['success' => true, 'event' => $event];
     }
 
     /**

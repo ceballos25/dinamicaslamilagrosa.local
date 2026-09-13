@@ -22,6 +22,7 @@ final class MetaConversionsApi
         'InitiateCheckout',
         'Lead',
         'AddPaymentInfo',
+        'Contact',
     ];
 
     /** Eventos enviados por CAPI en servidor. */
@@ -32,6 +33,7 @@ final class MetaConversionsApi
         'InitiateCheckout',
         'Lead',
         'AddPaymentInfo',
+        'Contact',
         'Purchase',
     ];
 
@@ -43,6 +45,7 @@ final class MetaConversionsApi
         'InitiateCheckout',
         'Lead',
         'AddPaymentInfo',
+        'Contact',
         'Purchase',
     ];
 
@@ -554,7 +557,7 @@ final class MetaConversionsApi
             return false;
         }
 
-        if (in_array($event['event_name'] ?? '', ['Purchase', 'PageView', 'InitiateCheckout', 'Lead', 'AddToCart', 'ViewContent', 'AddPaymentInfo'], true)) {
+        if (in_array($event['event_name'] ?? '', ['Purchase', 'PageView', 'InitiateCheckout', 'Lead', 'AddToCart', 'ViewContent', 'AddPaymentInfo', 'Contact'], true)) {
             self::logResult('ENVIADO', $event, self::metaResponseDetail($httpCode, (string)$response));
         } else {
             self::logDebugResult('ENVIADO', $event, self::metaResponseDetail($httpCode, (string)$response));

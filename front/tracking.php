@@ -12,20 +12,20 @@ include_once ROOT_PATH . "/includes/head.php";
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
   <div>
     <h2 class="fw-bold mb-1"><i class="ti ti-activity me-1"></i> Tracking</h2>
-    <p class="text-muted small mb-0">Qué hace la gente en la landing: visitas, carrito y si llenó el formulario.</p>
+    <p class="text-muted small mb-0">Qué hace la gente en la página: si la vio, eligió paquete, llenó datos o prefirió WhatsApp.</p>
   </div>
 </div>
 
-<div class="row g-2 mb-3 row-cols-2 row-cols-lg-5" id="funnelTracking"></div>
+<div class="row g-2 mb-3 row-cols-2 row-cols-md-3 row-cols-xl-6" id="funnelTracking"></div>
 
 <div class="card border-0 shadow-sm mb-3"><div class="card-body">
   <div class="row g-2 align-items-end">
     <div class="col-6 col-md-2">
       <label class="form-label small fw-bold mb-1" for="filtroPeriodo">Periodo</label>
       <select id="filtroPeriodo" class="form-select form-select-sm">
-        <option value="hoy">Hoy</option>
+        <option value="hoy" selected>Hoy</option>
         <option value="ayer">Ayer</option>
-        <option value="semana" selected>Esta semana</option>
+        <option value="semana">Esta semana</option>
         <option value="mes">Este mes</option>
         <option value="rango">Rango</option>
       </select>
@@ -63,4 +63,4 @@ include_once ROOT_PATH . "/includes/head.php";
   </div>
 </div>
 </div></div></div></div>
-<?php $extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=4"></script><script src="' . ASSETS_URL . '/js/tracking.js?v=3"></script>'; include_once ROOT_PATH . "/includes/footer.php"; ?>
+<?php $extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=4"></script><script src="' . ASSETS_URL . '/js/tracking.js?v=6"></script>'; include_once ROOT_PATH . "/includes/footer.php"; ?>

@@ -1880,6 +1880,49 @@ function trackMetaAddPaymentInfo() {
     }, 'payinfo-' + total, checkoutMetaUserData());
 }
 
+function logLandingEvent(event, detail) {
+    const body = new URLSearchParams();
+    body.append('action', 'log_landing');
+    body.append('event', event);
+    if (detail && detail.value != null) {
+        body.append('value', String(detail.value));
+    }
+    if (detail && detail.num_items != null) {
+        body.append('num_items', String(detail.num_items));
+    }
+    const ajaxUrl = (window.META_EVENTS_CONFIG && window.META_EVENTS_CONFIG.ajaxUrl)
+        || '/front/ajax/meta.ajax.php';
+    try {
+        fetch(ajaxUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            body: body.toString(),
+            credentials: 'same-origin',
+            keepalive: true
+        });
+    } catch (e) {
+    }
+}
+
+function trackWhatsAppPayPreference() {
+    const cant = estado.cantidadSeleccionada || 10;
+    const total = totalAPagarCOP();
+    const value = total > 0 ? total : 20000;
+
+    logLandingEvent('whatsapp_pay', { value, num_items: cant });
+
+    if (typeof MetaEvents === 'undefined') {
+        return;
+    }
+
+    MetaEvents.track('Contact', {
+        currency: 'COP',
+        value,
+        num_items: cant,
+        content_type: 'product'
+    }, 'wa-pay-' + cant, checkoutMetaUserData(), { allowRepeat: true });
+}
+
 function abrirWhatsAppCheckout(e) {
     if (e && e.preventDefault) e.preventDefault();
 
@@ -1915,14 +1958,7 @@ function abrirWhatsAppCheckout(e) {
     }
 
     trackMetaLead();
-    if (typeof MetaEvents !== 'undefined') {
-        MetaEvents.track('InitiateCheckout', {
-            currency: 'COP',
-            value: total > 0 ? total : 20000,
-            num_items: cant,
-            content_type: 'product'
-        }, 'wa-checkout-' + cant, checkoutMetaUserData(), { allowRepeat: true });
-    }
+    trackWhatsAppPayPreference();
 
     const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(waPhone) + '&text=' + encodeURIComponent(msg);
     window.open(url, '_blank', 'noopener,noreferrer');
