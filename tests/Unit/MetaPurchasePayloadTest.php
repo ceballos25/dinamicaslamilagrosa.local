@@ -26,7 +26,11 @@ final class MetaPurchasePayloadTest extends TestCase
             'quantity_sale' => 1,
         ]);
 
-        self::assertSame(['currency' => 'COP', 'value' => 65000.0], $customData);
+        self::assertSame([
+            'currency' => 'COP',
+            'value' => 65000.0,
+            'order_id' => 'CR-007',
+        ], $customData);
     }
 
     public function testPurchaseUserDataIncludesFullCustomerAndCheckoutContext(): void

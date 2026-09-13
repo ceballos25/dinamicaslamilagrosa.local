@@ -10,24 +10,15 @@ include_once ROOT_PATH . "/includes/head.php";
 <?php include_once ROOT_PATH . "/includes/header.php" ?>
 <div class="body-wrapper-inner"><div class="container-fluid py-3">
 <h2 class="fw-bold mb-4"><i class="ti ti-history me-1"></i> Auditoría</h2>
-
-<div class="row g-2 mb-3" id="funnelMeta"></div>
-
 <div class="card border-0 shadow-sm mb-3"><div class="card-body">
   <div class="row g-2">
-    <div class="col-md-2">
-      <select id="filtroScope" class="form-select form-select-sm">
-        <option value="">Todas las acciones</option>
-        <option value="meta">Tráfico Meta</option>
-      </select>
-    </div>
     <div class="col-md-3">
       <div class="visually-hidden" aria-hidden="true">
         <input type="text" name="fake_user" tabindex="-1" autocomplete="username">
         <input type="password" name="fake_pass" tabindex="-1" autocomplete="current-password">
       </div>
       <input type="text" id="filtroAccion" name="admin_auditoria_q" class="form-control form-control-sm"
-        placeholder="Buscar: visualización, pago, venta…" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="Acción..." autocomplete="off" autocapitalize="off" spellcheck="false"
         readonly onfocus="this.removeAttribute('readonly')"
         data-lpignore="true" data-1p-ignore="true" data-form-type="other" role="searchbox">
     </div>
@@ -39,7 +30,7 @@ include_once ROOT_PATH . "/includes/head.php";
 <div class="card border-0 shadow-sm">
   <div class="table-responsive admin-table-desktop">
     <table class="table table-sm table-hover mb-0">
-      <thead class="table-light"><tr><th>Fecha</th><th>Quién</th><th>Qué pasó</th><th>Detalle</th></tr></thead>
+      <thead class="table-light"><tr><th>Fecha</th><th>Admin</th><th>Acción</th><th>Entidad</th><th>Detalle</th></tr></thead>
       <tbody id="bodyAuditoria"></tbody>
     </table>
   </div>
@@ -47,4 +38,4 @@ include_once ROOT_PATH . "/includes/head.php";
   <div class="card-footer"><small id="infoAuditoria"></small></div>
 </div>
 </div></div></div></div>
-<?php $extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=4"></script><script src="' . ASSETS_URL . '/js/auditoria.js?v=4"></script>'; include_once ROOT_PATH . "/includes/footer.php"; ?>
+<?php $extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=4"></script><script src="' . ASSETS_URL . '/js/auditoria.js?v=5"></script>'; include_once ROOT_PATH . "/includes/footer.php"; ?>

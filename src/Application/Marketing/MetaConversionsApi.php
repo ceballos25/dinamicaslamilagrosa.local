@@ -212,20 +212,27 @@ final class MetaConversionsApi
         return self::sanitizePurchaseCustomData([
             'currency' => 'COP',
             'value' => $value,
+            'order_id' => (string)($sale['code_sale'] ?? $sale['order_id'] ?? ''),
         ]);
     }
 
     /**
-     * @return array{currency: string, value: float}
+     * @return array{currency: string, value: float, order_id?: string}
      */
     public static function sanitizePurchaseCustomData(array $customData): array
     {
         $currency = strtoupper(trim((string)($customData['currency'] ?? 'COP')));
-
-        return [
+        $clean = [
             'currency' => $currency !== '' ? $currency : 'COP',
             'value' => round((float)($customData['value'] ?? 0), 2),
         ];
+
+        $orderId = strtoupper(preg_replace('/[^A-Za-z0-9\-]/', '', (string)($customData['order_id'] ?? '')) ?? '');
+        if ($orderId !== '') {
+            $clean['order_id'] = substr($orderId, 0, 64);
+        }
+
+        return $clean;
     }
 
     /**

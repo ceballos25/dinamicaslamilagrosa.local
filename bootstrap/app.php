@@ -20,6 +20,7 @@ use App\Presentation\Http\Controller\SettingsHttpController;
 use App\Presentation\Http\Controller\TransferenciasHttpController;
 use App\Presentation\Http\Controller\SiteImageHttpController;
 use App\Presentation\Http\Controller\TicketSalesController;
+use App\Presentation\Http\Controller\TrackingHttpController;
 use App\Application\Auth\AdminUserService;
 use App\Application\Auth\AuthPermissionSyncService;
 use App\Presentation\Http\Controller\RoleHttpController;
@@ -107,6 +108,10 @@ $router->post('/front/ajax/roles.ajax.php', new RoleHttpController(
 ));
 
 $router->post('/front/ajax/auditoria.ajax.php', new AuditHttpController(
+    new PdoAuditQueryRepository(),
+    $permissions
+));
+$router->post('/front/ajax/tracking.ajax.php', new TrackingHttpController(
     new PdoAuditQueryRepository(),
     $permissions
 ));

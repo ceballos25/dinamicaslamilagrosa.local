@@ -9,30 +9,27 @@ use PHPUnit\Framework\TestCase;
 
 final class AuditActionLabelsTest extends TestCase
 {
-    public function testMetaFunnelUsesReadableSpanishLabels(): void
+    public function testOperationalAuditKeepsReadableLabels(): void
     {
-        self::assertSame('Visualización', AuditActionLabels::label('meta.page_view'));
-        self::assertSame('Inició el pago', AuditActionLabels::label('meta.initiate_checkout'));
-        self::assertSame('Envió comprobante', AuditActionLabels::label('meta.initiate_checkout.sent'));
-        self::assertSame('Compra en Meta', AuditActionLabels::label('meta.purchase.sent'));
-        self::assertTrue(AuditActionLabels::isMetaTraffic('meta.page_view'));
+        self::assertSame('Venta creada', AuditActionLabels::label('sale.created'));
         self::assertFalse(AuditActionLabels::isMetaTraffic('sale.created'));
     }
 
-    public function testSearchMatchesSpanishLabels(): void
+    public function testLandingTrackingLabels(): void
     {
-        $keys = AuditActionLabels::actionsMatching('visualización');
-        self::assertContains('meta.page_view', $keys);
-
-        $pago = AuditActionLabels::actionsMatching('pago');
-        self::assertContains('meta.initiate_checkout', $pago);
-        self::assertContains('meta.add_payment_info', $pago);
+        self::assertSame('Visita a la landing', MetaTrafficAudit::label('meta.page_view'));
+        self::assertSame('Agregó al carrito', MetaTrafficAudit::label('meta.add_to_cart'));
+        self::assertSame('Llenó el formulario', MetaTrafficAudit::label('meta.lead'));
+        self::assertContains('meta.page_view', MetaTrafficAudit::LANDING_ACTIONS);
+        self::assertContains('meta.add_to_cart', MetaTrafficAudit::LANDING_ACTIONS);
+        self::assertContains('meta.lead', MetaTrafficAudit::LANDING_ACTIONS);
+        self::assertNotContains('meta.purchase.sent', MetaTrafficAudit::LANDING_ACTIONS);
     }
 
-    public function testBrowserEventsMapToAuditActionsExceptPurchase(): void
+    public function testBrowserEventsMapToLandingActionsExceptPurchase(): void
     {
         self::assertSame('meta.page_view', MetaTrafficAudit::actionForEvent('PageView'));
-        self::assertSame('meta.initiate_checkout', MetaTrafficAudit::actionForEvent('InitiateCheckout'));
+        self::assertSame('meta.add_to_cart', MetaTrafficAudit::actionForEvent('AddToCart'));
         self::assertSame('meta.lead', MetaTrafficAudit::actionForEvent('Lead'));
         self::assertNull(MetaTrafficAudit::actionForEvent('Purchase'));
     }

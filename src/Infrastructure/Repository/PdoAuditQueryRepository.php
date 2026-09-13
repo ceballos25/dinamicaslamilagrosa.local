@@ -74,8 +74,26 @@ final class PdoAuditQueryRepository
         $where = ['1=1'];
         $params = [];
 
-        if (!empty($filters['scope']) && $filters['scope'] === 'meta') {
-            $where[] = "a.action_audit LIKE 'meta.%'";
+        if (!empty($filters['scope']) && $filters['scope'] === 'ops') {
+            $where[] = "a.action_audit NOT LIKE 'meta.%'";
+        }
+        if (!empty($filters['actions']) && is_array($filters['actions'])) {
+            $allowed = [];
+            foreach ($filters['actions'] as $actionKey) {
+                $actionKey = preg_replace('/[^a-z._]/', '', strtolower((string)$actionKey)) ?? '';
+                if ($actionKey !== '') {
+                    $allowed[] = $actionKey;
+                }
+            }
+            if ($allowed !== []) {
+                $placeholders = [];
+                foreach (array_values($allowed) as $i => $actionKey) {
+                    $ph = ':inact' . $i;
+                    $placeholders[] = $ph;
+                    $params[$ph] = $actionKey;
+                }
+                $where[] = 'a.action_audit IN (' . implode(',', $placeholders) . ')';
+            }
         }
         if (!empty($filters['action'])) {
             $actionQuery = (string)$filters['action'];
