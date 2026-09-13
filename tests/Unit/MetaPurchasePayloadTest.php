@@ -58,10 +58,20 @@ final class MetaPurchasePayloadTest extends TestCase
         self::assertTrue(MetaConversionsApi::isStandardEvent('Purchase'));
     }
 
-    public function testInitiateCheckoutIsServerOnlyCapiEvent(): void
+    public function testInitiateCheckoutIsAllowedTrackAndStandardEvent(): void
     {
-        self::assertFalse(MetaConversionsApi::isAllowedTrackEvent('InitiateCheckout'));
+        self::assertTrue(MetaConversionsApi::isAllowedTrackEvent('InitiateCheckout'));
         self::assertTrue(MetaConversionsApi::isStandardEvent('InitiateCheckout'));
+    }
+
+    public function testStandardFunnelEventsAreAllowed(): void
+    {
+        foreach (['PageView', 'ViewContent', 'AddToCart', 'InitiateCheckout', 'Lead', 'AddPaymentInfo'] as $ev) {
+            self::assertTrue(MetaConversionsApi::isAllowedTrackEvent($ev), "Expected {$ev} to be allowed in browser track");
+            self::assertTrue(MetaConversionsApi::isStandardEvent($ev), "Expected {$ev} to be a standard event");
+        }
+        self::assertFalse(MetaConversionsApi::isAllowedTrackEvent('Purchase'), 'Purchase must stay server-only');
+        self::assertTrue(MetaConversionsApi::isStandardEvent('Purchase'));
     }
 
     public function testInitiateCheckoutCustomDataIncludesValueAndNumItems(): void

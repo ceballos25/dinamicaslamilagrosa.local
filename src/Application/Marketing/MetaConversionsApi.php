@@ -9,15 +9,34 @@ final class MetaConversionsApi
     private const FBC_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 
     /** Eventos permitidos en navegador (Pixel / meta.ajax.php). */
-    public const BROWSER_TRACK_EVENTS = ['PageView'];
+    public const BROWSER_TRACK_EVENTS = [
+        'PageView',
+        'ViewContent',
+        'AddToCart',
+        'InitiateCheckout',
+        'Lead',
+        'AddPaymentInfo',
+    ];
 
     /** Eventos enviados por CAPI en servidor. */
-    public const CAPI_TRACK_EVENTS = ['PageView', 'InitiateCheckout', 'Purchase'];
+    public const CAPI_TRACK_EVENTS = [
+        'PageView',
+        'ViewContent',
+        'AddToCart',
+        'InitiateCheckout',
+        'Lead',
+        'AddPaymentInfo',
+        'Purchase',
+    ];
 
     /** @var list<string> */
     public const STANDARD_EVENTS = [
         'PageView',
+        'ViewContent',
+        'AddToCart',
         'InitiateCheckout',
+        'Lead',
+        'AddPaymentInfo',
         'Purchase',
     ];
 
@@ -278,69 +297,46 @@ final class MetaConversionsApi
     }
 
     /**
+     * Sanitiza custom_data para Meta CAPI / Pixel.
+     * Solo permite campos estándar de e-commerce seguros (currency, value, num_items, content_type, content_ids).
+     * Elimina estrictamente cualquier texto libre (nombres, descripciones, términos de rifas/apuestas).
+     *
      * @param array<string, mixed> $customData
      * @return array<string, mixed>
      */
     public static function sanitizeCustomData(array $customData): array
     {
-        unset(
-            $customData['content_name'],
-            $customData['content_names'],
-            $customData['search_string']
-        );
+        $currency = strtoupper(trim((string)($customData['currency'] ?? 'COP')));
+        $clean = [
+            'currency' => $currency !== '' ? $currency : 'COP',
+        ];
 
-        if (isset($customData['contents']) && is_array($customData['contents'])) {
-            $contents = [];
-            foreach ($customData['contents'] as $item) {
-                if (!is_array($item)) {
-                    continue;
-                }
-                $id = preg_replace('/[^0-9]/', '', (string)($item['id'] ?? '')) ?? '';
-                if ($id === '') {
-                    continue;
-                }
-                $row = [
-                    'id' => $id,
-                    'quantity' => max(1, (int)($item['quantity'] ?? 1)),
-                ];
-                if (isset($item['item_price'])) {
-                    $row['item_price'] = round((float)$item['item_price'], 2);
-                }
-                $contents[] = $row;
-            }
-            if ($contents === []) {
-                unset($customData['contents']);
-            } else {
-                $customData['contents'] = $contents;
-            }
+        if (isset($customData['value']) && is_numeric($customData['value'])) {
+            $clean['value'] = round((float)$customData['value'], 2);
         }
 
-        foreach (['content_category'] as $key) {
-            if (!isset($customData[$key])) {
-                continue;
-            }
-            $value = strtolower(trim((string)$customData[$key]));
-            if ($value === '' || self::containsBlockedMarketingTerms($value)) {
-                unset($customData[$key]);
-            }
+        if (isset($customData['num_items']) && is_numeric($customData['num_items'])) {
+            $clean['num_items'] = max(1, (int)$customData['num_items']);
+        }
+
+        if (isset($customData['content_type']) && is_string($customData['content_type'])) {
+            $clean['content_type'] = 'product';
         }
 
         if (isset($customData['content_ids']) && is_array($customData['content_ids'])) {
             $ids = [];
             foreach ($customData['content_ids'] as $id) {
-                $clean = preg_replace('/[^0-9\-]/', '', (string)$id) ?? '';
-                if ($clean !== '') {
-                    $ids[] = $clean;
+                $itemClean = preg_replace('/[^0-9a-zA-Z_\-]/', '', (string)$id) ?? '';
+                if ($itemClean !== '' && !self::containsBlockedMarketingTerms($itemClean)) {
+                    $ids[] = $itemClean;
                 }
             }
-            if ($ids === []) {
-                unset($customData['content_ids']);
-            } else {
-                $customData['content_ids'] = array_values(array_unique($ids));
+            if ($ids !== []) {
+                $clean['content_ids'] = array_values(array_unique($ids));
             }
         }
 
-        return $customData;
+        return $clean;
     }
 
     public static function sanitizeEventReference(?string $reference): ?string
@@ -359,6 +355,7 @@ final class MetaConversionsApi
         }
 
         $reference = preg_replace('/[^a-z0-9\-]+/', '-', $reference) ?? '';
+        $reference = preg_replace('/-+/', '-', $reference) ?? '';
         $reference = trim($reference, '-');
 
         return $reference !== '' ? $reference : null;
@@ -541,7 +538,7 @@ final class MetaConversionsApi
             return false;
         }
 
-        if (in_array($event['event_name'] ?? '', ['Purchase', 'PageView'], true)) {
+        if (in_array($event['event_name'] ?? '', ['Purchase', 'PageView', 'InitiateCheckout', 'Lead', 'AddToCart', 'ViewContent', 'AddPaymentInfo'], true)) {
             self::logResult('ENVIADO', $event, self::metaResponseDetail($httpCode, (string)$response));
         } else {
             self::logDebugResult('ENVIADO', $event, self::metaResponseDetail($httpCode, (string)$response));
@@ -623,11 +620,20 @@ final class MetaConversionsApi
      */
     public static function userDataFromInput(array $input): array
     {
+        $email = (string)($input['email'] ?? $input['email_customer'] ?? $input['correo'] ?? '');
+        $phone = (string)($input['phone'] ?? $input['phone_customer'] ?? $input['celular'] ?? '');
+        $name = (string)($input['name'] ?? $input['name_customer'] ?? $input['nombre'] ?? '');
+        $lastname = (string)($input['lastname'] ?? $input['lastname_customer'] ?? $input['apellido'] ?? '');
+        $city = (string)($input['city'] ?? $input['city_customer'] ?? $input['ciudad'] ?? '');
+        $state = (string)($input['state'] ?? $input['department_customer'] ?? $input['departamento'] ?? '');
+
         return array_filter([
-            'em' => self::hash((string)($input['email'] ?? $input['email_customer'] ?? '')),
-            'ph' => self::hashPhone((string)($input['phone'] ?? $input['phone_customer'] ?? '')),
-            'fn' => self::hash(self::firstName((string)($input['name'] ?? $input['name_customer'] ?? ''))),
-            'ln' => self::hash((string)($input['lastname'] ?? $input['lastname_customer'] ?? '')),
+            'em' => self::hash($email),
+            'ph' => self::hashPhone($phone),
+            'fn' => self::hash(self::firstName($name)),
+            'ln' => self::hash($lastname),
+            'ct' => self::hash(strtolower(trim($city))),
+            'st' => self::hash(strtolower(trim($state))),
             'country' => self::hash('co'),
         ]);
     }

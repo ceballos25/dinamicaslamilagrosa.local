@@ -165,6 +165,7 @@ async function completarInicializacionLanding(boot) {
     actualizarBarraProgreso(porcentajeBackend);
     aplicarModoRifa();
     hidePreloader();
+    trackLandingViewContent();
 }
 
 async function inicializarSistemaLegacy() {
@@ -205,6 +206,7 @@ async function inicializarSistemaLegacy() {
     actualizarBarraProgreso(porcentajeBackend);
     aplicarModoRifa();
     hidePreloader();
+    trackLandingViewContent();
 }
 
 async function cargarBootstrapLanding() {
@@ -997,6 +999,7 @@ $(document).on('change', '.paquete-radio', function () {
     estado.cantidadSeleccionada = parseInt(this.value);
 
     actualizarUI();
+    trackMetaAddToCart(estado.cantidadSeleccionada, totalAPagarCOP());
 
 });
 
@@ -1019,6 +1022,7 @@ $('#cantidadManual').on('blur', function () {
     estado.cantidadSeleccionada = cant;
 
     actualizarUI();
+    trackMetaAddToCart(estado.cantidadSeleccionada, totalAPagarCOP());
 
 });
 
@@ -1775,16 +1779,167 @@ function setComprobanteUploadState(file) {
     if (hint) hint.classList.remove('d-none');
 }
 
+// ==========================================
+// TRACKING DE META ADS (EMBUDO COMPLETO Y SEGURO)
+// ==========================================
+function trackLandingViewContent() {
+    if (typeof MetaEvents === 'undefined') return;
+    const basePrice = estado.pricing?.packages?.[0]?.price || (estado.rifa?.precio ? estado.rifa.precio * 10 : 20000);
+    MetaEvents.trackOnce('landing_view_content', 'ViewContent', {
+        currency: 'COP',
+        value: basePrice,
+        content_type: 'product'
+    }, 'combo-pareja');
+}
+
+function trackMetaAddToCart(cant, total) {
+    if (typeof MetaEvents === 'undefined') return;
+    const qty = parseInt(cant, 10) || 0;
+    const val = Number(total) || 0;
+    if (qty <= 0 || val <= 0) return;
+
+    MetaEvents.track('AddToCart', {
+        currency: 'COP',
+        value: val,
+        num_items: qty,
+        content_type: 'product'
+    }, 'pkg-' + qty, null, { allowRepeat: true });
+}
+
+function trackMetaInitiateCheckout(cant, total) {
+    if (typeof MetaEvents === 'undefined') return;
+    const qty = parseInt(cant, 10) || 10;
+    const val = Number(total) || 0;
+    if (val <= 0) return;
+
+    MetaEvents.track('InitiateCheckout', {
+        currency: 'COP',
+        value: val,
+        num_items: qty,
+        content_type: 'product'
+    }, 'init-' + qty + '-' + Date.now().toString(36), null, { allowRepeat: true });
+}
+
+function trackMetaLead() {
+    if (typeof MetaEvents === 'undefined') return;
+    const tel = ($('#celularCliente').val() || '').replace(/\D/g, '');
+    const nom = ($('#nombreCliente').val() || '').trim();
+    const ape = ($('#apellidoCliente').val() || '').trim();
+    const email = ($('#emailCliente').val() || '').trim();
+    const dep = $('#departamento').val() || '';
+    const ciu = $('#ciudad').val() || '';
+
+    if (tel.length === 10 && nom.length >= 2) {
+        const total = totalAPagarCOP();
+        const userData = {
+            celular: tel,
+            nombre: nom,
+            apellido: ape,
+            email: email,
+            departamento: dep,
+            ciudad: ciu
+        };
+        MetaEvents.trackOnce('lead_' + tel, 'Lead', {
+            currency: 'COP',
+            value: total > 0 ? total : 20000
+        }, 'lead-' + tel, userData);
+    }
+}
+
+function trackMetaAddPaymentInfo() {
+    if (typeof MetaEvents === 'undefined') return;
+    const total = totalAPagarCOP();
+    const cant = estado.cantidadSeleccionada || 10;
+    if (total <= 0) return;
+
+    MetaEvents.trackOnce('payment_info_' + total, 'AddPaymentInfo', {
+        currency: 'COP',
+        value: total,
+        num_items: cant,
+        content_type: 'product'
+    }, 'payinfo-' + total);
+}
+
+function abrirWhatsAppCheckout(e) {
+    if (e && e.preventDefault) e.preventDefault();
+
+    const cant = estado.cantidadSeleccionada || 10;
+    const total = totalAPagarCOP();
+    const fmt = n =>
+        new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            maximumFractionDigits: 0
+        }).format(n);
+    const totalStr = fmt(total > 0 ? total : 20000);
+
+    const nom = ($('#nombreCliente').val() || '').trim();
+    const ape = ($('#apellidoCliente').val() || '').trim();
+    const nombreCompleto = [nom, ape].filter(Boolean).join(' ');
+
+    let waPhone = '';
+    if (estado.contact && estado.contact.whatsapp) {
+        waPhone = String(estado.contact.whatsapp).replace(/\D/g, '');
+    }
+    if (!waPhone && typeof getSetting === 'function') {
+        waPhone = String(getSetting('whatsapp', '573133992903')).replace(/\D/g, '');
+    }
+    if (!waPhone) waPhone = '573133992903';
+    if (waPhone.length === 10) waPhone = '57' + waPhone;
+
+    let msg = '';
+    if (nombreCompleto) {
+        msg = `¡Hola! 👋 Soy ${nombreCompleto}, quiero participar en el COMBO PAREJA con el paquete de ${cant} números (${totalStr}). ¿A qué cuenta puedo transferir? ¿Me indican por favor cómo realizar el pago por Nequi o Bancolombia? Gracias.`;
+    } else {
+        msg = `¡Hola! 👋 Quiero participar en el COMBO PAREJA con el paquete de ${cant} números (${totalStr}). ¿A qué cuenta puedo transferir? ¿Me indican por favor cómo realizar el pago por Nequi o Bancolombia? Gracias.`;
+    }
+
+    trackMetaLead();
+    if (typeof MetaEvents !== 'undefined') {
+        MetaEvents.track('InitiateCheckout', {
+            currency: 'COP',
+            value: total > 0 ? total : 20000,
+            num_items: cant,
+            content_type: 'product'
+        }, 'wa-checkout-' + cant, null, { allowRepeat: true });
+    }
+
+    const url = 'https://api.whatsapp.com/send?phone=' + encodeURIComponent(waPhone) + '&text=' + encodeURIComponent(msg);
+    window.open(url, '_blank', 'noopener,noreferrer');
+}
+window.abrirWhatsAppCheckout = abrirWhatsAppCheckout;
+
 function initCheckoutUiListeners() {
     const modal = document.getElementById('modalCheckout');
     if (!modal || modal.dataset.crCheckoutBound) return;
 
     modal.dataset.crCheckoutBound = '1';
-    modal.addEventListener('shown.bs.modal', syncMobileCartVisibility);
+    modal.addEventListener('shown.bs.modal', () => {
+        syncMobileCartVisibility();
+        trackMetaAddPaymentInfo();
+    });
     modal.addEventListener('hidden.bs.modal', () => {
         resetCheckoutModalUi();
         syncMobileCartVisibility();
     });
+
+    const leadInputs = ['celularCliente', 'nombreCliente', 'apellidoCliente', 'emailCliente', 'ciudad'];
+    leadInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('blur', trackMetaLead);
+            el.addEventListener('change', trackMetaLead);
+        }
+    });
+
+    const fileEl = document.getElementById('comprobantePago');
+    if (fileEl) {
+        fileEl.addEventListener('change', () => {
+            if (fileEl.files && fileEl.files.length > 0) {
+                trackMetaAddPaymentInfo();
+            }
+        });
+    }
 }
 
 function abrirCheckoutSheetMobile() {
@@ -1840,6 +1995,7 @@ function abrirModalCheckout() {
 function confirmarCheckoutDesdeSheet() {
     cerrarCheckoutSheetMobile();
     abrirModalCheckout();
+    trackMetaInitiateCheckout(estado.cantidadSeleccionada, totalAPagarCOP());
 }
 
 window.cerrarCheckoutSheetMobile = cerrarCheckoutSheetMobile;
@@ -2048,6 +2204,8 @@ async function abrirCheckout() {
 
     $('#totalPagarInput').val(total);
 
+    trackMetaInitiateCheckout(estado.cantidadSeleccionada, total);
+
     const fmt = n =>
         new Intl.NumberFormat('es-CO', {
             style: 'currency',
@@ -2058,11 +2216,7 @@ async function abrirCheckout() {
     actualizarPromoVisual(estado.cantidadSeleccionada);
     actualizarCheckoutSheet();
 
-    if (window.matchMedia('(max-width: 991.98px)').matches) {
-        abrirCheckoutSheetMobile();
-        return;
-    }
-
+    // Abrir directamente el checkout modal/drawer (diseñado tanto para mobile bottom-sheet como desktop)
     abrirModalCheckout();
 
 }
@@ -2083,6 +2237,7 @@ function activarMetodoTransferencia() {
         footerTransfer.classList.remove('d-none');
     }
     syncCheckoutTransferButtonLabel();
+    trackMetaAddPaymentInfo();
 }
 
 function validarFormularioCheckout() {
@@ -2125,6 +2280,8 @@ if (!estado.cantidadSeleccionada || estado.cantidadSeleccionada < min) {
 
     if (!datos.ciudad)
         return toastError("Selecciona ciudad"), false;
+
+    trackMetaLead();
 
     return datos;
 
@@ -2191,8 +2348,8 @@ async function procesarTransferencia(e) {
 
     if (!file) {
         toastError(
-            'Sube la captura de tu transferencia Bre-B.',
-            'Después de pagar, toma una foto o captura del comprobante y adjúntala aquí.'
+            'Adjunta el comprobante de tu transferencia.',
+            'Después de transferir por Nequi, Bancolombia o Bre-B, toma una captura o foto y adjúntala aquí para verificar tu compra.'
         );
         return;
     }
@@ -2284,7 +2441,9 @@ async function procesarTransferencia(e) {
     }
 }
 
-function copiarTexto(id) {
+function copiarTexto(id, btnEl) {
+
+    trackMetaAddPaymentInfo();
 
     const el = document.getElementById(id);
 
@@ -2293,21 +2452,45 @@ function copiarTexto(id) {
         return;
     }
 
-    const texto = el.innerText;
+    const texto = (el.innerText || el.textContent || '').trim();
+
+    let btn = btnEl;
+    if (!btn && typeof event !== 'undefined' && event?.currentTarget) {
+        const ct = event.currentTarget;
+        btn = ct.classList?.contains('btn-copy-cuenta') ? ct : ct.querySelector?.('.btn-copy-cuenta');
+    }
+    if (!btn) {
+        btn = el.closest('.cr-cuenta-card')?.querySelector('.btn-copy-cuenta');
+    }
+
+    function darFeedbackBoton() {
+        if (btn) {
+            const originalHtml = btn.dataset.origHtml || btn.innerHTML;
+            btn.dataset.origHtml = originalHtml;
+            btn.innerHTML = '<i class="ti ti-check me-1"></i>¡Copiado!';
+            btn.classList.add('btn-copy-cuenta--copied');
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('btn-copy-cuenta--copied');
+            }, 2000);
+        }
+    }
 
     if (navigator.clipboard && window.isSecureContext) {
-
         navigator.clipboard.writeText(texto)
-            .then(() => mostrarToastCopiado(texto))
-            .catch(() => copiarFallback(texto));
-
+            .then(() => {
+                darFeedbackBoton();
+                mostrarToastCopiado(texto);
+            })
+            .catch(() => {
+                copiarFallback(texto, darFeedbackBoton);
+            });
     } else {
-
-        copiarFallback(texto);
+        copiarFallback(texto, darFeedbackBoton);
     }
 }
 
-function copiarFallback(texto) {
+function copiarFallback(texto, onSuccess) {
 
     const textarea = document.createElement("textarea");
     textarea.value = texto;
@@ -2320,6 +2503,7 @@ function copiarFallback(texto) {
 
     try {
         document.execCommand("copy");
+        if (typeof onSuccess === 'function') onSuccess();
         mostrarToastCopiado(texto);
     } catch (err) {
         alert("No se pudo copiar automáticamente 😢");
@@ -2329,7 +2513,7 @@ function copiarFallback(texto) {
 }
 
 function mostrarToastCopiado(texto) {
-    toastSuccess('Copiado: ' + texto);
+    toastSuccess('Copiado: ' + texto + ' — Pégalo en tu app');
 }
 
 function normalizeWhatsappUrl(chatUrl, phoneRaw) {

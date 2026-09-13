@@ -13,13 +13,19 @@
 
     function sanitizeCustomData(customData) {
         const data = customData || {};
-        if (data.currency !== undefined || data.value !== undefined) {
-            return {
-                currency: String(data.currency || 'COP'),
-                value: Number(data.value) || 0
-            };
+        const clean = {
+            currency: 'COP'
+        };
+        if (data.value !== undefined && !isNaN(Number(data.value))) {
+            clean.value = Number(data.value) || 0;
         }
-        return {};
+        if (data.num_items !== undefined && !isNaN(parseInt(data.num_items, 10))) {
+            clean.num_items = Math.max(1, parseInt(data.num_items, 10));
+        }
+        if (data.content_type !== undefined) {
+            clean.content_type = 'product';
+        }
+        return clean;
     }
 
     function sanitizeEventRef(eventRef) {
@@ -36,7 +42,7 @@
             value = value.replace(BLOCKED_TERMS, '');
         }
 
-        value = value.replace(/[^a-z0-9\-]+/gi, '-').replace(/^-+|-+$/g, '');
+        value = value.replace(/[^a-z0-9\-]+/gi, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
         return value || null;
     }
 
@@ -57,10 +63,13 @@
         return !!(cfg.enabled && cfg.pixelId && typeof window.fbq === 'function');
     }
 
-    function commerceData(_quantity, value) {
+    function commerceData(quantity, value) {
+        const qty = Math.max(1, parseInt(quantity, 10) || 1);
         return {
             currency: 'COP',
-            value: Number(value) || 0
+            value: Number(value) || 0,
+            num_items: qty,
+            content_type: 'product'
         };
     }
 
@@ -96,16 +105,19 @@
     async function track(eventName, customData, eventRef, userData, options) {
         options = options || {};
 
-        const allowed = cfg.standardEvents || ['PageView'];
+        const allowed = cfg.standardEvents || [
+            'PageView',
+            'ViewContent',
+            'AddToCart',
+            'InitiateCheckout',
+            'Lead',
+            'AddPaymentInfo'
+        ];
         if (!allowed.includes(eventName)) {
             return null;
         }
 
         if (!cfg.enabled) {
-            return null;
-        }
-
-        if (cfg.capiEnabled === false) {
             return null;
         }
 
@@ -115,6 +127,13 @@
         const key = dedupeKey(eventName, eventRef);
         if (!options.allowRepeat && sentKeys.has(key)) {
             return null;
+        }
+
+        if (cfg.capiEnabled === false) {
+            const fallbackId = 'px-' + eventName.toLowerCase() + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+            firePixel(eventName, customData, fallbackId);
+            sentKeys.add(key);
+            return { success: true, event_id: fallbackId, capi_sent: false };
         }
 
         const payload = new URLSearchParams();
@@ -142,18 +161,20 @@
             });
 
             const json = await res.json();
-            if (!json.success || !json.event_id) {
-                return null;
+            if (json && json.success && json.event_id) {
+                const pixelData = sanitizeCustomData(json.custom_data || customData);
+                firePixel(eventName, pixelData, json.event_id);
+                sentKeys.add(key);
+                return json;
             }
-
-            const pixelData = sanitizeCustomData(json.custom_data || customData);
-            firePixel(eventName, pixelData, json.event_id);
-            sentKeys.add(key);
-
-            return json;
         } catch (err) {
-            return null;
+            // En caso de fallo de red CAPI, disparamos en navegador para no perder el evento
         }
+
+        const clientFallbackId = 'px-' + eventName.toLowerCase() + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+        firePixel(eventName, customData, clientFallbackId);
+        sentKeys.add(key);
+        return { success: true, event_id: clientFallbackId, capi_sent: false };
     }
 
     async function trackOnce(storageKey, eventName, customData, eventRef, userData) {

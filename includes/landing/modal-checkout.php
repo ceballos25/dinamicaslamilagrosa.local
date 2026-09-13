@@ -47,27 +47,27 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
                             </h6>
 
                             <div class="form-floating mb-2">
-                                <input type="tel" class="form-control" id="celularCliente" required placeholder="Celular" autocomplete="tel">
-                                <label for="celularCliente">Celular</label>
+                                <input type="tel" class="form-control" id="celularCliente" required placeholder="Celular" autocomplete="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10">
+                                <label for="celularCliente">Celular (10 dígitos)</label>
                             </div>
 
                             <div class="row g-2 mb-2">
                                 <div class="col-sm-6">
                                     <div class="form-floating">
-                                        <input type="text" class="form-control" id="nombreCliente" required placeholder="Nombre" autocomplete="given-name">
+                                        <input type="text" class="form-control" id="nombreCliente" required placeholder="Nombre" autocomplete="given-name" autocapitalize="words">
                                         <label for="nombreCliente">Nombre</label>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-floating">
-                                        <input type="text" class="form-control" id="apellidoCliente" required placeholder="Apellido" autocomplete="family-name">
+                                        <input type="text" class="form-control" id="apellidoCliente" required placeholder="Apellido" autocomplete="family-name" autocapitalize="words">
                                         <label for="apellidoCliente">Apellido</label>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-floating mb-2">
-                                <input type="email" class="form-control" id="emailCliente" required placeholder="Correo" autocomplete="email">
+                                <input type="email" class="form-control" id="emailCliente" required placeholder="Correo" autocomplete="email" inputmode="email" autocapitalize="none">
                                 <label for="emailCliente">Correo electrónico</label>
                             </div>
 
@@ -100,30 +100,30 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
                                     <p class="cr-checkout-pay-hint">Transfiere el total exacto a una de estas cuentas y luego sube el comprobante:</p>
                                     <div class="cr-cuentas-grid">
                                         <?php if ($checkoutTransferKey !== ''): ?>
-                                        <div class="cr-cuenta-card">
+                                        <div class="cr-cuenta-card cr-cuenta-card--breb" role="button" tabindex="0" onclick="copiarTexto('breb', this.querySelector('.btn-copy-cuenta'))">
                                             <div class="cr-cuenta-card__head">
-                                                <span class="cr-cuenta-card__bank">Bre-B · Llave</span>
-                                                <button type="button" class="btn btn-sm btn-copy-cuenta" onclick="copiarTexto('breb')">Copiar</button>
+                                                <span class="cr-cuenta-card__bank"><i class="ti ti-bolt text-warning me-1"></i>Bre-B · Llave</span>
+                                                <button type="button" class="btn btn-sm btn-copy-cuenta" onclick="event.stopPropagation(); copiarTexto('breb', this)"><i class="ti ti-copy me-1"></i>Copiar</button>
                                             </div>
                                             <span class="cr-cuenta-card__num" id="breb"><?= htmlspecialchars($checkoutTransferKey, ENT_QUOTES, 'UTF-8') ?></span>
                                             <span class="cr-cuenta-card__name" id="brebName"><?= htmlspecialchars($checkoutTransferName, ENT_QUOTES, 'UTF-8') ?></span>
                                         </div>
                                         <?php endif; ?>
                                         <?php if ($checkoutBancolombia !== ''): ?>
-                                        <div class="cr-cuenta-card">
+                                        <div class="cr-cuenta-card cr-cuenta-card--bancolombia" role="button" tabindex="0" onclick="copiarTexto('bancolombia', this.querySelector('.btn-copy-cuenta'))">
                                             <div class="cr-cuenta-card__head">
-                                                <span class="cr-cuenta-card__bank">Bancolombia · Ahorros</span>
-                                                <button type="button" class="btn btn-sm btn-copy-cuenta" onclick="copiarTexto('bancolombia')">Copiar</button>
+                                                <span class="cr-cuenta-card__bank"><i class="ti ti-building-bank text-primary me-1"></i>Bancolombia · Ahorros</span>
+                                                <button type="button" class="btn btn-sm btn-copy-cuenta" onclick="event.stopPropagation(); copiarTexto('bancolombia', this)"><i class="ti ti-copy me-1"></i>Copiar</button>
                                             </div>
                                             <span class="cr-cuenta-card__num" id="bancolombia"><?= htmlspecialchars($checkoutBancolombia, ENT_QUOTES, 'UTF-8') ?></span>
                                             <span class="cr-cuenta-card__name"><?= htmlspecialchars($checkoutBancolombiaName, ENT_QUOTES, 'UTF-8') ?></span>
                                         </div>
                                         <?php endif; ?>
                                         <?php if ($checkoutNequi !== ''): ?>
-                                        <div class="cr-cuenta-card">
+                                        <div class="cr-cuenta-card cr-cuenta-card--nequi" role="button" tabindex="0" onclick="copiarTexto('nequi', this.querySelector('.btn-copy-cuenta'))">
                                             <div class="cr-cuenta-card__head">
-                                                <span class="cr-cuenta-card__bank">Nequi</span>
-                                                <button type="button" class="btn btn-sm btn-copy-cuenta" onclick="copiarTexto('nequi')">Copiar</button>
+                                                <span class="cr-cuenta-card__bank"><i class="ti ti-device-mobile text-danger me-1"></i>Nequi</span>
+                                                <button type="button" class="btn btn-sm btn-copy-cuenta" onclick="event.stopPropagation(); copiarTexto('nequi', this)"><i class="ti ti-copy me-1"></i>Copiar</button>
                                             </div>
                                             <span class="cr-cuenta-card__num" id="nequi"><?= htmlspecialchars($checkoutNequi, ENT_QUOTES, 'UTF-8') ?></span>
                                             <span class="cr-cuenta-card__name"><?= htmlspecialchars($checkoutNequiName, ENT_QUOTES, 'UTF-8') ?></span>
@@ -134,7 +134,7 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
                                         <i class="ti ti-cloud-upload" id="comprobantePagoIcon" aria-hidden="true"></i>
                                         <span class="cr-upload-zone__label" id="comprobantePagoLabel">Toca para subir tu comprobante</span>
                                         <span class="cr-upload-zone__status d-none" id="comprobantePagoStatus">Listo para enviar</span>
-                                        <span class="cr-upload-zone__hint" id="comprobantePagoHint">JPG, PNG</span>
+                                        <span class="cr-upload-zone__hint" id="comprobantePagoHint">JPG, PNG o captura de pantalla</span>
                                     </label>
                                     <input type="file" class="visually-hidden" id="comprobantePago" accept="image/*">
                                 </div>
@@ -148,6 +148,12 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
                         <button type="button" class="btn btn-warning btn-cta-pago w-100 fw-bold" id="btnConfirmarTransferencia" onclick="procesarTransferencia(event)">
                             Confirmar pago
                         </button>
+                        <div class="cr-checkout-wa-rescue text-center mt-2 pt-1">
+                            <span class="small text-muted d-block mb-1">¿Prefieres pagar o enviar tu comprobante por WhatsApp?</span>
+                            <button type="button" class="btn btn-whatsapp-checkout w-100 d-inline-flex align-items-center justify-content-center gap-2 fw-bold py-2" id="btnCheckoutWhatsAppModal" onclick="abrirWhatsAppCheckout(event)">
+                                <i class="ti ti-brand-whatsapp fs-5" aria-hidden="true"></i> Prefiero pagar por WhatsApp
+                            </button>
+                        </div>
                     </div>
                     <p class="cr-checkout-footer__trust">
                         <i class="ti ti-lock-square-rounded text-success" aria-hidden="true"></i>

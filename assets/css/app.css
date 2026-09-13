@@ -5136,10 +5136,31 @@ body.landing .cr-cuentas-grid {
 }
 
 body.landing .cr-cuenta-card {
-    padding: 0.75rem;
+    padding: 0.85rem;
     background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body.landing .cr-cuenta-card:active {
+    transform: scale(0.985);
+    border-color: #cbd5e1;
+}
+
+body.landing .cr-cuenta-card--nequi {
+    border-left: 4px solid #da0081;
+}
+
+body.landing .cr-cuenta-card--bancolombia {
+    border-left: 4px solid #fdcb02;
+}
+
+body.landing .cr-cuenta-card--breb {
+    border-left: 4px solid #f59e0b;
 }
 
 body.landing .cr-cuenta-card__head {
@@ -5160,10 +5181,10 @@ body.landing .cr-cuenta-card__bank {
 
 body.landing .cr-cuenta-card__num {
     display: block;
-    font-size: 1rem;
+    font-size: 1.0625rem;
     font-weight: 800;
     color: var(--cr-dark);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.03em;
     font-variant-numeric: tabular-nums;
 }
 
@@ -5172,6 +5193,45 @@ body.landing .cr-cuenta-card__name {
     margin-top: 0.15rem;
     font-size: 0.75rem;
     color: var(--cr-text-muted);
+}
+
+body.landing #modalCheckout .btn-copy-cuenta {
+    min-height: 34px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1.5px solid var(--cr-gold-dark, #b8860b);
+    color: var(--cr-primary, #1e293b);
+    background: #fff;
+    border-radius: 8px;
+    transition: all 0.18s ease;
+}
+
+body.landing #modalCheckout .btn-copy-cuenta--copied {
+    background: #22c55e !important;
+    border-color: #16a34a !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
+}
+
+body.landing .btn-whatsapp-checkout {
+    background: #25D366;
+    color: #fff;
+    border: 1px solid #1ebe5d;
+    border-radius: 12px;
+    font-size: 0.9375rem;
+    box-shadow: 0 3px 12px rgba(37, 211, 102, 0.22);
+    transition: all 0.2s ease;
+}
+
+body.landing .btn-whatsapp-checkout:hover,
+body.landing .btn-whatsapp-checkout:focus {
+    background: #20bd5a;
+    color: #fff;
+}
+
+body.landing .btn-whatsapp-checkout:active {
+    transform: scale(0.98);
 }
 
 body.landing .cr-upload-zone {
