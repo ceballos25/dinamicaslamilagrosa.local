@@ -19,10 +19,10 @@
     </div>
     <div class="vender-sheet__footer">
         <button type="button" class="btn btn-warning w-100 fw-bold rounded-pill vender-sheet__confirm" id="btnContinuarCheckoutMobile" onclick="confirmarCheckoutDesdeSheet()">
-            CONTINUAR AL PAGO
+            Continuar al pago
         </button>
-        <button type="button" class="btn btn-whatsapp-checkout w-100 fw-bold rounded-pill mt-2 d-flex align-items-center justify-content-center gap-2 py-2" onclick="abrirWhatsAppCheckout(event)">
-            <i class="ti ti-brand-whatsapp fs-5" aria-hidden="true"></i> Prefiero pagar por WhatsApp
+        <button type="button" class="btn btn-whatsapp-checkout w-100 fw-bold rounded-pill mt-2 d-flex align-items-center justify-content-center gap-1" onclick="abrirWhatsAppCheckout(event)">
+            <i class="ti ti-brand-whatsapp" aria-hidden="true"></i> Enviar comprobante por WhatsApp
         </button>
     </div>
 </aside>

@@ -169,6 +169,7 @@ $publicPages = [
     'web.ajax.php',
     'meta.ajax.php',
     'login.php',
+    'terminos.php',
 ];
 $scriptNames = array_unique(array_filter([
     basename((string)($_SERVER['SCRIPT_FILENAME'] ?? '')),

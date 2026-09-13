@@ -49,10 +49,10 @@
 
     --cr-promo-bg: var(--cr-primary);
     --cr-promo-text: var(--cr-dark);
-    --cr-nav-bg: #000000;
-    --cr-nav-border: rgba(255, 255, 255, 0.12);
-    --cr-nav-logo-height: 72px;
-    --cr-nav-logo-height-mobile: 70px;
+    --cr-nav-bg: #2c2418;
+    --cr-nav-border: rgba(242, 181, 0, 0.28);
+    --cr-nav-logo-height: 52px;
+    --cr-nav-logo-height-mobile: 42px;
 
     --cr-hero-title: var(--cr-dark);
     --cr-hero-accent: var(--cr-primary);
@@ -129,7 +129,7 @@
     --cr-btn-pay-text: var(--cr-dark);
     --cr-btn-pay-hover: var(--cr-primary-dark);
 
-    --cr-footer-bg: #000000;
+    --cr-footer-bg: #2c2418;
     --cr-footer-heading: var(--cr-primary);
     --cr-footer-text: #ffffff;
     --cr-footer-text-muted: #aaaaaa;

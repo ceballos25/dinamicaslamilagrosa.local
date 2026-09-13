@@ -1,16 +1,18 @@
 <?php
+$heroTitleDefault = "💑 ¡Combo Pareja!\n🛵 NMAX 2027 + 🏍️ MT-15";
 $heroTitle = function_exists('landing_setting')
-    ? landing_setting('landing_hero_title', "¡Gana el COMBO PAREJA!\nNMAX 2027 + MT-15")
-    : "¡Gana el COMBO PAREJA!\nNMAX 2027 + MT-15";
+    ? landing_setting('landing_hero_title', $heroTitleDefault)
+    : $heroTitleDefault;
+$heroEsCombo = (bool) preg_match('/combo\s*pareja/iu', $heroTitle)
+    || ((bool) preg_match('/\bnmax\b/iu', $heroTitle) && (bool) preg_match('/\bmt-?15\b/iu', $heroTitle));
+if ($heroEsCombo && !preg_match('/💑/u', $heroTitle)) {
+    $heroTitle = $heroTitleDefault;
+}
+$premioMayorDescCanon = "NMAX 2027 + MT-15 2027\nPor la de Boyacá para este 24 de Octubre\n19 de sep y 10 oct · 2 entregas de \$4 Millones en tecnología";
+$premioMayorDesc = $premioMayorDescCanon;
 $premioMayorTitulo = function_exists('landing_setting')
     ? landing_setting('landing_premio_mayor_titulo', '3era Dinámica · COMBO PAREJA')
     : '3era Dinámica · COMBO PAREJA';
-$premioMayorDesc = function_exists('landing_setting')
-    ? landing_setting(
-        'landing_premio_mayor_desc',
-        "NMAX 2027 + MT-15 2027\nJuega con Lotería de Boyacá\n19 sep y 10 oct · 2 sorteos de \$4M en tecnología\nFinal probable 24 oct (si hay 70% vendido)"
-    )
-    : "NMAX 2027 + MT-15 2027\nJuega con Lotería de Boyacá\n19 sep y 10 oct · 2 sorteos de \$4M en tecnología\nFinal probable 24 oct (si hay 70% vendido)";
 $premioExtraTitulo = function_exists('landing_setting')
     ? landing_setting('landing_premio_extra_titulo', 'Bendecidos')
     : 'Bendecidos';
@@ -22,10 +24,11 @@ $premioExtraDesc = function_exists('landing_setting')
     : '';
 $heroBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
 
-$premioMayorFacts = array_values(array_filter(array_map(
-    static fn($line) => trim((string)$line),
-    preg_split('/\r\n|\r|\n/u', (string)$premioMayorDesc) ?: []
-), static fn($line) => $line !== ''));
+$premioMayorFacts = [
+    'NMAX 2027 + MT-15 2027',
+    'Por la de Boyacá para este 24 de Octubre',
+    '19 de sep y 10 oct · 2 entregas de $4 Millones en tecnología',
+];
 ?>
 <section class="cr-hero-section py-3">
     <div class="container">
@@ -33,8 +36,37 @@ $premioMayorFacts = array_values(array_filter(array_map(
 
             <div class="cr-hero-title-wrap">
                 <h2 class="hero-title mb-0" id="landingHeroTitle">
-                    <?= htmlspecialchars($heroTitle, ENT_QUOTES, 'UTF-8') ?>
+                    <?= nl2br(htmlspecialchars($heroTitle, ENT_QUOTES, 'UTF-8'), false) ?>
                 </h2>
+            </div>
+
+            <div class="cr-hero-countdown" id="heroCountdown" data-target="2026-09-19T22:00:00-05:00">
+                <div class="cr-countdown">
+                    <p class="cr-countdown__kicker">Primera entrega · $4 Millones en Tecnología</p>
+                    <p class="cr-countdown__date">19 de septiembre</p>
+                    <div class="cr-countdown__units" role="timer" aria-live="off" aria-label="Cuenta regresiva a la primera entrega">
+                        <div class="cr-countdown__unit">
+                            <span class="cr-countdown__num" data-unit="days">00</span>
+                            <span class="cr-countdown__lbl">días</span>
+                        </div>
+                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
+                        <div class="cr-countdown__unit">
+                            <span class="cr-countdown__num" data-unit="hours">00</span>
+                            <span class="cr-countdown__lbl">horas</span>
+                        </div>
+                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
+                        <div class="cr-countdown__unit">
+                            <span class="cr-countdown__num" data-unit="mins">00</span>
+                            <span class="cr-countdown__lbl">min</span>
+                        </div>
+                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
+                        <div class="cr-countdown__unit cr-countdown__unit--secs">
+                            <span class="cr-countdown__num" data-unit="secs">00</span>
+                            <span class="cr-countdown__lbl">seg</span>
+                        </div>
+                    </div>
+                    <p class="cr-countdown__done">¡Hoy es la primera entrega de $4 Millones!</p>
+                </div>
             </div>
 
             <div class="cr-hero-photo">
@@ -43,7 +75,13 @@ $premioMayorFacts = array_values(array_filter(array_map(
                         <div class="splide__track">
                             <ul class="splide__list" id="heroMainSlides">
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-combo-pareja-2027.png', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — COMBO PAREJA NMAX 2027 + MT-15', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-banner loading="eager">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-frente.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Combo Pareja NMAX y MT-15', ENT_QUOTES, 'UTF-8') ?>" loading="eager">
+                                </li>
+                                <li class="splide__slide">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-nmax.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 Combo Pareja', ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                                </li>
+                                <li class="splide__slide">
+                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-entrega.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Combo Pareja listo para entregar', ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
                                 </li>
                                 <li class="splide__slide">
                                     <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax-mt15-2027.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 y MT-15 2027', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-gallery-2 loading="lazy">
@@ -52,11 +90,17 @@ $premioMayorFacts = array_values(array_filter(array_map(
                         </div>
                     </section>
 
-                    <section id="thumbnail-carousel" class="splide mt-2 mx-auto d-none d-md-block" style="max-width: 320px;" aria-label="Miniaturas del premio">
+                    <section id="thumbnail-carousel" class="splide mt-2 mx-auto" style="max-width: 520px;" aria-label="Miniaturas del premio">
                         <div class="splide__track">
                             <ul class="splide__list" id="heroThumbSlides">
                                 <li class="splide__slide">
-                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/hero-combo-pareja-2027.png', ENT_QUOTES, 'UTF-8') ?>" alt="" data-site-hero-banner loading="lazy">
+                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-frente.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="" loading="lazy">
+                                </li>
+                                <li class="splide__slide">
+                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-nmax.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="" loading="lazy">
+                                </li>
+                                <li class="splide__slide">
+                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-entrega.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="" loading="lazy">
                                 </li>
                                 <li class="splide__slide">
                                     <img src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax-mt15-2027.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="" data-site-hero-gallery-2 loading="lazy">
@@ -77,7 +121,16 @@ $premioMayorFacts = array_values(array_filter(array_map(
                                     <li class="premio-mayor-facts__item">Premio mayor por confirmar</li>
                                 <?php else: ?>
                                     <?php foreach ($premioMayorFacts as $fact): ?>
-                                        <li class="premio-mayor-facts__item"><?= htmlspecialchars($fact, ENT_QUOTES, 'UTF-8') ?></li>
+                                        <?php
+                                        $factShow = $fact;
+                                        if (preg_match('/\bnmax\b/iu', $factShow) && !str_contains($factShow, '🛵')) {
+                                            $factShow = preg_replace('/\bNMAX\b/iu', '🛵 NMAX', $factShow) ?? $factShow;
+                                        }
+                                        if (preg_match('/\bmt-?15\b/iu', $factShow) && !str_contains($factShow, '🏍️') && !str_contains($factShow, '🏍')) {
+                                            $factShow = preg_replace('/\bMT-?15\b/iu', '🏍️ MT-15', $factShow) ?? $factShow;
+                                        }
+                                        ?>
+                                        <li class="premio-mayor-facts__item"><?= htmlspecialchars($factShow, ENT_QUOTES, 'UTF-8') ?></li>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </ul>
@@ -123,16 +176,10 @@ $premioMayorFacts = array_values(array_filter(array_map(
                 </div>
             </div>
 
-            <div class="cr-hero-precio">
-                <div class="card border-0 shadow-sm text-center w-100 cr-hero-precio-card">
-                    <div class="card-body py-3">
-                        <p class="cr-hero-precio-label mb-2">Precios</p>
-                        <div id="precioBoletaDisplay" class="cr-hero-precio-tiers">
-                            <span class="spinner-border spinner-border-sm text-warning"></span>
-                        </div>
-                        <p class="cr-hero-promo-note mb-0 d-none" id="precioPromoNote"></p>
-                    </div>
-                </div>
+            <div class="cr-hero-cta">
+                <a href="#compra" class="cr-hero-scroll-cta">
+                    ¿Cuál deseas?
+                </a>
             </div>
 
         </div>

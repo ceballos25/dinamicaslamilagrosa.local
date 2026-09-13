@@ -1,6 +1,9 @@
 <?php
 $footerBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
 $footerTagline = function_exists('landing_setting') ? landing_setting('footer_tagline', '') : '';
+if ($footerTagline !== '' && preg_match('/participa/iu', $footerTagline)) {
+    $footerTagline = '';
+}
 $footerPhones = function_exists('landing_setting') ? landing_setting('footer_phones', '') : '';
 $footerEmail = function_exists('landing_setting') ? landing_setting('contact_email', '') : '';
 $footerLocation = function_exists('landing_setting') ? landing_setting('footer_location', 'Colombia') : 'Colombia';
@@ -8,6 +11,9 @@ $footerPayments = function_exists('landing_setting') ? landing_setting('footer_p
 $footerIg = function_exists('landing_setting') ? landing_setting('social_instagram_url', '') : '';
 $footerFb = function_exists('landing_setting') ? landing_setting('social_facebook_url', '') : '';
 $footerTk = function_exists('landing_setting') ? landing_setting('social_tiktok_url', '') : '';
+$landingHome = defined('BASE_URL') && BASE_URL !== '' ? rtrim((string) BASE_URL, '/') : '';
+$landingCompraHref = $landingHome . '/#compra';
+$landingTerminosHref = $landingHome . '/terminos.php';
 ?>
     <footer class="site-footer">
         <div class="container py-5">
@@ -17,7 +23,7 @@ $footerTk = function_exists('landing_setting') ? landing_setting('social_tiktok_
                 <div class="col-md-4 site-footer-brand-col">
                     <div class="site-footer-brand-block">
                         <h5 class="fw-bold site-footer-heading mb-2" id="landingFooterBrand"><?= htmlspecialchars($footerBrand, ENT_QUOTES, 'UTF-8') ?></h5>
-                        <p class="small site-footer-text mb-3" id="landingFooterTagline">
+                        <p class="small site-footer-text mb-3<?= $footerTagline === '' ? ' d-none' : '' ?>" id="landingFooterTagline">
                             <?= htmlspecialchars($footerTagline, ENT_QUOTES, 'UTF-8') ?>
                         </p>
                         <?php $footerLogo = defined('LOGO_NAV_URL') ? LOGO_NAV_URL : (ASSETS_URL . '/images/logo-transparent.png'); ?>
@@ -31,9 +37,15 @@ $footerTk = function_exists('landing_setting') ? landing_setting('social_tiktok_
                     <h6 class="fw-bold text-uppercase mb-3 site-footer-heading">Enlaces de interés</h6>
                     <ul class="list-unstyled site-footer-list small mb-0">
                         <li>
-                            <a href="#compra" class="site-footer-link">
+                            <a href="<?= htmlspecialchars($landingCompraHref, ENT_QUOTES, 'UTF-8') ?>" class="site-footer-link">
                                 <i class="ti ti-shopping-cart" aria-hidden="true"></i>
                                 <span>Comprar</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= htmlspecialchars($landingTerminosHref, ENT_QUOTES, 'UTF-8') ?>" class="site-footer-link">
+                                <i class="ti ti-file-text" aria-hidden="true"></i>
+                                <span>Términos y condiciones</span>
                             </a>
                         </li>
                         <li id="consultarNumeros">

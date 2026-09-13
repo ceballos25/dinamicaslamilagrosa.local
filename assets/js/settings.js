@@ -83,7 +83,7 @@ const SETTING_UI_META = {
     landing_hero_title: {
         title: 'Título del hero',
         help: 'Título principal de la portada. Usa \\n para saltos de línea si hace falta.',
-        placeholder: '¡Gana el COMBO PAREJA! NMAX 2027 + MT-15',
+        placeholder: "💑 ¡Combo Pareja!\\n🛵 NMAX 2027 + 🏍️ MT-15",
         type: 'text',
         section: 'landing',
     },
@@ -97,7 +97,7 @@ const SETTING_UI_META = {
     landing_premio_mayor_desc: {
         title: 'Premio mayor — descripción',
         help: 'Una idea por línea (Enter). No uses un solo párrafo largo.',
-        placeholder: 'NMAX 2027 + MT-15\nLotería de Boyacá\nFinal probable 24 oct',
+        placeholder: "NMAX 2027 + MT-15 2027\nPor la de Boyacá para este 24 de Octubre\n19 de sep y 10 oct · 2 entregas de $4 Millones en tecnología",
         type: 'textarea',
         section: 'landing',
     },

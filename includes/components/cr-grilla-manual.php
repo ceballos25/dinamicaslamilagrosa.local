@@ -21,7 +21,7 @@ $crGrillaAlertHtml = $crGrillaAlertHtml ?? '';
 
     <div class="cr-grilla-panel__head">
         <div class="d-flex justify-content-between align-items-center gap-2">
-            <p class="cr-grilla-panel__title mb-0">Elige tus números</p>
+            <p class="cr-grilla-panel__title mb-0">Escoge los tuyos</p>
             <span class="cr-grilla-count-badge">
                 <strong id="<?= htmlspecialchars($crGrillaCountId, ENT_QUOTES, 'UTF-8') ?>">0</strong> / 1 mín.
             </span>

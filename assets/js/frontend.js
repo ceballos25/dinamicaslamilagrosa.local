@@ -32,11 +32,13 @@ function appendPublicCsrf(payload) {
 }
 
 let ORIGEN = null;
+let transferenciaCheckoutEnCurso = false;
 $(document).ready(function () {
         
     ORIGEN = obtenerOrigenURL();
 
     inicializarSistema();
+    iniciarCuentaRegresivaEntrega();
 
     $('#celularCliente').on('input paste', function () {
 
@@ -112,8 +114,7 @@ function aplicarBannerSinRifaActiva() {
     }
     if (sinRifa) {
         $('#btnPagarDesktop, #btnPagarMobile').prop('disabled', true);
-        const finalPay = document.getElementById('btnConfirmarTransferencia');
-        if (finalPay) finalPay.disabled = true;
+        syncCheckoutConfirmButtonState();
     }
 }
 
@@ -325,7 +326,7 @@ function aplicarImagenesSitio() {
         document.querySelectorAll('link[data-site-favicon]').forEach(link => { link.href = favUrl; });
     }
 
-    const heroPlaceholder = window.location.origin + '/assets/images/hero-combo-pareja-2027.png';
+    const heroPlaceholder = window.location.origin + '/assets/images/combo-pareja-frente.jpg';
     const isLogoAsset = (url) => /\/logo(?:[-_]?white|-transparent)?\.(?:png|jpe?g|webp|svg)(\?|$)/i.test(String(url || ''));
     const resolveHeroAssetUrl = (entry) => {
         const primary = resolveAssetUrl(entry);
@@ -400,6 +401,19 @@ function sanitizarTextoPublico(text) {
         .replace(/\bn[uú]meros?\b/gi, (m) => (m.toLowerCase().endsWith('s') ? 'nros' : 'nro'));
 }
 
+function tituloHeroComboIlustrado(raw) {
+    const text = String(raw || '').trim();
+    const looksLikeCombo = /combo\s*pareja/i.test(text)
+        || (/\bnmax\b/i.test(text) && /\bmt-?15\b/i.test(text));
+    if (!looksLikeCombo) {
+        return text;
+    }
+    if (/💑/.test(text) && /(?:🛵|🏍|🏍️)/.test(text)) {
+        return text;
+    }
+    return '💑 ¡Combo Pareja!\n🛵 NMAX 2027 + 🏍️ MT-15';
+}
+
 function formatHeroTitleHtml(rawTitle) {
     const raw = sanitizarTextoPublico(String(rawTitle || '').trim());
     if (!raw) return '';
@@ -432,6 +446,11 @@ function formatHeroTitleLine(line) {
     title = title.replace(/\*\*([^*]+)\*\*/g, '<span class="millonario">$1</span>');
     title = title.replace(/\|([^|]+)\|/g, '<span class="millonario">$1</span>');
 
+    if (!/<span/i.test(title)) {
+        title = title.replace(/Combo Pareja/gi, '<span class="millonario">Combo Pareja</span>');
+        title = title.replace(/\$\s*4\s*Millones/gi, '<span class="millonario">$4 Millones</span>');
+    }
+
     if (/<span/i.test(title)) {
         return title;
     }
@@ -457,24 +476,35 @@ function formatHeroTitleLine(line) {
     return title;
 }
 
-function formatPremioMayorFactsHtml(rawDesc) {
-    const raw = String(rawDesc || '').trim();
-    if (!raw) {
-        return '<li class="premio-mayor-facts__item">Premio mayor por confirmar</li>';
-    }
+function premioMayorFactsPublicos() {
+    return [
+        'NMAX 2027 + MT-15 2027',
+        'Por la de Boyacá para este 24 de Octubre',
+        '19 de sep y 10 oct · 2 entregas de $4 Millones en tecnología',
+    ];
+}
 
-    const parts = raw
-        .split(/\r\n|\r|\n/u)
-        .map((part) => part.trim())
-        .filter(Boolean);
-
-    if (!parts.length) {
-        return '<li class="premio-mayor-facts__item">' + escapeHeroTitleText(raw) + '</li>';
-    }
-
-    return parts
-        .map((part) => '<li class="premio-mayor-facts__item">' + escapeHeroTitleText(part) + '</li>')
+function formatPremioMayorFactsHtml() {
+    return premioMayorFactsPublicos()
+        .map((part) => '<li class="premio-mayor-facts__item">' + escapeHeroTitleText(ilustrarLineaPremioMayor(part)) + '</li>')
         .join('');
+}
+
+function ilustrarLineaPremioMayor(part) {
+    let text = String(part || '');
+    if (/final\s*probable|70\s*%\s*vendido/i.test(text)) {
+        return '';
+    }
+    if (/boyac[aá]/i.test(text) && /juega\s+con|loter[ií]a|con la de boyac/i.test(text)) {
+        return 'Por la de Boyacá para este 24 de Octubre';
+    }
+    if (/\bnmax\b/i.test(text) && !/🛵/.test(text)) {
+        text = text.replace(/\bNMAX\b/gi, '🛵 NMAX');
+    }
+    if (/\bmt-?15\b/i.test(text) && !/(?:🏍|🏍️)/.test(text)) {
+        text = text.replace(/\bMT-?15\b/gi, '🏍️ MT-15');
+    }
+    return text;
 }
 
 function aplicarTextosRifa() {
@@ -483,11 +513,11 @@ function aplicarTextosRifa() {
         ? String(getSetting('landing_hero_title', '') || '').trim()
         : '';
     if (heroTitle && fromSetting) {
-        heroTitle.innerHTML = formatHeroTitleHtml(fromSetting);
+        heroTitle.innerHTML = formatHeroTitleHtml(tituloHeroComboIlustrado(fromSetting));
     } else if (heroTitle) {
         const rifa = rifaActiva();
         const titulo = rifa ? String(rifa.title_raffle || '').trim() : '';
-        if (titulo) heroTitle.innerHTML = formatHeroTitleHtml(titulo);
+        if (titulo) heroTitle.innerHTML = formatHeroTitleHtml(tituloHeroComboIlustrado(titulo));
     }
 
     const setText = (id, key) => {
@@ -501,11 +531,8 @@ function aplicarTextosRifa() {
     setText('landingPremioMayorTitulo', 'landing_premio_mayor_titulo');
 
     const premioDescEl = document.getElementById('landingPremioMayorDesc');
-    if (premioDescEl && typeof getSetting === 'function') {
-        const desc = String(getSetting('landing_premio_mayor_desc', '') || '').trim();
-        if (desc !== '') {
-            premioDescEl.innerHTML = formatPremioMayorFactsHtml(desc);
-        }
+    if (premioDescEl) {
+        premioDescEl.innerHTML = formatPremioMayorFactsHtml();
     }
 
     setText('landingPremioExtraTitulo', 'landing_premio_extra_titulo');
@@ -516,7 +543,13 @@ function aplicarTextosRifa() {
         extraDescEl.classList.toggle('d-none', !extraDesc);
     }
 
-    setText('landingFooterTagline', 'footer_tagline');
+    const taglineEl = document.getElementById('landingFooterTagline');
+    if (taglineEl && typeof getSetting === 'function') {
+        const tagline = String(getSetting('footer_tagline', '') || '').trim();
+        const hideTagline = tagline === '' || /participa/i.test(tagline);
+        taglineEl.textContent = hideTagline ? '' : tagline;
+        taglineEl.classList.toggle('d-none', hideTagline);
+    }
     setText('landingFooterPhones', 'footer_phones');
     setText('landingFooterLocation', 'footer_location');
     setText('landingFooterPayments', 'footer_payments');
@@ -615,27 +648,29 @@ function crearSlider(mainId, thumbsId, interval, keyPrefix) {
     destroySplide(keyPrefix + '_main');
     destroySplide(keyPrefix + '_thumbs');
 
+    const isMobileHero = keyPrefix === 'hero' && window.matchMedia('(max-width: 767.98px)').matches;
     const thumbs = new Splide(thumbsId, {
-        fixedWidth: keyPrefix === 'hero' ? 90 : 100,
-        fixedHeight: keyPrefix === 'hero' ? 60 : 60,
-        gap: 10,
+        fixedWidth: keyPrefix === 'hero' ? (isMobileHero ? 64 : 90) : 100,
+        fixedHeight: keyPrefix === 'hero' ? (isMobileHero ? 56 : 60) : 60,
+        gap: isMobileHero ? 8 : 10,
         rewind: true,
         pagination: false,
         isNavigation: true,
         arrows: keyPrefix !== 'hero',
         focus: 'center',
         cover: true,
-        breakpoints: { 600: { fixedWidth: 60, fixedHeight: 44 } },
+        breakpoints: { 600: { fixedWidth: 64, fixedHeight: 56 } },
     });
 
     const main = new Splide(mainId, {
-        type: keyPrefix === 'hero' ? 'fade' : 'slide',
+        type: keyPrefix === 'hero' && !isMobileHero ? 'fade' : 'slide',
         autoplay: true,
-        interval: interval,
+        interval: keyPrefix === 'hero' ? 4500 : interval,
         rewind: true,
-        pagination: false,
+        pagination: isMobileHero,
         arrows: keyPrefix === 'hero',
         speed: 800,
+        drag: true,
     });
 
     main.sync(thumbs);
@@ -748,8 +783,7 @@ function aplicarEstadoBotonesCompra() {
     document.querySelectorAll('#comprobantePago').forEach((el) => {
         el.disabled = !ok;
     });
-    const finalPay = document.getElementById('btnConfirmarTransferencia');
-    if (finalPay) finalPay.disabled = !ok;
+    syncCheckoutConfirmButtonState();
 }
 
 function aplicarBloqueoComprasWeb() {
@@ -1616,8 +1650,8 @@ function renderCheckoutModalResumen() {
 
     if (cantEl) {
         cantEl.textContent = cant
-            ? `${cant} num${cant !== 1 ? 's' : ''}`
-            : '0 nums';
+            ? `${cant} nro${cant !== 1 ? 's' : ''}`
+            : '0 nros';
     }
 
     if (ticket) {
@@ -1758,7 +1792,10 @@ function setComprobanteUploadState(file) {
     const status = document.getElementById('comprobantePagoStatus');
     const hint = document.getElementById('comprobantePagoHint');
 
-    if (!zone) return;
+    if (!zone) {
+        syncCheckoutConfirmButtonState();
+        return;
+    }
 
     if (file) {
         zone.classList.add('cr-upload-zone--ready');
@@ -1769,6 +1806,7 @@ function setComprobanteUploadState(file) {
             status.classList.remove('d-none');
         }
         if (hint) hint.classList.add('d-none');
+        syncCheckoutConfirmButtonState();
         return;
     }
 
@@ -1777,6 +1815,7 @@ function setComprobanteUploadState(file) {
     if (label) label.textContent = 'Toca para subir tu comprobante';
     if (status) status.classList.add('d-none');
     if (hint) hint.classList.remove('d-none');
+    syncCheckoutConfirmButtonState();
 }
 
 // ==========================================
@@ -1811,6 +1850,55 @@ function checkoutMetaUserData() {
     }
 
     return Object.keys(data).length ? data : null;
+}
+
+function iniciarCuentaRegresivaEntrega() {
+    const root = document.getElementById('heroCountdown');
+    if (!root || root.dataset.bound === '1') {
+        return;
+    }
+
+    const box = root.querySelector('.cr-countdown');
+    const targetMs = Date.parse(root.getAttribute('data-target') || '');
+    if (!box || !Number.isFinite(targetMs)) {
+        return;
+    }
+
+    root.dataset.bound = '1';
+    const daysEl = box.querySelector('[data-unit="days"]');
+    const hoursEl = box.querySelector('[data-unit="hours"]');
+    const minsEl = box.querySelector('[data-unit="mins"]');
+    const secsEl = box.querySelector('[data-unit="secs"]');
+
+    const pad = (n) => String(Math.max(0, n)).padStart(2, '0');
+
+    const tick = () => {
+        const diff = targetMs - Date.now();
+        if (diff <= 0) {
+            box.classList.add('is-done');
+            if (daysEl) daysEl.textContent = '00';
+            if (hoursEl) hoursEl.textContent = '00';
+            if (minsEl) minsEl.textContent = '00';
+            if (secsEl) secsEl.textContent = '00';
+            return false;
+        }
+
+        const totalSecs = Math.floor(diff / 1000);
+        const days = Math.floor(totalSecs / 86400);
+        const hours = Math.floor((totalSecs % 86400) / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+
+        if (daysEl) daysEl.textContent = pad(days);
+        if (hoursEl) hoursEl.textContent = pad(hours);
+        if (minsEl) minsEl.textContent = pad(mins);
+        if (secsEl) secsEl.textContent = pad(secs);
+        return true;
+    };
+
+    if (tick()) {
+        setInterval(tick, 1000);
+    }
 }
 
 function trackLandingViewContent() {
@@ -2076,7 +2164,7 @@ function actualizarUI() {
 
     const mobileQty = document.getElementById('lblCantidadMobileCart');
     if (mobileQty) {
-        mobileQty.textContent = `${cant} num${cant !== 1 ? 's' : ''}`;
+        mobileQty.textContent = `${cant} nro${cant !== 1 ? 's' : ''}`;
     }
 
     $('#totalDineroDesktop, #lblTotalMobile, #resumenTotal').text(fmt(total));
@@ -2343,6 +2431,63 @@ if (!estado.cantidadSeleccionada || estado.cantidadSeleccionada < min) {
 
 }
 
+function hayComprobanteCheckout() {
+    const input = document.getElementById('comprobantePago');
+    return !!(input && input.files && input.files.length > 0);
+}
+
+function destacarBotonConfirmarPago() {
+    const btn = document.getElementById('btnConfirmarTransferencia');
+    if (!btn || btn.disabled) return;
+    if (btn.classList.contains('cr-cta-pago--shine')) return;
+
+    try {
+        const limpiar = () => {
+            btn.classList.remove('cr-cta-pago--shine');
+            btn.removeEventListener('animationend', onEnd);
+            if (btn._crShineTimer) {
+                clearTimeout(btn._crShineTimer);
+                btn._crShineTimer = null;
+            }
+        };
+        const onEnd = (e) => {
+            if (e.target !== btn) return;
+            limpiar();
+        };
+
+        btn.addEventListener('animationend', onEnd);
+        btn.classList.add('cr-cta-pago--shine');
+        btn._crShineTimer = setTimeout(limpiar, 1100);
+    } catch (e) {
+    }
+}
+
+function syncCheckoutConfirmButtonState() {
+    const btn = document.getElementById('btnConfirmarTransferencia');
+    if (!btn) return;
+
+    try {
+        const sinRifa = !estado.rifa.id || !estado.rifasActivas.length;
+        const listo = comprasPermitidas()
+            && !sinRifa
+            && hayComprobanteCheckout()
+            && !transferenciaCheckoutEnCurso;
+        const estabaApagado = btn.disabled;
+
+        btn.disabled = !listo;
+        btn.setAttribute('aria-disabled', listo ? 'false' : 'true');
+        btn.title = listo ? 'Confirma tu pago' : 'Sube el comprobante para confirmar';
+
+        if (listo && estabaApagado) {
+            destacarBotonConfirmarPago();
+        }
+        if (!listo) {
+            btn.classList.remove('cr-cta-pago--shine');
+        }
+    } catch (e) {
+    }
+}
+
 function syncCheckoutTransferButtonLabel() {
     const btn = document.getElementById('btnConfirmarTransferencia');
     if (!btn) return;
@@ -2358,6 +2503,8 @@ function syncCheckoutTransferButtonLabel() {
     btn.textContent = total > 0
         ? `Confirmar pago · ${fmt(total)}`
         : 'Confirmar pago';
+
+    syncCheckoutConfirmButtonState();
 }
 
 function initCheckoutModalUi() {
@@ -2376,8 +2523,6 @@ function initCheckoutModalUi() {
         toastSuccess('Comprobante cargado correctamente');
     });
 }
-
-let transferenciaCheckoutEnCurso = false;
 
 async function procesarTransferencia(e) {
 
@@ -2489,9 +2634,7 @@ async function procesarTransferencia(e) {
     } finally {
         if (!redirecting) {
             transferenciaCheckoutEnCurso = false;
-            if (btnPago) {
-                btnPago.disabled = false;
-            }
+            syncCheckoutConfirmButtonState();
             hidePreloader();
         }
     }
@@ -2569,7 +2712,7 @@ function copiarFallback(texto, onSuccess) {
 }
 
 function mostrarToastCopiado(texto) {
-    toastSuccess('Copiado: ' + texto + ' — Pégalo en tu app');
+    toastSuccess('Copiado: ' + texto);
 }
 
 function normalizeWhatsappUrl(chatUrl, phoneRaw) {

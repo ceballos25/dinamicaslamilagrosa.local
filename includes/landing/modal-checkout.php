@@ -25,7 +25,7 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
                         <div class="cr-checkout-ticket__row">
                             <div class="cr-checkout-ticket__meta">
                                 <div class="cr-checkout-ticket__meta-top">
-                                    <span class="cr-checkout-ticket__qty" id="modalCheckoutCantidad">0 nums</span>
+                                    <span class="cr-checkout-ticket__qty" id="modalCheckoutCantidad">0 nros</span>
                                     <span class="cr-checkout-promo-note d-none" id="checkoutPromoNote"></span>
                                 </div>
                                 <div class="cr-checkout-ticket__nums" id="checkoutNumerosChips"></div>
@@ -132,9 +132,11 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
                                     </div>
                                     <label class="cr-upload-zone" id="comprobantePagoZone" for="comprobantePago">
                                         <i class="ti ti-cloud-upload" id="comprobantePagoIcon" aria-hidden="true"></i>
-                                        <span class="cr-upload-zone__label" id="comprobantePagoLabel">Toca para subir tu comprobante</span>
-                                        <span class="cr-upload-zone__status d-none" id="comprobantePagoStatus">Listo para enviar</span>
-                                        <span class="cr-upload-zone__hint" id="comprobantePagoHint">JPG, PNG o captura de pantalla</span>
+                                        <span class="cr-upload-zone__copy">
+                                            <span class="cr-upload-zone__label" id="comprobantePagoLabel">Toca para subir tu comprobante</span>
+                                            <span class="cr-upload-zone__status d-none" id="comprobantePagoStatus">Listo para enviar</span>
+                                            <span class="cr-upload-zone__hint" id="comprobantePagoHint">JPG, PNG o captura de pantalla</span>
+                                        </span>
                                     </label>
                                     <input type="file" class="visually-hidden" id="comprobantePago" accept="image/*">
                                 </div>
@@ -145,19 +147,20 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
 
                 <div class="cr-checkout-footer" id="checkoutFooterActions">
                     <div id="footerMetodoTransferencia" class="cr-checkout-footer__action">
-                        <button type="button" class="btn btn-warning btn-cta-pago w-100 fw-bold" id="btnConfirmarTransferencia" onclick="procesarTransferencia(event)">
+                        <button type="button" class="btn btn-warning btn-cta-pago w-100 fw-bold" id="btnConfirmarTransferencia" onclick="procesarTransferencia(event)" disabled title="Sube el comprobante para confirmar">
                             Confirmar pago
                         </button>
-                        <div class="cr-checkout-wa-rescue text-center mt-2 pt-1">
-                            <span class="small text-muted d-block mb-1">¿Prefieres pagar o enviar tu comprobante por WhatsApp?</span>
-                            <button type="button" class="btn btn-whatsapp-checkout w-100 d-inline-flex align-items-center justify-content-center gap-2 fw-bold py-2" id="btnCheckoutWhatsAppModal" onclick="abrirWhatsAppCheckout(event)">
-                                <i class="ti ti-brand-whatsapp fs-5" aria-hidden="true"></i> Prefiero pagar por WhatsApp
+                        <div class="cr-checkout-wa-rescue text-center">
+                            <span class="small text-muted d-block">¿Prefieres enviar tu comprobante por WhatsApp?</span>
+                            <button type="button" class="btn btn-whatsapp-checkout w-100 d-inline-flex align-items-center justify-content-center gap-1 fw-bold" id="btnCheckoutWhatsAppModal" onclick="abrirWhatsAppCheckout(event)">
+                                <i class="ti ti-brand-whatsapp" aria-hidden="true"></i> Enviar comprobante por WhatsApp
                             </button>
                         </div>
                     </div>
                     <p class="cr-checkout-footer__trust">
                         <i class="ti ti-lock-square-rounded text-success" aria-hidden="true"></i>
-                        Pago seguro · Confirmación inmediata
+                        Pago seguro · Al confirmar aceptas los
+                        <a href="<?= htmlspecialchars((defined('BASE_URL') && BASE_URL !== '' ? rtrim((string) BASE_URL, '/') : '') . '/terminos.php', ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">Términos y condiciones</a>
                     </p>
                 </div>
 
