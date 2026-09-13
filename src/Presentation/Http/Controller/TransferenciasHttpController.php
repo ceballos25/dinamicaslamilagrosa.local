@@ -12,10 +12,11 @@ use Throwable;
 
 final class TransferenciasHttpController
 {
-    private const ALLOWED_ACTIONS = ['obtener', 'aprobar', 'rechazar'];
+    private const ALLOWED_ACTIONS = ['obtener', 'pendientes_alerta', 'aprobar', 'rechazar'];
 
     private const PERMISSION_BY_ACTION = [
         'obtener' => ['transferencias.view'],
+        'pendientes_alerta' => ['transferencias.view'],
         'aprobar' => ['transferencias.approve'],
         'rechazar' => ['transferencias.approve'],
     ];
@@ -47,6 +48,7 @@ final class TransferenciasHttpController
             $_POST = array_merge($_POST, $payload);
             $result = match ($action) {
                 'obtener' => TransfersController::obtenerTransferencias($payload),
+                'pendientes_alerta' => TransfersController::obtenerPendientesAlerta(),
                 'aprobar' => TransfersController::aprobarTransferencia($payload),
                 'rechazar' => TransfersController::rechazarTransferencia($payload),
                 default => ['success' => false, 'message' => 'Acción no implementada'],

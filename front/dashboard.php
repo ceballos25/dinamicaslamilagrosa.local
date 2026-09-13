@@ -289,6 +289,6 @@ include_once ROOT_PATH . "/includes/head.php";
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <?php
-$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/dashboard.js?v=8"></script>';
+$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/dashboard.js?v=9"></script>';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

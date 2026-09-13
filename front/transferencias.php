@@ -132,6 +132,6 @@ include_once ROOT_PATH . "/includes/head.php";
 </div>
 
 <?php
-$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/transferencias.js?v=28"></script>';
+$extra_js = '<script src="' . ASSETS_URL . '/js/admin-mobile.js?v=16"></script><script src="' . ASSETS_URL . '/js/transferencias.js?v=29"></script>';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

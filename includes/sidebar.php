@@ -66,9 +66,10 @@ $showConfigSection = $canRifas || $canUsuarios || $canAuditoria || $canSettings 
 
         <?php if ($canTransferencias): ?>
         <li class="sidebar-item <?= isActive('transferencias.php', $currentPage); ?>">
-          <a class="sidebar-link" href="transferencias.php" aria-expanded="false">
+          <a class="sidebar-link sidebar-link-transferencias" href="transferencias.php" id="navLinkTransferencias" aria-expanded="false">
             <i class="ti ti-building-bank"></i>
             <span class="hide-menu">Transferencias</span>
+            <span class="sidebar-pending-count d-none" id="sidebarTransferPendingCount" aria-hidden="true">0</span>
           </a>
         </li>
         <?php endif; ?>

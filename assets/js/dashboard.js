@@ -143,6 +143,21 @@ function renderKpiOperativos(kpis) {
     }
 }
 
+window.addEventListener('cr:nueva-transferencia', (event) => {
+    const count = Number(event.detail?.count);
+    if (!Number.isFinite(count)) {
+        return;
+    }
+    const elTrans = document.getElementById('kpiTransferPendientes');
+    if (elTrans) {
+        elTrans.textContent = count.toLocaleString('es-CO');
+    }
+    const cardTrans = document.querySelector('.dashboard-kpi-transfers');
+    if (cardTrans) {
+        cardTrans.classList.toggle('dashboard-kpi-transfers--hot', count > 0);
+    }
+});
+
 const commonDonutOptions = {
     chart: { type: 'donut', height: 320, fontFamily: 'inherit' },
     legend: { position: 'bottom' },

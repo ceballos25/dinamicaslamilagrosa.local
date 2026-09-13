@@ -657,6 +657,45 @@ class TransfersController
         return $out;
     }
 
+    public static function obtenerPendientesAlerta(): array
+    {
+        $stats = Db::fetchOne(
+            'SELECT COUNT(*) AS c, COALESCE(MAX(id_transfer), 0) AS max_id
+             FROM transfers
+             WHERE status_transfer = 1'
+        );
+
+        $rows = Db::fetchAllAssoc(
+            'SELECT t.id_transfer, t.code_transfer, t.quantity_transfer, t.amount_transfer,
+                    t.date_created_transfer, c.name_customer, c.lastname_customer
+             FROM transfers t
+             INNER JOIN customers c ON c.id_customer = t.id_customer_transfer
+             WHERE t.status_transfer = 1
+             ORDER BY t.id_transfer DESC
+             LIMIT 8'
+        );
+
+        $items = [];
+        foreach ($rows as $row) {
+            $name = trim((string)($row['name_customer'] ?? '') . ' ' . (string)($row['lastname_customer'] ?? ''));
+            $items[] = [
+                'id' => (int)($row['id_transfer'] ?? 0),
+                'code' => (string)($row['code_transfer'] ?? ''),
+                'quantity' => (int)($row['quantity_transfer'] ?? 0),
+                'amount' => (float)($row['amount_transfer'] ?? 0),
+                'date' => (string)($row['date_created_transfer'] ?? ''),
+                'name' => $name !== '' ? $name : 'Cliente',
+            ];
+        }
+
+        return [
+            'success' => true,
+            'count' => (int)($stats?->c ?? 0),
+            'max_id' => (int)($stats?->max_id ?? 0),
+            'items' => $items,
+        ];
+    }
+
     public static function obtenerSettings()
     {
         $rows = Db::fetchAll('SELECT key_setting, value_setting FROM settings');

@@ -319,11 +319,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    window.addEventListener('cr:nueva-transferencia', () => {
+        if (transferFiltroStatus() !== String(TRANSFER_STATUS_PENDIENTE)) {
+            return;
+        }
+        paginaActual = 1;
+        cargarTransferencias({ silent: true });
+    });
 });
 
-function cargarTransferencias() {
+function cargarTransferencias(opts) {
+    const silent = !!(opts && opts.silent);
     const cola = document.getElementById('transferCola');
-    if (cola) {
+    if (cola && !silent) {
         cola.innerHTML = renderTransferLoadingSkeleton();
     }
 
@@ -331,6 +340,9 @@ function cargarTransferencias() {
         .then(parseJsonTransferenciasAjax)
         .then(data => {
             if (!data.success) {
+                if (silent) {
+                    return;
+                }
                 transferencias = [];
                 totalTransferencias = 0;
                 renderTabla();
@@ -344,12 +356,15 @@ function cargarTransferencias() {
             const totalPaginas = Math.ceil(totalTransferencias / registrosPorPagina) || 1;
             if (paginaActual > totalPaginas && totalPaginas > 0) {
                 paginaActual = totalPaginas;
-                return cargarTransferencias();
+                return cargarTransferencias({ silent });
             }
 
             renderTabla();
         })
         .catch(err => {
+            if (silent) {
+                return;
+            }
             transferencias = [];
             totalTransferencias = 0;
             renderTabla();

@@ -2415,6 +2415,47 @@ h1.hero-title-dos.mb-3 {
     padding-bottom: 1.5rem;
 }
 
+.sidebar-link-transferencias {
+    position: relative;
+}
+
+.sidebar-pending-count {
+    margin-left: auto;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: #6c757d;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-pending-count.d-none {
+    display: none !important;
+}
+
+#main-wrapper[data-sidebartype="mini-sidebar"] .sidebar-pending-count {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    margin-left: 0;
+}
+
+.admin-transfer-alert-btn {
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.admin-transfer-alert-btn i {
+    font-size: 1.05rem;
+}
+
 @media (min-width: 992px) {
 
     #main-wrapper[data-layout="vertical"] .left-sidebar,
