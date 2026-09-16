@@ -75,16 +75,29 @@ $premioMayorFacts = [
                         <div class="splide__track">
                             <ul class="splide__list" id="heroMainSlides">
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-frente.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Combo Pareja NMAX y MT-15', ENT_QUOTES, 'UTF-8') ?>" loading="eager">
+                                    <div class="cr-hero-slide-media cr-hero-slide-media--flyer">
+                                        <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/amor-amistad-4millones.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Amor y amistad · 4 millones o iPhone · 19 de septiembre', ENT_QUOTES, 'UTF-8') ?>" loading="eager">
+                                    </div>
                                 </li>
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-nmax.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 Combo Pareja', ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                                    <div class="cr-hero-slide-media cr-hero-slide-media--photo">
+                                        <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-frente.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Combo Pareja NMAX y MT-15', ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                                    </div>
                                 </li>
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-entrega.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Combo Pareja listo para entregar', ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                                    <div class="cr-hero-slide-media cr-hero-slide-media--photo">
+                                        <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-nmax.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 Combo Pareja', ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                                    </div>
                                 </li>
                                 <li class="splide__slide">
-                                    <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax-mt15-2027.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 y MT-15 2027', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-gallery-2 loading="lazy">
+                                    <div class="cr-hero-slide-media cr-hero-slide-media--photo">
+                                        <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-entrega.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Combo Pareja listo para entregar', ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                                    </div>
+                                </li>
+                                <li class="splide__slide">
+                                    <div class="cr-hero-slide-media cr-hero-slide-media--photo">
+                                        <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/premio-nmax-mt15-2027.jpeg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — NMAX 2027 y MT-15 2027', ENT_QUOTES, 'UTF-8') ?>" data-site-hero-gallery-2 loading="lazy">
+                                    </div>
                                 </li>
                             </ul>
                         </div>
@@ -93,6 +106,9 @@ $premioMayorFacts = [
                     <section id="thumbnail-carousel" class="splide mt-2 mx-auto" style="max-width: 520px;" aria-label="Miniaturas del premio">
                         <div class="splide__track">
                             <ul class="splide__list" id="heroThumbSlides">
+                                <li class="splide__slide">
+                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/amor-amistad-4millones.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="" loading="lazy">
+                                </li>
                                 <li class="splide__slide">
                                     <img src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-frente.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="" loading="lazy">
                                 </li>

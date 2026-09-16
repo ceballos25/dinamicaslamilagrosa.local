@@ -1,6 +1,6 @@
 const TICKETS_AJAX_URL = 'front/ajax/ventas.ajax.php';
 const PHONE_PATTERN = /^\d{10}$/;
-const PHONE_MAX_LEN = 10;
+const PHONE_MAX_LEN = (window.PhoneCo && PhoneCo.MAX_LEN) || 10;
 
 const inputBuscarTickets = document.getElementById('inputBuscarTickets');
 const resultadoBusqueda = document.getElementById('resultadoBusqueda');
@@ -9,12 +9,13 @@ const btnBuscarTickets = document.getElementById('btnBuscarTickets');
 const contadorBuscarTickets = document.getElementById('buscarTicketsContador');
 
 function normalizarCelularBusqueda(raw) {
-    let val = String(raw ?? '').replace(/\D/g, '');
-
-    if (val.startsWith('57') && val.length > PHONE_MAX_LEN) {
-        val = val.substring(2);
+    if (window.PhoneCo && typeof PhoneCo.normalize === 'function') {
+        return PhoneCo.normalize(raw);
     }
-
+    let val = String(raw ?? '').replace(/\D/g, '');
+    while (val.startsWith('57') && val.length >= 12) {
+        val = val.slice(2);
+    }
     return val.slice(0, PHONE_MAX_LEN);
 }
 
@@ -120,14 +121,10 @@ if (modalBuscarTickets && inputBuscarTickets) {
         actualizarEstadoInputBusqueda();
     });
 
-    inputBuscarTickets.addEventListener('input', function () {
-        aplicarCelularAlInput(this, this.value);
-    });
-
-    inputBuscarTickets.addEventListener('paste', function (e) {
-        e.preventDefault();
-        const pasted = (e.clipboardData || window.clipboardData).getData('text');
-        aplicarCelularAlInput(this, pasted);
+    PhoneCo.bind(inputBuscarTickets, {
+        onChange: function () {
+            actualizarEstadoInputBusqueda();
+        }
     });
 
     inputBuscarTickets.addEventListener('keydown', function (e) {

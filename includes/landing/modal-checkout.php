@@ -47,7 +47,7 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
                             </h6>
 
                             <div class="form-floating mb-2">
-                                <input type="tel" class="form-control" id="celularCliente" required placeholder="Celular" autocomplete="tel" inputmode="numeric" pattern="[0-9]*" maxlength="10">
+                                <input type="tel" class="form-control" id="celularCliente" required placeholder="Celular" autocomplete="tel" inputmode="numeric" pattern="[0-9]*">
                                 <label for="celularCliente">Celular (10 dígitos)</label>
                             </div>
 

@@ -619,10 +619,7 @@ class VentasController
             return null;
         }
 
-        $phone = preg_replace('/[^0-9]/', '', $phoneRaw);
-        if (strpos($phone, '57') === 0 && strlen($phone) === 12) {
-            $phone = substr($phone, 2);
-        }
+        $phone = ClientesController::normalizarTelefono($phoneRaw);
         if (!preg_match('/^\d{10}$/', $phone)) {
             self::logVenta('VALIDACION_CLIENTE_FALLIDA', ['motivo' => 'Celular inválido']);
             return null;
@@ -886,7 +883,7 @@ class VentasController
 
     public static function buscarTicketsPorCelular($phoneCustomer)
     {
-        $phone = preg_replace('/\D/', '', (string)$phoneCustomer);
+        $phone = ClientesController::normalizarTelefono((string)$phoneCustomer);
         if (!preg_match('/^\d{10}$/', $phone)) {
             return ['success' => false, 'message' => 'El celular debe contener exactamente 10 dígitos'];
         }

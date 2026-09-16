@@ -544,7 +544,7 @@ final class WebCheckoutService
 
     private function lookupCustomerByPhone(array $payload): array
     {
-        $phone = preg_replace('/\D+/', '', (string)($payload['phone_customer'] ?? ''));
+        $phone = \ClientesController::normalizarTelefono((string)($payload['phone_customer'] ?? ''));
         if (strlen($phone) !== 10) {
             return ['success' => false, 'message' => 'Teléfono inválido'];
         }

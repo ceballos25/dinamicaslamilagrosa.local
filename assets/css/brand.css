@@ -218,7 +218,6 @@
 
 /* Dinámicas La Milagrosa: foto principal del evento en hero */
 body.landing .cr-hero-photo img.premios-primer-sorteo {
-    object-fit: contain;
     background: transparent;
     padding: 0;
 }

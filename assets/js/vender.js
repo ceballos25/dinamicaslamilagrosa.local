@@ -592,15 +592,10 @@ function asignarEventos() {
 
     $('#btnLimpiarCliente').on('click', resetClienteForm);
 
-    $('#celularCliente').on('input paste', function () {
-
-        let val = $(this).val().replace(/\D/g, '');
-
-        if (val.startsWith('57') && val.length > 10) val = val.substring(2);
-
-        $(this).val(val);
-
-        if (val.length === 10) buscarClientePorCelular(val);
+    PhoneCo.bind(document.getElementById('celularCliente'), {
+        onChange: function (val) {
+            if (val.length === 10) buscarClientePorCelular(val);
+        }
     });
 }
 
@@ -653,13 +648,9 @@ function initComponentes() {
                 let term = params.term ? params.term.trim() : "";
 
                 if (/^[0-9\s+]+$/.test(term)) {
-
-                    let digits = term.replace(/\D/g, '');
-
-                    if (digits.startsWith('57') && digits.length > 10)
-                        term = digits.substring(2);
-                    else
-                        term = digits;
+                    term = (window.PhoneCo && PhoneCo.normalize)
+                        ? PhoneCo.normalize(term)
+                        : term.replace(/\D/g, '');
                 }
 
                 return {
@@ -1093,7 +1084,9 @@ function obtenerDatosFormularioVenta() {
             id: $('#idCliente').val(),
             nombre: $('#nombreCliente').val().trim(),
             apellido: $('#apellidoCliente').val().trim(),
-            celular: $('#celularCliente').val().trim(),
+            celular: (window.PhoneCo && PhoneCo.normalize)
+                ? PhoneCo.normalize($('#celularCliente').val())
+                : $('#celularCliente').val().trim().replace(/\D/g, ''),
             email: $('#emailCliente').val().trim(),
             depto: $('#departamento').val(),
             ciudad: $('#ciudad').val(),

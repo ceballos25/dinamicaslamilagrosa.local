@@ -14,6 +14,14 @@ final class MetaConversionsApi
     /** @var list<string> */
     private const MATCH_USER_DATA_KEYS = ['em', 'ph', 'fn', 'ln', 'ct', 'st', 'country', 'external_id'];
 
+    private const SESSION_EVENT_PREFIX = 'meta_capi_evt_';
+
+    /** @var array<string, true> */
+    private static array $loggedEventIds = [];
+
+    /** @var array<string, true> */
+    private static array $sentEventIds = [];
+
     /** Eventos permitidos en navegador (Pixel / meta.ajax.php). */
     public const BROWSER_TRACK_EVENTS = [
         'PageView',
@@ -449,8 +457,16 @@ final class MetaConversionsApi
             $event['event_source_url'] = $sourceUrl;
         }
 
+        $resolvedEventId = '';
         if ($eventId !== null && trim($eventId) !== '') {
-            $event['event_id'] = trim($eventId);
+            $resolvedEventId = trim($eventId);
+            $event['event_id'] = $resolvedEventId;
+        }
+
+        if ($resolvedEventId !== '' && !self::shouldSendEventId($resolvedEventId)) {
+            self::logDebugResult('OMITIDO', $event, 'event_id ya enviado');
+
+            return false;
         }
 
         if ($customData !== []) {
@@ -557,6 +573,11 @@ final class MetaConversionsApi
             return false;
         }
 
+        $sentEventId = trim((string)($event['event_id'] ?? ''));
+        if ($sentEventId !== '') {
+            self::markEventIdSent($sentEventId);
+        }
+
         if (in_array($event['event_name'] ?? '', ['Purchase', 'PageView', 'InitiateCheckout', 'Lead', 'AddToCart', 'ViewContent', 'AddPaymentInfo', 'Contact'], true)) {
             self::logResult('ENVIADO', $event, self::metaResponseDetail($httpCode, (string)$response));
         } else {
@@ -602,16 +623,60 @@ final class MetaConversionsApi
      */
     private static function logResult(string $status, array $event, string $detail): void
     {
+        $eventId = trim((string)($event['event_id'] ?? ''));
+        if ($eventId !== '' && self::alreadyLogged($eventId)) {
+            return;
+        }
+
         $customData = is_array($event['custom_data'] ?? null) ? $event['custom_data'] : [];
 
         self::log(sprintf(
             'Meta CAPI %s: %s event_id=%s value=%s detail=%s',
             $status,
             (string)($event['event_name'] ?? ''),
-            (string)($event['event_id'] ?? ''),
+            $eventId,
             isset($customData['value']) ? (string)$customData['value'] : '',
             $detail
         ));
+
+        if ($eventId !== '') {
+            self::markLogged($eventId);
+        }
+    }
+
+    private static function shouldSendEventId(string $eventId): bool
+    {
+        if (isset(self::$sentEventIds[$eventId])) {
+            return false;
+        }
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $key = self::SESSION_EVENT_PREFIX . $eventId;
+            if (!empty($_SESSION[$key])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function markEventIdSent(string $eventId): void
+    {
+        self::$sentEventIds[$eventId] = true;
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION[self::SESSION_EVENT_PREFIX . $eventId] = true;
+        }
+    }
+
+    private static function alreadyLogged(string $eventId): bool
+    {
+        return isset(self::$loggedEventIds[$eventId]);
+    }
+
+    private static function markLogged(string $eventId): void
+    {
+        self::$loggedEventIds[$eventId] = true;
     }
 
     /**

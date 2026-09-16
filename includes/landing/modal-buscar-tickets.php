@@ -17,13 +17,12 @@
                         class="form-control form-control-lg text-center fw-semibold"
                         inputmode="numeric"
                         autocomplete="tel-national"
-                        maxlength="10"
                         pattern="[0-9]{10}"
                         aria-describedby="buscarTicketsHint buscarTicketsContador"
                         required
                     >
                     <div class="d-flex justify-content-between align-items-center mt-1 mb-3">
-                        <span id="buscarTicketsHint" class="form-text mb-0">Solo dígitos, sin espacios ni guiones</span>
+                        <span id="buscarTicketsHint" class="form-text mb-0">Puedes pegar con +57 o 57; queda en 10 dígitos</span>
                         <span id="buscarTicketsContador" class="form-text mb-0 text-muted" aria-live="polite">0/10</span>
                     </div>
 

@@ -40,20 +40,14 @@ $(document).ready(function () {
     inicializarSistema();
     iniciarCuentaRegresivaEntrega();
 
-    $('#celularCliente').on('input paste', function () {
-
-        let val = $(this).val().replace(/\D/g, '');
-
-        if (val.startsWith('57') && val.length > 10)
-            val = val.substring(2);
-
-        $(this).val(val);
-
-        if (val.length === 10)
-            buscarClientePorCelular(val);
-        else if (val.length < 10)
-            aplicarBloqueoClienteInactivo(false);
-
+    PhoneCo.bind(document.getElementById('celularCliente'), {
+        onChange: function (val) {
+            if (val.length === 10) {
+                buscarClientePorCelular(val);
+            } else if (val.length < 10) {
+                aplicarBloqueoClienteInactivo(false);
+            }
+        }
     });
 
     if (typeof datosColombia !== 'undefined') {
@@ -648,10 +642,10 @@ function crearSlider(mainId, thumbsId, interval, keyPrefix) {
     destroySplide(keyPrefix + '_main');
     destroySplide(keyPrefix + '_thumbs');
 
-    const isMobileHero = keyPrefix === 'hero' && window.matchMedia('(max-width: 767.98px)').matches;
+    const isMobileHero = keyPrefix === 'hero' && window.matchMedia('(max-width: 991.98px)').matches;
     const thumbs = new Splide(thumbsId, {
-        fixedWidth: keyPrefix === 'hero' ? (isMobileHero ? 64 : 90) : 100,
-        fixedHeight: keyPrefix === 'hero' ? (isMobileHero ? 56 : 60) : 60,
+        fixedWidth: keyPrefix === 'hero' ? (isMobileHero ? 76 : 90) : 100,
+        fixedHeight: keyPrefix === 'hero' ? (isMobileHero ? 68 : 60) : 60,
         gap: isMobileHero ? 8 : 10,
         rewind: true,
         pagination: false,
@@ -662,8 +656,8 @@ function crearSlider(mainId, thumbsId, interval, keyPrefix) {
         breakpoints: { 600: { fixedWidth: 64, fixedHeight: 56 } },
     });
 
-    const main = new Splide(mainId, {
-        type: keyPrefix === 'hero' && !isMobileHero ? 'fade' : 'slide',
+    const mainOptions = {
+        type: 'slide',
         autoplay: true,
         interval: keyPrefix === 'hero' ? 4500 : interval,
         rewind: true,
@@ -671,7 +665,19 @@ function crearSlider(mainId, thumbsId, interval, keyPrefix) {
         arrows: keyPrefix === 'hero',
         speed: 800,
         drag: true,
-    });
+    };
+
+    if (keyPrefix === 'hero') {
+        Object.assign(mainOptions, {
+            perPage: 1,
+            gap: 0,
+            padding: 0,
+            trimSpace: true,
+            focus: 'center',
+        });
+    }
+
+    const main = new Splide(mainId, mainOptions);
 
     main.sync(thumbs);
     main.mount();
@@ -1116,27 +1122,36 @@ function pricingTierConfig() {
 }
 
 function defaultPackageGridItems() {
+    const unit = 2000;
     return [
         { qty: 10, price: 20000, badge: null, badge_slug: null },
         { qty: 18, price: 36000, badge: null, badge_slug: null },
-        { qty: 30, price: 60000, badge: 'Popular', badge_slug: 'popular' },
-        { qty: 40, price: 68000, badge: 'Ahorro', badge_slug: 'ahorro' },
+        { qty: 30, price: 60000, badge: null, badge_slug: null },
+        { qty: 40, price: 68000, badge: 'Popular', badge_slug: 'popular' },
         { qty: 60, price: 102000, badge: null, badge_slug: null },
         { qty: 100, price: 150000, badge: 'Más vendido', badge_slug: 'mas-vendido' },
-    ];
+    ].map((item) => ({ ...item, compare_at: item.qty * unit }));
 }
 
 function packageGridItems() {
     const p = estado.pricing;
     const fromApi = Array.isArray(p?.grid_items) ? p.grid_items : [];
+    const unit = packagePricingConfig().unitPrice || 2000;
     if (fromApi.length) {
-        return fromApi;
+        return fromApi.map((item) => {
+            const qty = Number(item.qty) || 0;
+            const compareAt = Number(item.compare_at) > 0
+                ? Number(item.compare_at)
+                : qty * unit;
+            return { ...item, compare_at: compareAt };
+        });
     }
 
     const pkg = packagePricingConfig();
     const items = defaultPackageGridItems().map((item) => {
         const price = pkg.packages[item.qty];
-        return price > 0 ? { ...item, price } : item;
+        const compareAt = item.qty * (pkg.unitPrice || 2000);
+        return price > 0 ? { ...item, price, compare_at: compareAt } : { ...item, compare_at: compareAt };
     });
 
     return items;
@@ -1436,17 +1451,32 @@ function renderHeroPackagesHtml() {
         .slice()
         .sort((a, b) => (a.qty || 0) - (b.qty || 0));
 
+    const unit = packagePricingConfig().unitPrice || 2000;
+
     return items.map((item) => {
         const slug = String(item.badge_slug || '').trim();
         const slugClass = slug ? ` cr-hero-precio-tier--${slug}` : '';
         const badgeHtml = item.badge
             ? `<span class="cr-hero-precio-tier__badge badge-paquete badge-paquete--${slug}">${String(item.badge)}</span>`
             : '';
+        const compareAt = Number(item.compare_at) > 0
+            ? Number(item.compare_at)
+            : (Number(item.qty) || 0) * unit;
+        const hasSaving = compareAt > Number(item.price);
+        const unitNow = item.qty > 0 ? Math.round(Number(item.price) / Number(item.qty)) : unit;
+        const unitHtml = hasSaving
+            ? `<span class="cr-hero-precio-tier__unit-price">${fmtCOPShort(unitNow)} c/u</span>`
+            : '';
+        const beforeHtml = hasSaving
+            ? `<span class="cr-hero-precio-tier__antes"><em>Antes</em> <span class="cr-hero-precio-tier__antes-monto">${fmtCOPShort(compareAt)}</span></span>`
+            : '';
 
         return `
-        <div class="cr-hero-precio-tier${slugClass}">
+        <div class="cr-hero-precio-tier${slugClass}${hasSaving ? ' cr-hero-precio-tier--con-ahorro' : ''}">
             ${badgeHtml}
             <span class="cr-hero-precio-tier__label">${item.qty} nros</span>
+            ${unitHtml}
+            ${beforeHtml}
             <span class="cr-hero-precio-tier__value">${fmtCOPShort(item.price)}</span>
         </div>`;
     }).join('');
@@ -1822,7 +1852,9 @@ function setComprobanteUploadState(file) {
 // TRACKING DE META ADS (EMBUDO COMPLETO Y SEGURO)
 // ==========================================
 function checkoutMetaUserData() {
-    const tel = ($('#celularCliente').val() || '').replace(/\D/g, '');
+    const tel = (window.PhoneCo && PhoneCo.normalize)
+        ? PhoneCo.normalize($('#celularCliente').val() || '')
+        : ($('#celularCliente').val() || '').replace(/\D/g, '');
     const nom = ($('#nombreCliente').val() || '').trim();
     const ape = ($('#apellidoCliente').val() || '').trim();
     const email = ($('#emailCliente').val() || '').trim();
@@ -1922,7 +1954,7 @@ function trackMetaAddToCart(cant, total) {
         value: val,
         num_items: qty,
         content_type: 'product'
-    }, 'pkg-' + qty, checkoutMetaUserData(), { allowRepeat: true });
+    }, 'pkg-' + qty, checkoutMetaUserData());
 }
 
 function trackMetaInitiateCheckout(cant, total) {
@@ -1931,12 +1963,12 @@ function trackMetaInitiateCheckout(cant, total) {
     const val = Number(total) || 0;
     if (val <= 0) return;
 
-    MetaEvents.track('InitiateCheckout', {
+    MetaEvents.trackOnce('init_checkout_' + qty + '_' + val, 'InitiateCheckout', {
         currency: 'COP',
         value: val,
         num_items: qty,
         content_type: 'product'
-    }, 'init-' + qty + '-' + Date.now().toString(36), checkoutMetaUserData(), { allowRepeat: true });
+    }, 'init-' + qty, checkoutMetaUserData());
 }
 
 function trackMetaLead() {
@@ -2003,12 +2035,12 @@ function trackWhatsAppPayPreference() {
         return;
     }
 
-    MetaEvents.track('Contact', {
+    MetaEvents.trackOnce('wa_pay_' + cant + '_' + value, 'Contact', {
         currency: 'COP',
         value,
         num_items: cant,
         content_type: 'product'
-    }, 'wa-pay-' + cant, checkoutMetaUserData(), { allowRepeat: true });
+    }, 'wa-pay-' + cant, checkoutMetaUserData());
 }
 
 function abrirWhatsAppCheckout(e) {
@@ -2400,7 +2432,9 @@ if (!estado.cantidadSeleccionada || estado.cantidadSeleccionada < min) {
 
         nombre: $('#nombreCliente').val().trim(),
         apellido: $('#apellidoCliente').val().trim(),
-        celular: $('#celularCliente').val().replace(/\D/g, ''),
+        celular: (window.PhoneCo && PhoneCo.normalize)
+            ? PhoneCo.normalize($('#celularCliente').val())
+            : $('#celularCliente').val().replace(/\D/g, ''),
         email: $('#emailCliente').val().trim(),
         departamento: $('#departamento').val(),
         ciudad: $('#ciudad').val()

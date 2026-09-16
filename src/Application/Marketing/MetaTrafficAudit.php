@@ -63,7 +63,16 @@ final class MetaTrafficAudit
             return;
         }
 
+        $eventId = trim((string)($detail['event_id'] ?? ''));
+        if ($eventId !== '' && self::wasAuditRecorded($eventId)) {
+            return;
+        }
+
         self::recordAction($action, $detail);
+
+        if ($eventId !== '') {
+            self::markAuditRecorded($eventId);
+        }
     }
 
     /**
@@ -96,6 +105,26 @@ final class MetaTrafficAudit
     public static function actionForEvent(string $eventName): ?string
     {
         return self::EVENT_ACTIONS[trim($eventName)] ?? null;
+    }
+
+    /**
+     * @param array<string, mixed> $detail
+     * @return array<string, mixed>
+     */
+    private static function wasAuditRecorded(string $eventId): bool
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return false;
+        }
+
+        return !empty($_SESSION['meta_audit_evt_' . $eventId]);
+    }
+
+    private static function markAuditRecorded(string $eventId): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION['meta_audit_evt_' . $eventId] = true;
+        }
     }
 
     /**

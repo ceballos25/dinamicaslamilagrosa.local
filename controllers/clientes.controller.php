@@ -10,14 +10,27 @@ class ClientesController
     }
 
     /**
+     * Normaliza celular CO: quita +57 / 57 / 0057 y deja solo dígitos.
+     */
+    public static function normalizarTelefono(string $phoneRaw): string
+    {
+        $phone = preg_replace('/\D+/', '', $phoneRaw) ?? '';
+        if (str_starts_with($phone, '00')) {
+            $phone = substr($phone, 2);
+        }
+        while (str_starts_with($phone, '57') && strlen($phone) >= 12) {
+            $phone = substr($phone, 2);
+        }
+
+        return $phone;
+    }
+
+    /**
      * @return array{allowed: bool, phone: string, message: string}
      */
     public static function telefonoPermiteCompra(string $phoneRaw): array
     {
-        $phone = preg_replace('/[^0-9]/', '', $phoneRaw);
-        if (strpos($phone, '57') === 0 && strlen($phone) === 12) {
-            $phone = substr($phone, 2);
-        }
+        $phone = self::normalizarTelefono($phoneRaw);
 
         if (!preg_match('/^\d{10}$/', $phone)) {
             return ['allowed' => true, 'phone' => $phone, 'message' => ''];

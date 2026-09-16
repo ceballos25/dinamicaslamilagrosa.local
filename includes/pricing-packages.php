@@ -109,16 +109,24 @@ function cs_calculate_package_total(int $quantity): array
 }
 
 /**
- * @return list<array{id: string, qty: int, price: int, badge: ?string, badge_slug: ?string}>
+ * @return list<array{id: string, qty: int, price: int, compare_at: int, badge: ?string, badge_slug: ?string}>
  */
 function cs_package_grid_items(): array
 {
-    return [
+    $unit = cs_package_unit_price();
+    $items = [
         ['id' => 'paq10', 'qty' => 10, 'price' => 20000, 'badge' => null, 'badge_slug' => null],
         ['id' => 'paq18', 'qty' => 18, 'price' => 36000, 'badge' => null, 'badge_slug' => null],
-        ['id' => 'paq30', 'qty' => 30, 'price' => 60000, 'badge' => 'Popular', 'badge_slug' => 'popular'],
-        ['id' => 'paq40', 'qty' => 40, 'price' => 68000, 'badge' => 'Ahorro', 'badge_slug' => 'ahorro'],
+        ['id' => 'paq30', 'qty' => 30, 'price' => 60000, 'badge' => null, 'badge_slug' => null],
+        ['id' => 'paq40', 'qty' => 40, 'price' => 68000, 'badge' => 'Popular', 'badge_slug' => 'popular'],
         ['id' => 'paq60', 'qty' => 60, 'price' => 102000, 'badge' => null, 'badge_slug' => null],
         ['id' => 'paq100', 'qty' => 100, 'price' => 150000, 'badge' => 'Más vendido', 'badge_slug' => 'mas-vendido'],
     ];
+
+    foreach ($items as &$item) {
+        $item['compare_at'] = (int)$item['qty'] * $unit;
+    }
+    unset($item);
+
+    return $items;
 }
