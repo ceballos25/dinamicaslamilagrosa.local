@@ -5,6 +5,7 @@ namespace App\Infrastructure\Comprobante;
 
 use App\Application\Comprobante\Contract\ImagePreprocessorInterface;
 use App\Application\Comprobante\Contract\OcrReaderInterface;
+use App\Application\Comprobante\OcrReadResult;
 
 /**
  * OCR vía OCR.space API (POST /parse/image).
@@ -30,10 +31,10 @@ final class OcrSpaceOcrReader implements OcrReaderInterface
         return trim($this->apiKey) !== '' && function_exists('curl_init');
     }
 
-    public function read(string $imagePath): string
+    public function read(string $imagePath): OcrReadResult
     {
         if (!$this->isAvailable() || !is_file($imagePath) || !is_readable($imagePath)) {
-            return '';
+            return OcrReadResult::unavailable();
         }
 
         $prepared = $this->preprocessor->prepareForOcr($imagePath);
@@ -44,7 +45,7 @@ final class OcrSpaceOcrReader implements OcrReaderInterface
             $this->logOcrFailure('Archivo preparado supera límite OCR.space (~1 MB en plan free).');
             $this->cleanupPrepared($prepared, $imagePath);
 
-            return '';
+            return OcrReadResult::failed();
         }
 
         $postFields = [
@@ -60,7 +61,7 @@ final class OcrSpaceOcrReader implements OcrReaderInterface
         if ($ch === false) {
             $this->cleanupPrepared($prepared, $imagePath);
 
-            return '';
+            return OcrReadResult::failed();
         }
 
         curl_setopt_array($ch, [
@@ -83,10 +84,10 @@ final class OcrSpaceOcrReader implements OcrReaderInterface
         if (!is_string($response) || $response === '' || $httpCode < 200 || $httpCode >= 300) {
             $this->logOcrFailure('HTTP ' . $httpCode . ($curlError !== '' ? ' — ' . $curlError : ''));
 
-            return '';
+            return OcrReadResult::failed();
         }
 
-        return self::extractTextFromResponse($response);
+        return self::parseResponse($response);
     }
 
     /**
@@ -94,24 +95,32 @@ final class OcrSpaceOcrReader implements OcrReaderInterface
      */
     public static function extractTextFromResponse(string $json): string
     {
+        return self::parseResponse($json)->text;
+    }
+
+    /**
+     * @internal Visible for unit tests.
+     */
+    public static function parseResponse(string $json): OcrReadResult
+    {
         try {
             $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            return '';
+            return OcrReadResult::failed();
         }
 
         if (!is_array($data)) {
-            return '';
+            return OcrReadResult::failed();
         }
 
         $ocrExitCode = (int)($data['OCRExitCode'] ?? 0);
         // 1 = éxito total, 2 = éxito parcial (útil en capturas con ruido).
         if (!in_array($ocrExitCode, [1, 2], true)) {
-            return '';
+            return OcrReadResult::failed();
         }
 
         if (($data['IsErroredOnProcessing'] ?? false) === true) {
-            return '';
+            return OcrReadResult::failed();
         }
 
         $chunks = [];
@@ -130,7 +139,7 @@ final class OcrSpaceOcrReader implements OcrReaderInterface
             }
         }
 
-        return trim(implode("\n", $chunks));
+        return OcrReadResult::ok(trim(implode("\n", $chunks)));
     }
 
     private function logOcrFailure(string $detail): void

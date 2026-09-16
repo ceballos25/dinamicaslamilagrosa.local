@@ -76,6 +76,29 @@ final class OcrSpaceOcrReaderTest extends TestCase
             'ParsedResults' => [],
         ], JSON_THROW_ON_ERROR);
 
+        $result = OcrSpaceOcrReader::parseResponse($json);
+
+        self::assertFalse($result->serviceOk);
+        self::assertSame('', $result->text);
         self::assertSame('', OcrSpaceOcrReader::extractTextFromResponse($json));
+    }
+
+    public function testParseResponseMarksSuccessfulEmptyTextAsOk(): void
+    {
+        $json = json_encode([
+            'OCRExitCode' => 1,
+            'IsErroredOnProcessing' => false,
+            'ParsedResults' => [
+                [
+                    'FileParseExitCode' => 1,
+                    'ParsedText' => '   ',
+                ],
+            ],
+        ], JSON_THROW_ON_ERROR);
+
+        $result = OcrSpaceOcrReader::parseResponse($json);
+
+        self::assertTrue($result->serviceOk);
+        self::assertSame('', $result->text);
     }
 }

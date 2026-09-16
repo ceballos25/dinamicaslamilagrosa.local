@@ -10,6 +10,15 @@ final class CopAmountComparer
         return abs((int) round($a) - (int) round($b)) <= 1;
     }
 
+    /**
+     * True si el monto del comprobante cubre el esperado (exacto o sobrepago).
+     * Tolera ±1 COP por redondeo OCR.
+     */
+    public static function coversExpected(float $detected, float $expected): bool
+    {
+        return ((int) round($detected)) + 1 >= (int) round($expected);
+    }
+
     public static function parseCopAmountString(string $raw): ?float
     {
         $raw = trim($raw);

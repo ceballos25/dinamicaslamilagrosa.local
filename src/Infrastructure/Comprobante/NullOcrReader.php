@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Comprobante;
 
 use App\Application\Comprobante\Contract\OcrReaderInterface;
+use App\Application\Comprobante\OcrReadResult;
 
 final class NullOcrReader implements OcrReaderInterface
 {
@@ -12,8 +13,8 @@ final class NullOcrReader implements OcrReaderInterface
         return false;
     }
 
-    public function read(string $imagePath): string
+    public function read(string $imagePath): OcrReadResult
     {
-        return '';
+        return OcrReadResult::unavailable();
     }
 }

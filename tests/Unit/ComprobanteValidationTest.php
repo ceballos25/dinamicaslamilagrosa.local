@@ -207,7 +207,7 @@ TXT;
         self::assertSame(100000.0, $result->detectedAmountCop);
     }
 
-    public function testValidatorRejectsMismatchedAmount(): void
+    public function testValidatorRejectsUnderpaidAmount(): void
     {
         $validator = $this->makeValidator(new InMemoryProofReferenceRepository(), ComprobanteValidationMode::STRICT);
         $ocrText = 'Comprobante transferencia Nequi valor $50.000 referencia 998877665544';
@@ -224,6 +224,59 @@ TXT;
         self::assertStringContainsString('$50.000', $result->message);
     }
 
+    public function testValidatorAcceptsOverpayAndAntesPrice(): void
+    {
+        $validator = $this->makeValidator(new InMemoryProofReferenceRepository(), ComprobanteValidationMode::STRICT);
+        // Paquete 40 = $68.000; "Antes" = $80.000
+        $ocrText = 'Comprobante transferencia Nequi valor $80.000 referencia 998877665544';
+
+        $result = $validator->validate(new ComprobanteValidationRequest(
+            $this->fakeImagePath($ocrText),
+            'jpg',
+            5,
+            68000.0
+        ));
+
+        self::assertTrue($result->accepted, $result->message);
+        self::assertSame(80000.0, $result->detectedAmountCop);
+    }
+
+    public function testValidatorSoftAcceptsWhenOcrServiceFails(): void
+    {
+        $config = new ComprobanteValidationConfig(
+            enabled: true,
+            mode: ComprobanteValidationMode::STRICT,
+            rejectDuplicates: true,
+            minScoreStrict: 50,
+            minScoreReview: 25,
+            ocrSpaceApiKey: 'fake',
+            validateAmount: true,
+        );
+
+        $ocr = new class implements \App\Application\Comprobante\Contract\OcrReaderInterface {
+            public function isAvailable(): bool
+            {
+                return true;
+            }
+
+            public function read(string $imagePath): \App\Application\Comprobante\OcrReadResult
+            {
+                return \App\Application\Comprobante\OcrReadResult::failed();
+            }
+        };
+
+        $validator = ComprobanteValidatorFactory::create($config, new InMemoryProofReferenceRepository(), $ocr);
+        $result = $validator->validate(new ComprobanteValidationRequest(
+            $this->fakeImagePath('ignored'),
+            'jpg',
+            5,
+            68000.0
+        ));
+
+        self::assertTrue($result->accepted);
+        self::assertSame(ComprobanteValidationStatus::OCR_FAILED, $result->status);
+    }
+
     public function testValidatorRejectsLowScoreInStrictMode(): void
     {
         $validator = $this->makeValidator(new InMemoryProofReferenceRepository(), ComprobanteValidationMode::STRICT);
@@ -238,7 +291,7 @@ TXT;
         self::assertSame(ComprobanteValidationStatus::REJECTED, $result->status);
     }
 
-    public function testValidatorRejectsReviewBand(): void
+    public function testValidatorSoftAcceptsReviewBand(): void
     {
         $validator = $this->makeValidator(new InMemoryProofReferenceRepository(), ComprobanteValidationMode::PERMISSIVE);
         $ocrText = 'pago transferencia valor $10.000';
@@ -250,9 +303,8 @@ TXT;
             10000.0
         ));
 
-        self::assertFalse($result->accepted);
-        self::assertSame(ComprobanteValidationStatus::REJECTED, $result->status);
-        self::assertStringContainsString('inténtalo de nuevo', mb_strtolower($result->message));
+        self::assertTrue($result->accepted);
+        self::assertSame(ComprobanteValidationStatus::REVIEW, $result->status);
     }
 
     public function testDateExtractorParsesNumericColombianFormat(): void
@@ -391,9 +443,9 @@ TXT;
                 return true;
             }
 
-            public function read(string $imagePath): string
+            public function read(string $imagePath): \App\Application\Comprobante\OcrReadResult
             {
-                return (string)file_get_contents($imagePath);
+                return \App\Application\Comprobante\OcrReadResult::ok((string)file_get_contents($imagePath));
             }
         };
 

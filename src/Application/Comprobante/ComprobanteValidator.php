@@ -56,7 +56,29 @@ final class ComprobanteValidator
             );
         }
 
-        $ocrText = $this->ocrReader->read($imagePath);
+        $ocr = $this->ocrReader->read($imagePath);
+        $ocrText = $ocr->text;
+
+        // Fallo de API/transporte/cuota: no bloquear compra; admin revisa el comprobante.
+        if ($this->ocrReader->isAvailable() && !$ocr->serviceOk) {
+            return $this->buildResult(
+                accepted: true,
+                status: ComprobanteValidationStatus::OCR_FAILED,
+                message: '',
+                score: 0,
+                referenceRaw: null,
+                referenceNorm: null,
+                detectedBank: null,
+                ocrText: '',
+                fileHash: $fileHash,
+                extension: $extension,
+                transferId: $transferId,
+                detectedAmountCop: null,
+                expectedAmountCop: $expectedAmountCop,
+                detectedAmountRaw: null,
+            );
+        }
+
         $scoreData = $this->scorer->score($ocrText);
         $score = (int)$scoreData['score'];
         $detectedBank = $scoreData['bank'] ?? null;
@@ -118,6 +140,7 @@ final class ComprobanteValidator
             }
         }
 
+        // OCR respondió OK pero sin texto: imagen ilegible / no es comprobante.
         if ($this->ocrReader->isAvailable() && trim($ocrText) === '') {
             $userMsg = ComprobanteUserMessages::unreadable();
 
@@ -194,23 +217,8 @@ final class ComprobanteValidator
             );
         }
 
+        // Score en banda REVIEW: aceptar para revisión manual (no bloquear checkout).
         $status = $this->resolveStatus($score);
-        if ($status === ComprobanteValidationStatus::REVIEW) {
-            return $this->buildRejected(
-                ComprobanteUserMessages::unclear(),
-                $score,
-                $referenceRaw,
-                $referenceNorm,
-                $detectedBank,
-                $ocrText,
-                $fileHash,
-                $extension,
-                $transferId,
-                $detectedAmountCop,
-                $expectedAmountCop,
-                $detectedAmountRaw,
-            );
-        }
 
         return $this->buildResult(
             accepted: true,
@@ -240,7 +248,8 @@ final class ComprobanteValidator
             return ComprobanteUserMessages::amountMissing();
         }
 
-        if (!CopAmountComparer::equivalent($detectedAmountCop, $expectedAmountCop)) {
+        // Acepta monto exacto o sobrepago (p. ej. pagaron el "Antes" $80.000 en vez del paquete $68.000).
+        if (!CopAmountComparer::coversExpected($detectedAmountCop, $expectedAmountCop)) {
             return ComprobanteUserMessages::amountMismatch(
                 CopAmountComparer::formatCop($detectedAmountCop),
                 CopAmountComparer::formatCop($expectedAmountCop),

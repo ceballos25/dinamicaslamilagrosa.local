@@ -40,15 +40,30 @@ $(document).ready(function () {
     inicializarSistema();
     iniciarCuentaRegresivaEntrega();
 
-    PhoneCo.bind(document.getElementById('celularCliente'), {
-        onChange: function (val) {
-            if (val.length === 10) {
-                buscarClientePorCelular(val);
-            } else if (val.length < 10) {
-                aplicarBloqueoClienteInactivo(false);
+    if (window.PhoneCo && typeof PhoneCo.bind === 'function') {
+        PhoneCo.bind(document.getElementById('celularCliente'), {
+            onChange: function (val) {
+                if (val.length === 10) {
+                    buscarClientePorCelular(val);
+                } else if (val.length < 10) {
+                    aplicarBloqueoClienteInactivo(false);
+                }
             }
+        });
+    } else {
+        const celEl = document.getElementById('celularCliente');
+        if (celEl) {
+            celEl.addEventListener('input', function () {
+                const digits = String(celEl.value || '').replace(/\D/g, '').slice(0, 10);
+                if (celEl.value !== digits) celEl.value = digits;
+                if (digits.length === 10) {
+                    buscarClientePorCelular(digits);
+                } else if (digits.length < 10) {
+                    aplicarBloqueoClienteInactivo(false);
+                }
+            });
         }
-    });
+    }
 
     if (typeof datosColombia !== 'undefined') {
         cargarDepartamentos();
@@ -1852,9 +1867,9 @@ function setComprobanteUploadState(file) {
 // TRACKING DE META ADS (EMBUDO COMPLETO Y SEGURO)
 // ==========================================
 function checkoutMetaUserData() {
-    const tel = (window.PhoneCo && PhoneCo.normalize)
+    const tel = (window.PhoneCo && typeof PhoneCo.normalize === 'function')
         ? PhoneCo.normalize($('#celularCliente').val() || '')
-        : ($('#celularCliente').val() || '').replace(/\D/g, '');
+        : String($('#celularCliente').val() || '').replace(/\D/g, '').slice(0, 10);
     const nom = ($('#nombreCliente').val() || '').trim();
     const ape = ($('#apellidoCliente').val() || '').trim();
     const email = ($('#emailCliente').val() || '').trim();
@@ -2224,51 +2239,59 @@ function actualizarUI() {
 }
 
 async function buscarClientePorCelular(tel) {
+    const phone = (window.PhoneCo && typeof PhoneCo.normalize === 'function')
+        ? PhoneCo.normalize(tel)
+        : String(tel || '').replace(/\D/g, '').slice(0, 10);
 
-    const fd = new FormData();
-
-    fd.append('action', 'buscar_cliente_checkout');
-    fd.append('phone_customer', tel);
-
-    const r = await fetch(estado.rutas.web, {
-        method: 'POST',
-        body: fd
-    });
-
-    const j = await r.json();
-
-    if (!j.success) {
-        if (j.blocked) {
-            aplicarBloqueoClienteInactivo(true, j.message || mensajeClienteInactivo());
-        } else if (j.message) {
-            toastError(j.message);
-        }
+    if (!/^\d{10}$/.test(phone)) {
         return;
     }
 
-    aplicarBloqueoClienteInactivo(false);
+    try {
+        const fd = new FormData();
+        fd.append('action', 'buscar_cliente_checkout');
+        fd.append('phone_customer', phone);
 
-    if (j.data) {
+        const r = await fetch(estado.rutas.web, {
+            method: 'POST',
+            body: fd
+        });
 
-        const c = j.data;
+        const j = await r.json();
 
-        $('#nombreCliente').val(c.name_customer);
-        $('#apellidoCliente').val(c.lastname_customer);
-        $('#emailCliente').val(c.email_customer);
-
-        if (c.department_customer) {
-            $('#departamento')
-                .val(c.department_customer)
-                .trigger('change');
-            if (c.city_customer) {
-                setTimeout(() => {
-                    $('#ciudad').val(c.city_customer);
-                }, 50);
+        if (!j.success) {
+            if (j.blocked) {
+                aplicarBloqueoClienteInactivo(true, j.message || mensajeClienteInactivo());
+            } else if (j.message) {
+                toastError(j.message);
             }
+            return;
         }
 
-    }
+        aplicarBloqueoClienteInactivo(false);
 
+        if (j.data) {
+            const c = j.data;
+
+            $('#nombreCliente').val(c.name_customer);
+            $('#apellidoCliente').val(c.lastname_customer);
+            $('#emailCliente').val(c.email_customer);
+
+            if (c.department_customer) {
+                $('#departamento')
+                    .val(c.department_customer)
+                    .trigger('change');
+                if (c.city_customer) {
+                    setTimeout(() => {
+                        $('#ciudad').val(c.city_customer);
+                    }, 50);
+                }
+            }
+        }
+    } catch (err) {
+        // No bloquear el formulario si la búsqueda falla (red/JSON).
+        console.warn('buscarClientePorCelular', err);
+    }
 }
 
 function cargarDepartamentos() {
@@ -2432,9 +2455,9 @@ if (!estado.cantidadSeleccionada || estado.cantidadSeleccionada < min) {
 
         nombre: $('#nombreCliente').val().trim(),
         apellido: $('#apellidoCliente').val().trim(),
-        celular: (window.PhoneCo && PhoneCo.normalize)
+        celular: (window.PhoneCo && typeof PhoneCo.normalize === 'function')
             ? PhoneCo.normalize($('#celularCliente').val())
-            : $('#celularCliente').val().replace(/\D/g, ''),
+            : String($('#celularCliente').val() || '').replace(/\D/g, '').slice(0, 10),
         email: $('#emailCliente').val().trim(),
         departamento: $('#departamento').val(),
         ciudad: $('#ciudad').val()
