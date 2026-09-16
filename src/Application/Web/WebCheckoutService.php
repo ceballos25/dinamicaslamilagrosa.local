@@ -5,7 +5,9 @@ namespace App\Application\Web;
 
 use App\Application\Comprobante\CheckoutUserMessages;
 use App\Application\Comprobante\ComprobanteFilenameBuilder;
+use App\Application\Comprobante\ComprobanteUserMessages;
 use App\Application\Comprobante\ComprobanteValidationRequest;
+use App\Application\Comprobante\ComprobanteValidationResult;
 use App\Application\Comprobante\ComprobanteValidator;
 use App\Application\Comprobante\ComprobanteValidatorFactory;
 use App\Application\Maintenance\MaintenanceService;
@@ -104,6 +106,11 @@ final class WebCheckoutService
             new ComprobanteValidationRequest($tmp, $extension, 0, $expectedAmount)
         );
         if (!$proofValidation->accepted) {
+            $idempotent = $this->resumePendingTransferIfDuplicate($payload, $proofValidation);
+            if ($idempotent !== null) {
+                return $idempotent;
+            }
+
             return array_merge(
                 ['success' => false],
                 $proofValidation->toUserErrorPayload(),
@@ -117,6 +124,8 @@ final class WebCheckoutService
             return $transfer;
         }
         $idTransfer = (int)$transfer['id_transfer'];
+        $reservedTicketIds = is_array($transfer['ticket_ids'] ?? null) ? $transfer['ticket_ids'] : null;
+        $raffleIdForRelease = (int)($transfer['id_raffle'] ?? ($payload['id_raffle'] ?? 0));
 
         $name = ComprobanteFilenameBuilder::build(
             $proofValidation->referenceNorm,
@@ -133,19 +142,19 @@ final class WebCheckoutService
         $dir = dirname($absolutePath);
 
         if (!is_dir($dir) && !@mkdir($dir, 0775, true)) {
-            \Db::delete('transfers', 'id_transfer = :id', [':id' => $idTransfer]);
+            $this->abortPendingTransfer($idTransfer, $raffleIdForRelease, $reservedTicketIds);
 
             return ['success' => false, 'message' => 'No se pudo crear la carpeta de comprobantes: ' . $dir];
         }
 
         if (!is_writable($dir)) {
-            \Db::delete('transfers', 'id_transfer = :id', [':id' => $idTransfer]);
+            $this->abortPendingTransfer($idTransfer, $raffleIdForRelease, $reservedTicketIds);
 
             return ['success' => false, 'message' => 'Sin permiso de escritura en ' . $dir];
         }
 
         if (!move_uploaded_file($tmp, $absolutePath)) {
-            \Db::delete('transfers', 'id_transfer = :id', [':id' => $idTransfer]);
+            $this->abortPendingTransfer($idTransfer, $raffleIdForRelease, $reservedTicketIds);
 
             return ['success' => false, 'message' => 'No se pudo guardar el archivo'];
         }
@@ -161,7 +170,7 @@ final class WebCheckoutService
         );
         if ($n < 1) {
             @unlink($absolutePath);
-            \Db::delete('transfers', 'id_transfer = :id', [':id' => $idTransfer]);
+            $this->abortPendingTransfer($idTransfer, $raffleIdForRelease, $reservedTicketIds);
 
             return ['success' => false, 'message' => 'Error actualizando transferencia'];
         }
@@ -173,6 +182,85 @@ final class WebCheckoutService
             'code_transfer' => $transfer['code_transfer'] ?? null,
             'approved' => false,
         ];
+    }
+
+    /**
+     * Si el usuario reenvía el mismo comprobante (timeout/doble click), reanuda la
+     * transferencia pendiente en lugar de responder "ya registrado".
+     *
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>|null
+     */
+    private function resumePendingTransferIfDuplicate(array $payload, ComprobanteValidationResult $proofValidation): ?array
+    {
+        $errorCode = (string)($proofValidation->errorCode ?? '');
+        if (!in_array($errorCode, [
+            ComprobanteUserMessages::CODE_DUPLICATE_IMAGE,
+            ComprobanteUserMessages::CODE_DUPLICATE_REFERENCE,
+        ], true)) {
+            return null;
+        }
+
+        $phone = \ClientesController::normalizarTelefono((string)($payload['phone_customer'] ?? ''));
+        if ($phone === '' || !preg_match('/^\d{10}$/', $phone)) {
+            return null;
+        }
+
+        $params = [':phone' => $phone];
+        $where = ['t.status_transfer = 1', 'c.phone_customer = :phone'];
+
+        if ($errorCode === ComprobanteUserMessages::CODE_DUPLICATE_IMAGE) {
+            $hash = strtolower(trim($proofValidation->fileHash));
+            if ($hash === '') {
+                return null;
+            }
+            $where[] = 't.proof_file_hash = :hash';
+            $params[':hash'] = $hash;
+        } else {
+            $ref = trim((string)($proofValidation->referenceNorm ?? ''));
+            if ($ref === '') {
+                return null;
+            }
+            $where[] = 't.proof_reference_norm = :ref';
+            $params[':ref'] = $ref;
+        }
+
+        $row = \Db::fetchOne(
+            'SELECT t.code_transfer
+             FROM transfers t
+             INNER JOIN customers c ON c.id_customer = t.id_customer_transfer
+             WHERE ' . implode(' AND ', $where) . '
+             ORDER BY t.id_transfer DESC
+             LIMIT 1',
+            $params
+        );
+
+        $code = trim((string)($row->code_transfer ?? ''));
+        if ($code === '') {
+            return null;
+        }
+
+        return [
+            'success' => true,
+            'code_transfer' => $code,
+            'approved' => false,
+            'resumed' => true,
+        ];
+    }
+
+    /**
+     * @param list<int>|null $ticketIds
+     */
+    private function abortPendingTransfer(int $idTransfer, int $raffleId, ?array $ticketIds): void
+    {
+        if ($raffleId > 0 && $ticketIds !== null && $ticketIds !== []) {
+            try {
+                \AppContainer::get()->tickets()->release($raffleId, $ticketIds);
+            } catch (\Throwable) {
+            }
+        }
+
+        \Db::delete('transfers', 'id_transfer = :id', [':id' => $idTransfer]);
     }
 
     /**

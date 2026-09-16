@@ -178,7 +178,13 @@ class ClientesController
             throw new Exception($check['message']);
         }
 
-        $_POST['search'] = $data['phone_customer'];
+        $phone = $check['phone'] !== '' ? $check['phone'] : self::normalizarTelefono((string)($data['phone_customer'] ?? ''));
+        if (!preg_match('/^\d{10}$/', $phone)) {
+            throw new Exception('Celular inválido');
+        }
+        $data['phone_customer'] = $phone;
+
+        $_POST['search'] = $phone;
         $_POST['status'] = '';
 
         $res = self::obtenerClientes();

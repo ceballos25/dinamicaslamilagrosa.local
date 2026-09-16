@@ -2655,8 +2655,17 @@ async function procesarTransferencia(e) {
             return;
         }
 
+        const code = String(json.code_transfer || '').trim();
+        if (!code) {
+            toastError(
+                'Tu pago quedó registrado, pero no pudimos abrir el seguimiento.',
+                'Escríbenos por WhatsApp con tu celular y te ayudamos a ubicar la transferencia.'
+            );
+            return;
+        }
+
         redirecting = true;
-        window.location.href = `transferencia.php?code=${encodeURIComponent(json.code_transfer)}&from_checkout=1`;
+        window.location.href = `transferencia.php?code=${encodeURIComponent(code)}&from_checkout=1`;
 
     } catch (e) {
 

@@ -145,6 +145,8 @@ class TransfersController
             'success' => true,
             'id_transfer' => $idTransfer,
             'code_transfer' => $code,
+            'ticket_ids' => $ticketIds,
+            'id_raffle' => (int)$data['id_raffle'],
         ];
     }
 

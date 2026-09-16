@@ -11,5 +11,5 @@
 <script src="<?= htmlspecialchars(ASSETS_URL . '/js/settings.js', ENT_QUOTES, 'UTF-8') ?>?v=27"></script>
 <script src="<?= htmlspecialchars(ASSETS_URL . '/js/cr-grilla-numeros.js', ENT_QUOTES, 'UTF-8') ?>?v=10"></script>
 <script src="<?= htmlspecialchars(ASSETS_URL . '/js/phone-co.js', ENT_QUOTES, 'UTF-8') ?>?v=1"></script>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/js/frontend.js', ENT_QUOTES, 'UTF-8') ?>?v=114"></script>
+<script src="<?= htmlspecialchars(ASSETS_URL . '/js/frontend.js', ENT_QUOTES, 'UTF-8') ?>?v=115"></script>
 <script src="<?= htmlspecialchars(ASSETS_URL . '/js/buscarTickets.js', ENT_QUOTES, 'UTF-8') ?>?v=7"></script>
