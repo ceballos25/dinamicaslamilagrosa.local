@@ -40,48 +40,14 @@ $premioMayorFacts = [
                 </h2>
             </div>
 
-            <div class="cr-hero-countdown" id="heroCountdown" data-target="2026-09-19T22:00:00-05:00">
-                <div class="cr-countdown">
-                    <p class="cr-countdown__kicker">Primera entrega · $4 Millones en Tecnología</p>
-                    <p class="cr-countdown__date">19 de septiembre</p>
-                    <div class="cr-countdown__units" role="timer" aria-live="off" aria-label="Cuenta regresiva a la primera entrega">
-                        <div class="cr-countdown__unit">
-                            <span class="cr-countdown__num" data-unit="days">00</span>
-                            <span class="cr-countdown__lbl">días</span>
-                        </div>
-                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
-                        <div class="cr-countdown__unit">
-                            <span class="cr-countdown__num" data-unit="hours">00</span>
-                            <span class="cr-countdown__lbl">horas</span>
-                        </div>
-                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
-                        <div class="cr-countdown__unit">
-                            <span class="cr-countdown__num" data-unit="mins">00</span>
-                            <span class="cr-countdown__lbl">min</span>
-                        </div>
-                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
-                        <div class="cr-countdown__unit cr-countdown__unit--secs">
-                            <span class="cr-countdown__num" data-unit="secs">00</span>
-                            <span class="cr-countdown__lbl">seg</span>
-                        </div>
-                    </div>
-                    <p class="cr-countdown__done">¡Hoy es la primera entrega de $4 Millones!</p>
-                </div>
-            </div>
-
             <div class="cr-hero-photo">
                 <div class="card border-0 bg-transparent shadow-none rounded-4 overflow-hidden text-center">
                     <section id="main-carousel" class="splide">
                         <div class="splide__track">
                             <ul class="splide__list" id="heroMainSlides">
                                 <li class="splide__slide">
-                                    <div class="cr-hero-slide-media cr-hero-slide-media--flyer">
-                                        <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/amor-amistad-4millones.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Amor y amistad · 4 millones o iPhone · 19 de septiembre', ENT_QUOTES, 'UTF-8') ?>" loading="eager">
-                                    </div>
-                                </li>
-                                <li class="splide__slide">
                                     <div class="cr-hero-slide-media cr-hero-slide-media--photo">
-                                        <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-frente.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Combo Pareja NMAX y MT-15', ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
+                                        <img class="premios-primer-sorteo" src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-frente.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroBrand . ' — Combo Pareja NMAX y MT-15', ENT_QUOTES, 'UTF-8') ?>" loading="eager">
                                     </div>
                                 </li>
                                 <li class="splide__slide">
@@ -106,9 +72,6 @@ $premioMayorFacts = [
                     <section id="thumbnail-carousel" class="splide mt-2 mx-auto" style="max-width: 520px;" aria-label="Miniaturas del premio">
                         <div class="splide__track">
                             <ul class="splide__list" id="heroThumbSlides">
-                                <li class="splide__slide">
-                                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/amor-amistad-4millones.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="" loading="lazy">
-                                </li>
                                 <li class="splide__slide">
                                     <img src="<?= htmlspecialchars(ASSETS_URL . '/images/combo-pareja-frente.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="" loading="lazy">
                                 </li>
@@ -145,8 +108,15 @@ $premioMayorFacts = [
                                         if (preg_match('/\bmt-?15\b/iu', $factShow) && !str_contains($factShow, '🏍️') && !str_contains($factShow, '🏍')) {
                                             $factShow = preg_replace('/\bMT-?15\b/iu', '🏍️ MT-15', $factShow) ?? $factShow;
                                         }
+                                        $factHtml = htmlspecialchars($factShow, ENT_QUOTES, 'UTF-8');
+                                        // Primera entrega ya pasó: tachar "19 de sep".
+                                        $factHtml = preg_replace(
+                                            '/\b19 de sep\b/u',
+                                            '<s>19 de sep</s>',
+                                            $factHtml
+                                        ) ?? $factHtml;
                                         ?>
-                                        <li class="premio-mayor-facts__item"><?= htmlspecialchars($factShow, ENT_QUOTES, 'UTF-8') ?></li>
+                                        <li class="premio-mayor-facts__item"><?= $factHtml ?></li>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </ul>

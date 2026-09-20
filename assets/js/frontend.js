@@ -38,7 +38,6 @@ $(document).ready(function () {
     ORIGEN = obtenerOrigenURL();
 
     inicializarSistema();
-    iniciarCuentaRegresivaEntrega();
 
     if (window.PhoneCo && typeof PhoneCo.bind === 'function') {
         PhoneCo.bind(document.getElementById('celularCliente'), {
@@ -495,7 +494,11 @@ function premioMayorFactsPublicos() {
 
 function formatPremioMayorFactsHtml() {
     return premioMayorFactsPublicos()
-        .map((part) => '<li class="premio-mayor-facts__item">' + escapeHeroTitleText(ilustrarLineaPremioMayor(part)) + '</li>')
+        .map((part) => {
+            let html = escapeHeroTitleText(ilustrarLineaPremioMayor(part));
+            html = html.replace(/\b19 de sep\b/gi, '<s>19 de sep</s>');
+            return '<li class="premio-mayor-facts__item">' + html + '</li>';
+        })
         .join('');
 }
 
