@@ -40,6 +40,35 @@ $premioMayorFacts = [
                 </h2>
             </div>
 
+            <div class="cr-hero-countdown" id="heroCountdown" data-target="2026-10-10T22:00:00-05:00">
+                <div class="cr-countdown">
+                    <p class="cr-countdown__kicker">Segunda entrega · $4 Millones en Tecnología</p>
+                    <p class="cr-countdown__date">10 de octubre</p>
+                    <div class="cr-countdown__units" role="timer" aria-live="off" aria-label="Cuenta regresiva a la segunda entrega">
+                        <div class="cr-countdown__unit">
+                            <span class="cr-countdown__num" data-unit="days">00</span>
+                            <span class="cr-countdown__lbl">días</span>
+                        </div>
+                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
+                        <div class="cr-countdown__unit">
+                            <span class="cr-countdown__num" data-unit="hours">00</span>
+                            <span class="cr-countdown__lbl">horas</span>
+                        </div>
+                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
+                        <div class="cr-countdown__unit">
+                            <span class="cr-countdown__num" data-unit="mins">00</span>
+                            <span class="cr-countdown__lbl">min</span>
+                        </div>
+                        <span class="cr-countdown__sep" aria-hidden="true">:</span>
+                        <div class="cr-countdown__unit cr-countdown__unit--secs">
+                            <span class="cr-countdown__num" data-unit="secs">00</span>
+                            <span class="cr-countdown__lbl">seg</span>
+                        </div>
+                    </div>
+                    <p class="cr-countdown__done">¡Hoy es la segunda entrega de $4 Millones!</p>
+                </div>
+            </div>
+
             <div class="cr-hero-photo">
                 <div class="card border-0 bg-transparent shadow-none rounded-4 overflow-hidden text-center">
                     <section id="main-carousel" class="splide">

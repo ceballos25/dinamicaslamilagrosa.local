@@ -38,6 +38,7 @@ $(document).ready(function () {
     ORIGEN = obtenerOrigenURL();
 
     inicializarSistema();
+    iniciarCuentaRegresivaEntrega();
 
     if (window.PhoneCo && typeof PhoneCo.bind === 'function') {
         PhoneCo.bind(document.getElementById('celularCliente'), {

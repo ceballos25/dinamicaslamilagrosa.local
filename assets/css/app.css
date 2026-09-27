@@ -4536,6 +4536,7 @@ body.landing .cr-hero-section {
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
             "title    title"
+            "count    count"
             "photo    puestos"
             "photo    progress"
             "photo    cta";
@@ -4545,6 +4546,10 @@ body.landing .cr-hero-section {
 
     .cr-hero-title-wrap {
         grid-area: title;
+    }
+
+    .cr-hero-countdown {
+        grid-area: count;
     }
 
     .cr-hero-photo {
