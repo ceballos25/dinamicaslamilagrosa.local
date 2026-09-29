@@ -1890,6 +1890,17 @@ body.landing .site-footer-logo img {
     text-decoration: underline;
 }
 
+.landing-footer__dev-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.landing-footer__dev-link .ti-brand-whatsapp {
+    font-size: 1.05em;
+    line-height: 1;
+}
+
 .admin-panel-footer {
     background: #f8f9fa;
     color: #6c757d;

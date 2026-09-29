@@ -109,23 +109,18 @@ $landingTerminosHref = $landingHome . '/terminos.php';
             <div class="text-center small site-footer-copy pb-2">
                 © <?= date('Y'); ?> <span id="landingFooterCopyBrand"><?= htmlspecialchars($footerBrand, ENT_QUOTES, 'UTF-8') ?></span> · Todos los derechos reservados
                 <br>
-                <span class="site-footer-credit">
+                <p class="landing-footer__dev site-footer-credit small mb-0">
                     Desarrollado por
-                    <a href="https://ccmsoftware.com.co"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="ccm-footer-brand site-footer-dev"
-                    title="Visitar CCM Software — ccmsoftware.com.co"
-                    aria-label="CCM Software">
-                    <img src="<?= htmlspecialchars(ASSETS_URL . '/images/logos/logo-ccm-software.png', ENT_QUOTES, 'UTF-8') ?>"
-                         alt="CCM Software"
-                         class="ccm-footer-brand__logo"
-                         width="152"
-                         height="18"
-                         decoding="async">
-                    <span class="ccm-footer-brand__hint" aria-hidden="true" title="Abrir sitio">↗</span>
-                </a>
-                </span>
+                    <a href="https://wa.me/573245894268"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="landing-footer__dev-link site-footer-dev"
+                       title="Escribir a Cristian Ceballos por WhatsApp"
+                       aria-label="WhatsApp de Cristian Ceballos">
+                        <em>Cristian Ceballos</em>
+                        <i class="ti ti-brand-whatsapp" aria-hidden="true"></i>
+                    </a>
+                </p>
             </div>
 
         </div>
