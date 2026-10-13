@@ -40,7 +40,7 @@ $premioMayorFacts = [
                 </h2>
             </div>
 
-            <div class="cr-hero-countdown" id="heroCountdown" data-target="2026-10-10T22:00:00-05:00">
+            <div class="cr-hero-countdown d-none" id="heroCountdown" data-target="2026-10-10T22:00:00-05:00">
                 <div class="cr-countdown">
                     <p class="cr-countdown__kicker">Segunda entrega · $4 Millones en Tecnología</p>
                     <p class="cr-countdown__date">10 de octubre</p>
