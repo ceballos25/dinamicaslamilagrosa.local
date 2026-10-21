@@ -77,7 +77,7 @@ $landingTerminosHref = $landingHome . '/terminos.php';
                             <span id="landingFooterPayments"><?= htmlspecialchars($footerPayments, ENT_QUOTES, 'UTF-8') ?></span>
                         </li>
                     </ul>
-                    <div class="mt-3 d-flex gap-2 justify-content-center justify-content-md-start">
+                    <div class="mt-3 d-flex gap-2 justify-content-center justify-content-md-start d-none" aria-hidden="true" hidden>
                         <?php
                         $footerWa = function_exists('landing_setting') ? landing_setting('whatsapp_chat_url', '') : '';
                         if ($footerWa === '' && function_exists('landing_setting')) {

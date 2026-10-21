@@ -40,11 +40,11 @@ $premioMayorFacts = [
                 </h2>
             </div>
 
-            <div class="cr-hero-countdown d-none" id="heroCountdown" data-target="2026-10-10T22:00:00-05:00">
+            <div class="cr-hero-countdown" id="heroCountdown" data-target="2026-10-24T22:00:00-05:00">
                 <div class="cr-countdown">
-                    <p class="cr-countdown__kicker">Segunda entrega · $4 Millones en Tecnología</p>
-                    <p class="cr-countdown__date">10 de octubre</p>
-                    <div class="cr-countdown__units" role="timer" aria-live="off" aria-label="Cuenta regresiva a la segunda entrega">
+                    <p class="cr-countdown__kicker">Juega · Combo Pareja · Por la de Boyacá</p>
+                    <p class="cr-countdown__date">24 de octubre</p>
+                    <div class="cr-countdown__units" role="timer" aria-live="off" aria-label="Cuenta regresiva al sorteo del 24 de octubre">
                         <div class="cr-countdown__unit">
                             <span class="cr-countdown__num" data-unit="days">00</span>
                             <span class="cr-countdown__lbl">días</span>
@@ -65,7 +65,7 @@ $premioMayorFacts = [
                             <span class="cr-countdown__lbl">seg</span>
                         </div>
                     </div>
-                    <p class="cr-countdown__done">¡Hoy es la segunda entrega de $4 Millones!</p>
+                    <p class="cr-countdown__done">¡Hoy juega el Combo Pareja!</p>
                 </div>
             </div>
 

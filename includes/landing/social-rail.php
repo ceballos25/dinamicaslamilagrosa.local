@@ -1,4 +1,4 @@
-<aside class="social-float-rail" aria-label="Contacto por redes sociales">
+<aside class="social-float-rail d-none" aria-hidden="true" hidden>
     <div class="btn-instagram btn-social d-none" data-social-wrap="instagram">
         <a href="#" target="_blank" rel="noopener noreferrer" class="social-instagram" aria-label="Abrir Instagram">
             <span class="notification-bubble" aria-hidden="true">1</span>
