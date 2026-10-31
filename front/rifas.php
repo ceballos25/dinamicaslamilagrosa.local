@@ -130,8 +130,9 @@ include_once ROOT_PATH . "/includes/head.php";
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Tipo de asignación</label>
                         <select class="form-select" id="tipoRifa">
-                            <option value="automatic">Automática (paquetes)</option>
+                            <option value="automatic">Automática (paquetes al azar)</option>
                             <option value="manual">Manual (el cliente elige números)</option>
+                            <option value="both">Ambos (al azar o el cliente elige)</option>
                         </select>
                     </div>
                     <div class="mb-3">

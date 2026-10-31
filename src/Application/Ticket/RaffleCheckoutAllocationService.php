@@ -13,6 +13,7 @@ use PDO;
  * Reglas de asignación según tipo de rifa:
  * - manual: el cliente elige IDs → reservar al crear respaldo/transferencia.
  * - automatic: sin reserva previa → asignar números disponibles al aprobar la venta.
+ * - both: el cliente puede ir al azar o elegir nros; si envía IDs se reservan.
  */
 final class RaffleCheckoutAllocationService
 {
@@ -36,6 +37,23 @@ final class RaffleCheckoutAllocationService
         return ($raffle['type_raffle'] ?? RaffleType::AUTOMATIC) === RaffleType::MANUAL;
     }
 
+    public function raffleType(int $raffleId): string
+    {
+        $raffle = $this->raffles->findById($raffleId);
+        if ($raffle === null) {
+            throw new DomainException('Campaña no encontrada', 'RAFFLE_NOT_FOUND');
+        }
+
+        $type = (string)($raffle['type_raffle'] ?? RaffleType::AUTOMATIC);
+
+        return RaffleType::isValid($type) ? $type : RaffleType::AUTOMATIC;
+    }
+
+    public function acceptsPickedTickets(int $raffleId): bool
+    {
+        return RaffleType::allowsPickedTickets($this->raffleType($raffleId));
+    }
+
     /**
      * Al iniciar checkout (transferencia pendiente).
      *
@@ -53,14 +71,17 @@ final class RaffleCheckoutAllocationService
         ?array $ticketIds,
         bool $holdUntilReview = false
     ): array {
-        if ($this->isManualRaffle($raffleId)) {
-            if ($ticketIds === null || $ticketIds === []) {
-                throw new DomainException(
-                    'Debes seleccionar los números antes de continuar',
-                    'MANUAL_TICKETS_REQUIRED'
-                );
-            }
+        $hasIds = $ticketIds !== null && $ticketIds !== [];
+        $type = $this->raffleType($raffleId);
 
+        if (RaffleType::requiresPickedTickets($type) && !$hasIds) {
+            throw new DomainException(
+                'Debes seleccionar los códigos antes de continuar',
+                'MANUAL_TICKETS_REQUIRED'
+            );
+        }
+
+        if ($hasIds && RaffleType::allowsPickedTickets($type)) {
             $reservation = $this->reservations->reserveForPayment(
                 $raffleId,
                 $quantity,
@@ -76,7 +97,6 @@ final class RaffleCheckoutAllocationService
             ];
         }
 
-        // Rifa automática: nunca reservar IDs enviados por error (p. ej. caché manual en el navegador).
         return [
             'ticket_ids' => [],
             'numbers' => [],
@@ -96,19 +116,12 @@ final class RaffleCheckoutAllocationService
         $preReservedIds = $preReservedIds !== null
             ? array_values(array_unique(array_map('intval', $preReservedIds)))
             : [];
+        $type = $this->raffleType($raffleId);
 
-        if (!$this->isManualRaffle($raffleId)) {
-            // Rifa automática: asignar al azar al aprobar; ignorar reservas de cuando era manual.
-            return [
-                'ticket_ids' => null,
-                'numbers' => [],
-            ];
-        }
-
-        if ($preReservedIds !== []) {
+        if ($preReservedIds !== [] && RaffleType::allowsPickedTickets($type)) {
             if (count($preReservedIds) !== $quantity) {
                 throw new DomainException(
-                    'La cantidad no coincide con los nros reservados',
+                    'La cantidad no coincide con los códigos reservados',
                     'QUANTITY_MISMATCH'
                 );
             }
@@ -119,10 +132,17 @@ final class RaffleCheckoutAllocationService
             ];
         }
 
-        throw new DomainException(
-            'No hay nros reservados para esta compra manual',
-            'MANUAL_NO_RESERVATION'
-        );
+        if (RaffleType::requiresPickedTickets($type)) {
+            throw new DomainException(
+                'No hay códigos reservados para esta compra manual',
+                'MANUAL_NO_RESERVATION'
+            );
+        }
+
+        return [
+            'ticket_ids' => null,
+            'numbers' => [],
+        ];
     }
 
     /**

@@ -43,7 +43,7 @@ class TransfersController
         if ($disponibles < $cantidad) {
             return [
                 'success' => false,
-                'message' => $disponibles < 1 ? 'No hay nros disponibles' : 'No hay suficientes nros disponibles',
+                'message' => $disponibles < 1 ? 'No hay códigos disponibles' : 'No hay suficientes códigos disponibles',
             ];
         }
 
@@ -88,10 +88,10 @@ class TransfersController
 
         try {
             $allocationService = AppContainer::get()->checkoutAllocation();
-            if (!$allocationService->isManualRaffle((int)$data['id_raffle'])) {
+            if (!$allocationService->acceptsPickedTickets((int)$data['id_raffle'])) {
                 $ticketIdsInput = null;
             } elseif ($ticketIdsInput !== null && count($ticketIdsInput) !== $cantidad) {
-                return ['success' => false, 'message' => 'La cantidad no coincide con los nros seleccionados'];
+                return ['success' => false, 'message' => 'La cantidad no coincide con los códigos seleccionados'];
             }
         } catch (DomainException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
@@ -109,7 +109,7 @@ class TransfersController
         } catch (DomainException $e) {
             return TicketConflictApiResponse::fromDomainException($e);
         } catch (Throwable) {
-            return ['success' => false, 'message' => 'No se pudieron reservar los nros'];
+            return ['success' => false, 'message' => 'No se pudieron reservar los códigos'];
         }
 
         $insert = [
@@ -184,7 +184,7 @@ class TransfersController
         );
 
         try {
-            if (!AppContainer::get()->checkoutAllocation()->isManualRaffle($idRaffle) && $reservedIds !== []) {
+            if (!AppContainer::get()->checkoutAllocation()->acceptsPickedTickets($idRaffle) && $reservedIds !== []) {
                 AppContainer::get()->tickets()->release($idRaffle, $reservedIds);
                 $reservedIds = [];
             }
@@ -200,12 +200,12 @@ class TransfersController
             $disponibles = (int)($countRow->c ?? 0);
 
             if ($disponibles < $cantidad) {
-                return ['success' => false, 'message' => 'No hay suficientes nros disponibles'];
+                return ['success' => false, 'message' => 'No hay suficientes códigos disponibles'];
             }
         } elseif (!self::verifyReservedTicketsStillHeld($idRaffle, $reservedIds)) {
             return [
                 'success' => false,
-                'message' => 'Algunos nros reservados ya no están disponibles. Rechace la solicitud para liberarlos o pida al cliente una nueva compra.',
+                'message' => 'Algunos códigos reservados ya no están disponibles. Rechace la solicitud para liberarlos o pida al cliente una nueva compra.',
             ];
         }
 
@@ -368,7 +368,7 @@ class TransfersController
         return [
             'success' => true,
             'message' => $sale
-                ? 'Venta anulada y transferencia rechazada. Los números quedaron disponibles.'
+                ? 'Venta anulada y transferencia rechazada. Los códigos quedaron disponibles.'
                 : 'Transferencia rechazada',
             'id_sale' => $sale ? (int)$sale->id_sale : null,
         ];

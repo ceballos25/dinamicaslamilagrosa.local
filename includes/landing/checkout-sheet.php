@@ -8,7 +8,7 @@
     <div class="vender-sheet__body">
         <div class="vender-sheet__row">
             <span class="text-muted">Cantidad</span>
-            <span class="fw-bold" id="landingSheetCantidad">0 nros</span>
+            <span class="fw-bold" id="landingSheetCantidad">0 códigos</span>
         </div>
         <div class="vender-sheet__numbers" id="landingSheetNumeros"></div>
         <div class="vender-sheet__total">

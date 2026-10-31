@@ -2,6 +2,7 @@ const estado = {
     rifa: null,
     pricing: window.VENDER_PRICING || null,
     cantidadSeleccionada: 0,
+    modoNumeros: 'automatic',
     numerosSeleccionados: [],
     inventarioCompleto: [],
     statsInventario: null,
@@ -59,12 +60,12 @@ function packagePricingConfigVenta() {
     if (!p || p.mode !== 'packages' || !isPricingTierEnabled(p.enabled ?? true)) {
         return {
             enabled: false,
-            unitPrice: 2000,
-            bulkUnitPrice: 1700,
-            bulkThreshold: 40,
-            bulk2UnitPrice: 1500,
-            bulk2Threshold: 100,
-            minQuantity: 10,
+            unitPrice: 8000,
+            bulkUnitPrice: 7000,
+            bulkThreshold: 10,
+            bulk2UnitPrice: 6500,
+            bulk2Threshold: 20,
+            minQuantity: 3,
             packages: {},
         };
     }
@@ -76,12 +77,12 @@ function packagePricingConfigVenta() {
     });
     return {
         enabled: true,
-        unitPrice: readPricingInt(p.unit_price, 2000),
-        bulkUnitPrice: 1700,
-        bulkThreshold: 40,
-        bulk2UnitPrice: 1500,
-        bulk2Threshold: 100,
-        minQuantity: readPricingInt(p.min_quantity, 10),
+        unitPrice: readPricingInt(p.unit_price, 8000),
+        bulkUnitPrice: readPricingInt(p.bulk_unit_price, 7000),
+        bulkThreshold: readPricingInt(p.bulk_threshold, 10),
+        bulk2UnitPrice: readPricingInt(p.bulk2_unit_price, 6500),
+        bulk2Threshold: readPricingInt(p.bulk2_threshold, 20),
+        minQuantity: readPricingInt(p.min_quantity, 3),
         packages,
     };
 }
@@ -159,7 +160,7 @@ function minCantidadVenta() {
 
 function mensajeCompraMinimaVenta() {
     const min = minCantidadVenta();
-    return `La compra mínima es de ${min} sticker${min > 1 ? 's' : ''}.`;
+    return `La compra mínima es de ${min} código${min > 1 ? 's' : ''}.`;
 }
 
 function extractApiMessage(json, fallback = 'La operación no se completó.') {
@@ -760,9 +761,53 @@ function esRifaManual() {
     return String(estado.rifa?.type || 'automatic') === 'manual';
 }
 
+function esRifaAmbos() {
+    return String(estado.rifa?.type || 'automatic') === 'both';
+}
+
+function esSeleccionManualActiva() {
+    return esRifaManual() || (esRifaAmbos() && estado.modoNumeros === 'manual');
+}
+
+function hayPaqueteParaModoVenta() {
+    return (Number(estado.cantidadSeleccionada) || 0) >= minCantidadVenta();
+}
+
 function cambiarRifa() {
     syncRifaDesdeSelect();
     aplicarModoVenta();
+}
+
+function visibilidadModoAsignacionVenta() {
+    const modoBox = document.getElementById('modoAsignacionNumeros');
+    if (!modoBox) return;
+    modoBox.classList.toggle('d-none', !(esRifaAmbos() && hayPaqueteParaModoVenta()));
+    const hint = document.getElementById('modoNumerosHint');
+    if (hint) {
+        hint.textContent = esSeleccionManualActiva()
+            ? `Elige ${estado.cantidadSeleccionada} código${estado.cantidadSeleccionada !== 1 ? 's' : ''}.`
+            : 'Te asignamos códigos libres al confirmar.';
+    }
+    const target = document.getElementById('manualVentaSeleccionCountTarget');
+    if (target) target.textContent = String(estado.cantidadSeleccionada || minCantidadVenta());
+}
+
+async function aplicarModoNumerosVenta() {
+    const checked = document.querySelector('input[name="modoNumerosVenta"]:checked');
+    estado.modoNumeros = checked?.value === 'manual' ? 'manual' : 'automatic';
+    if (!esSeleccionManualActiva()) {
+        estado.numerosSeleccionados = [];
+    }
+    const manualBox = document.getElementById('selectorManualVenta');
+    const pick = esSeleccionManualActiva() && hayPaqueteParaModoVenta();
+    if (manualBox) manualBox.classList.toggle('d-none', !pick);
+    if (pick && estado.inventarioCompleto.length === 0) {
+        await cargarInventarioVenta();
+        initGrillaVenta();
+    }
+    if (pick) renderGridNumerosVenta();
+    visibilidadModoAsignacionVenta();
+    actualizarCarritoUI();
 }
 
 async function aplicarModoVenta() {
@@ -770,23 +815,29 @@ async function aplicarModoVenta() {
     const manualBox = document.getElementById('selectorManualVenta');
     const bloquePremiado = document.getElementById('bloqueNumeroPremiado');
     const bloquePaquetes = document.getElementById('bloquePaquetesVenta');
+    const modoBox = document.getElementById('modoAsignacionNumeros');
 
-    if (manualBox) manualBox.classList.toggle('d-none', !manual);
-    if (bloquePremiado) bloquePremiado.classList.toggle('d-none', manual);
+    if (bloquePremiado) bloquePremiado.classList.toggle('d-none', manual || esRifaAmbos());
     if (bloquePaquetes) bloquePaquetes.classList.toggle('d-none', manual);
+    if (modoBox) modoBox.classList.add('d-none');
 
     estado.numerosSeleccionados = [];
     estado.cantidadSeleccionada = 0;
+    estado.modoNumeros = 'automatic';
     document.querySelectorAll('.paquete-radio').forEach(r => { r.checked = false; });
+    const auto = document.getElementById('modoNumerosAuto');
+    if (auto) auto.checked = true;
     $('#cantidadManual').hide().val('');
     const np = document.getElementById('numeroPremiado');
     if (np) np.value = '';
 
     if (manual) {
+        if (manualBox) manualBox.classList.remove('d-none');
         await cargarInventarioVenta();
         initGrillaVenta();
         renderGridNumerosVenta();
     } else {
+        if (manualBox) manualBox.classList.add('d-none');
         estado.inventarioCompleto = [];
         estado.statsInventario = null;
         estado.disponiblesCount = 0;
@@ -838,14 +889,14 @@ async function cargarInventarioVenta() {
             estado.inventarioCompleto = [];
             estado.statsInventario = null;
             estado.disponiblesCount = 0;
-            notifyError(extractApiMessage(json, 'No se pudo cargar el inventario de números.'), 'Inventario');
+            notifyError(extractApiMessage(json, 'No se pudo cargar el inventario de códigos.'), 'Inventario');
         }
     } catch (e) {
         estado.inventarioCompleto = [];
         estado.statsInventario = null;
         estado.disponiblesCount = 0;
         notifyError(
-            e instanceof Error ? e.message : 'No se pudo cargar el inventario de números.',
+            e instanceof Error ? e.message : 'No se pudo cargar el inventario de códigos.',
             'Inventario'
         );
     }
@@ -877,7 +928,7 @@ function renderGridNumerosVenta() {
         soloDisponibles: true,
         onToggleName: 'toggleNumeroVenta',
         rerender: renderGridNumerosVenta,
-        emptyMessage: 'No hay números disponibles para vender en este momento.',
+        emptyMessage: 'No hay códigos disponibles para vender en este momento.',
     });
 }
 
@@ -885,16 +936,23 @@ window.toggleNumeroVenta = function (idTicket) {
     const id = parseInt(idTicket, 10);
     const ticket = estado.inventarioCompleto.find(t => parseInt(t.id_ticket, 10) === id);
     if (ticket && typeof CrGrillaNumeros !== 'undefined' && !CrGrillaNumeros.isDisponible(ticket)) {
-        notifyWarning('Este número no está disponible (vendido o reservado).');
+        notifyWarning('Este código no está disponible (vendido o reservado).');
         return;
     }
     const idx = estado.numerosSeleccionados.indexOf(id);
     if (idx >= 0) {
         estado.numerosSeleccionados.splice(idx, 1);
     } else {
+        const max = esRifaAmbos() ? (Number(estado.cantidadSeleccionada) || 0) : 0;
+        if (esRifaAmbos() && estado.numerosSeleccionados.length >= max) {
+            notifyError(`Ya elegiste los ${max} códigos del paquete.`, 'Venta');
+            return;
+        }
         estado.numerosSeleccionados.push(id);
     }
-    estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
+    if (esRifaManual()) {
+        estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
+    }
     renderGridNumerosVenta();
     actualizarCarritoUI();
 };
@@ -924,7 +982,7 @@ function actualizarCarritoUI() {
     const sheetCant = document.getElementById('sheetCantidad');
     const sheetTotal = document.getElementById('sheetTotal');
     if (sheetCant) {
-        sheetCant.textContent = `${cantidad} número${cantidad !== 1 ? 's' : ''}`;
+        sheetCant.textContent = `${cantidad} código${cantidad !== 1 ? 's' : ''}`;
     }
     if (sheetTotal) {
         sheetTotal.textContent = fmt(total);
@@ -936,21 +994,21 @@ function actualizarCarritoUI() {
     let listaHtml;
     if (cantidad === 0) {
         listaHtml = '<li class="list-group-item text-center text-muted py-4 border-0 small">'
-            + (esRifaManual() ? 'Selecciona los números en la grilla' : 'Selecciona cantidad de números')
+            + (esSeleccionManualActiva() ? 'Selecciona los códigos en la grilla' : 'Selecciona cantidad de códigos')
             + '</li>';
-    } else if (esRifaManual() && estado.numerosSeleccionados.length) {
+    } else if (esSeleccionManualActiva() && estado.numerosSeleccionados.length) {
         const nums = estado.inventarioCompleto
             .filter(t => estado.numerosSeleccionados.includes(parseInt(t.id_ticket, 10)))
             .map(t => t.number_ticket)
             .join(', ');
         listaHtml = `<li class="list-group-item px-0 border-light">
-            <span class="badge bg-dark rounded-pill mb-2">${cantidad} números</span>
+            <span class="badge bg-dark rounded-pill mb-2">${cantidad} códigos</span>
             <div class="small text-break">${nums || '—'}</div>
             <div class="fw-bold small text-primary mt-2">${fmt(total)}</div>
         </li>`;
     } else {
         listaHtml = `<li class="list-group-item d-flex justify-content-between align-items-center px-0 border-light">
-            <span class="badge bg-dark rounded-pill">${cantidad} números</span>
+            <span class="badge bg-dark rounded-pill">${cantidad} códigos</span>
             <span class="fw-bold small text-primary">${fmt(total)}</span>
         </li>`;
     }
@@ -959,7 +1017,7 @@ function actualizarCarritoUI() {
 }
 
 function obtenerNumerosVentaSeleccionados() {
-    if (!esRifaManual() || !estado.numerosSeleccionados.length) {
+    if (!esSeleccionManualActiva() || !estado.numerosSeleccionados.length) {
         return [];
     }
     return estado.inventarioCompleto
@@ -972,7 +1030,7 @@ function renderSheetNumeros() {
     if (!el) return;
 
     const nums = obtenerNumerosVentaSeleccionados();
-    if (esRifaManual() && nums.length) {
+    if (esSeleccionManualActiva() && nums.length) {
         el.innerHTML = `
             <span class="text-muted small d-block mb-2">Números seleccionados</span>
             <div class="d-flex flex-wrap gap-1">${nums.map(n =>
@@ -1015,12 +1073,18 @@ function abrirCheckoutVentaMobile() {
         return;
     }
 
-    if (esRifaManual()) {
-        if (estado.numerosSeleccionados.length <= 0) {
-            notifyError('Selecciona al menos un número en la grilla.', 'Venta');
+    if (esSeleccionManualActiva()) {
+        if (esRifaAmbos() && estado.numerosSeleccionados.length !== estado.cantidadSeleccionada) {
+            notifyError(`Elige ${estado.cantidadSeleccionada} códigos en la grilla.`, 'Venta');
             return;
         }
-        estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
+        if (esRifaManual()) {
+            if (estado.numerosSeleccionados.length <= 0) {
+                notifyError('Selecciona al menos un código en la grilla.', 'Venta');
+                return;
+            }
+            estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
+        }
     }
 
     if (estado.cantidadSeleccionada < minCantidadVenta()) {
@@ -1103,15 +1167,20 @@ function validarDatosVenta(form) {
         return 'No hay sorteo seleccionado.';
     }
 
-    if (esRifaManual()) {
-        if (estado.numerosSeleccionados.length <= 0) {
-            return 'Selecciona al menos un número en la grilla.';
+    if (esSeleccionManualActiva()) {
+        if (esRifaAmbos() && estado.numerosSeleccionados.length !== estado.cantidadSeleccionada) {
+            return `Elige ${estado.cantidadSeleccionada} códigos en la grilla.`;
         }
-        estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
+        if (esRifaManual()) {
+            if (estado.numerosSeleccionados.length <= 0) {
+                return 'Selecciona al menos un código en la grilla.';
+            }
+            estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
+        }
     }
 
     if (estado.cantidadSeleccionada <= 0) {
-        return 'Debes indicar la cantidad de números.';
+        return 'Debes indicar la cantidad de códigos.';
     }
 
     if (estado.cantidadSeleccionada < minCantidadVenta()) {
@@ -1132,8 +1201,8 @@ function validarDatosVenta(form) {
         return 'Debes seleccionar un método de pago.';
     }
 
-    if (esRifaManual() && numeroForzado) {
-        return 'En rifa manual elige los números en la grilla.';
+    if (esSeleccionManualActiva() && numeroForzado) {
+        return 'Si eliges los códigos en la grilla, no uses el código forzado.';
     }
 
     return null;
@@ -1183,7 +1252,7 @@ function buildVentaConfirmHtml(cliente, total, metodo, cantidad) {
 
     let numerosHtml = '';
     const nums = obtenerNumerosVentaSeleccionados();
-    if (esRifaManual() && nums.length) {
+    if (esSeleccionManualActiva() && nums.length) {
         const maxChips = 12;
         const chips = nums.slice(0, maxChips).map(n => crNumeroChipHtml(n, 'selected')).join('');
         const extra = nums.length > maxChips
@@ -1204,7 +1273,7 @@ function buildVentaConfirmHtml(cliente, total, metodo, cantidad) {
         </div>
         <div class="vender-confirm-row">
             <span class="text-muted">Cantidad</span>
-            <span class="fw-semibold">${cantidad} número${cantidad !== 1 ? 's' : ''}</span>
+            <span class="fw-semibold">${cantidad} código${cantidad !== 1 ? 's' : ''}</span>
         </div>
         ${numerosHtml}
         <div class="vender-confirm-row">
@@ -1247,7 +1316,7 @@ async function ejecutarVentaRegistro(opts) {
     ventaManualEnCurso = true;
 
     const codigoVenta = 'AP' + Date.now() + Math.floor(Math.random() * 100);
-    const action = (!esRifaManual() && numeroForzado) ? 'crear_venta_mixta' : 'crear_venta';
+    const action = (!esSeleccionManualActiva() && numeroForzado) ? 'crear_venta_mixta' : 'crear_venta';
 
     if (btnD) {
         btnD.disabled = true;
@@ -1260,7 +1329,7 @@ async function ejecutarVentaRegistro(opts) {
 
     const fd = new FormData();
     fd.append('action', action);
-    fd.append('premiado_ticket', esRifaManual() ? '' : numeroForzado);
+    fd.append('premiado_ticket', esSeleccionManualActiva() ? '' : numeroForzado);
     fd.append('code_sale', codigoVenta);
     fd.append('quantity_sale', estado.cantidadSeleccionada);
     fd.append('id_customer', cliente.id);
@@ -1274,7 +1343,7 @@ async function ejecutarVentaRegistro(opts) {
     fd.append('department_customer', cliente.depto);
     fd.append('city_customer', cliente.ciudad);
 
-    if (esRifaManual()) {
+    if (esSeleccionManualActiva()) {
         estado.numerosSeleccionados.forEach(id => fd.append('ticket_ids[]', id));
     }
 
@@ -1305,7 +1374,7 @@ async function confirmarVenta(opts) {
 
     if (typeof Swal === 'undefined') {
         const ok = window.confirm(
-            `¿Registrar venta de ${cantidad} números por ${venderFormatMoney(total)}?`
+            `¿Registrar venta de ${cantidad} códigos por ${venderFormatMoney(total)}?`
         );
         if (ok) await ejecutarVentaRegistro(opts);
         return;
@@ -1464,13 +1533,23 @@ $('.paquete-radio').on('change', function () {
     if (this.value === 'custom') {
         $('#cantidadManual').show().focus();
         estado.cantidadSeleccionada = 0;
-        actualizarCarritoUI();
+        estado.numerosSeleccionados = [];
+        visibilidadModoAsignacionVenta();
+        aplicarModoNumerosVenta();
         return;
     }
 
     $('#cantidadManual').hide().val('');
     estado.cantidadSeleccionada = parseInt(this.value, 10) || 0;
-    actualizarCarritoUI();
+    if (esRifaAmbos() && estado.numerosSeleccionados.length > estado.cantidadSeleccionada) {
+        estado.numerosSeleccionados = estado.numerosSeleccionados.slice(0, estado.cantidadSeleccionada);
+    }
+    visibilidadModoAsignacionVenta();
+    aplicarModoNumerosVenta();
+});
+
+$(document).on('change', 'input[name="modoNumerosVenta"]', function () {
+    aplicarModoNumerosVenta();
 });
 
 $('#cantidadManual').on('input', function(){

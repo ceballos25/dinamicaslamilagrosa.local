@@ -25,15 +25,15 @@ final class TicketConflictApiResponse
         if ($ticketId <= 0 || $number === '') {
             return [
                 'success' => false,
-                'message' => 'No se pudieron reservar todos los nros. Intenta de nuevo.',
+                'message' => 'No se pudieron reservar todos los códigos. Intenta de nuevo.',
                 'error_code' => 'TICKET_UNAVAILABLE',
             ];
         }
 
         $sold = $statusTicket === TicketStatus::PAID;
         $message = $sold
-            ? "Lo siento, el número {$number} ya fue vendido."
-            : "Lo siento, el número {$number} ya no está disponible.";
+            ? "Lo siento, el código {$number} ya fue vendido."
+            : "Lo siento, el código {$number} ya no está disponible.";
 
         return [
             'success' => false,

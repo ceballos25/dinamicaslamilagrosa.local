@@ -94,7 +94,7 @@ include_once ROOT_PATH . "/includes/head.php";
 
                         <div class="card border-0 shadow-sm rounded-4 vender-numeros-card">
                             <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 fw-bold text-primary"><span class="badge bg-primary rounded-pill me-2">2</span>Números</h6>
+                                <h6 class="mb-0 fw-bold text-primary"><span class="badge bg-primary rounded-pill me-2">2</span>Códigos</h6>
                                 <small class="text-muted d-lg-none">Toca los libres</small>
                             </div>
                             
@@ -109,12 +109,14 @@ include_once ROOT_PATH . "/includes/head.php";
                                     <?php
                                     $crPaquetesRowClass = 'row g-2';
                                     include ROOT_PATH . '/includes/components/cr-paquetes-grid.php';
+                                    $crModoNumerosName = 'modoNumerosVenta';
+                                    include ROOT_PATH . '/includes/components/cr-modo-numeros.php';
                                     ?>
                                 </div>
 
                                 <div id="bloqueNumeroPremiado" class="px-3 px-lg-0 d-none">
                                     <label class="form-label fw-bold small text-muted">
-                                        Escoger número (opcional)
+                                        Escoger código (opcional)
                                     </label>
                                     <input
                                         type="tel"
@@ -206,7 +208,7 @@ include_once ROOT_PATH . "/includes/head.php";
     <div class="vender-sheet__body">
         <div class="vender-sheet__row">
             <span class="text-muted">Cantidad</span>
-            <span class="fw-bold" id="sheetCantidad">0 números</span>
+            <span class="fw-bold" id="sheetCantidad">0 códigos</span>
         </div>
         <div class="vender-sheet__numbers" id="sheetNumeros"></div>
         <div class="vender-sheet__total">
@@ -253,7 +255,7 @@ $extra_js = '
 <script src="' . ASSETS_URL . '/js/departamentos-ciudades.js?v=1"></script>
 <script src="' . ASSETS_URL . '/js/cr-grilla-numeros.js?v=10"></script>
 <script src="' . ASSETS_URL . '/js/phone-co.js?v=1"></script>
-<script src="' . ASSETS_URL . '/js/vender.js?v=31"></script>
+<script src="' . ASSETS_URL . '/js/vender.js?v=32"></script>
 ';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

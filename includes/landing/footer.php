@@ -51,7 +51,7 @@ $landingTerminosHref = $landingHome . '/terminos.php';
                         <li id="consultarNumeros">
                             <button type="button" class="btn btn-warning btn-sm fw-bold site-footer-cta" data-bs-toggle="modal" data-bs-target="#modalBuscarTickets">
                                 <i class="ti ti-ticket me-1" aria-hidden="true"></i>
-                                Buscar mis nros
+                                Buscar mis códigos
                             </button>
                         </li>
                     </ul>

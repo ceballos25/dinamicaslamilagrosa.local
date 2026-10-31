@@ -80,7 +80,7 @@ class RifasController
             'digits_raffle' => (int)$data['digits_raffle'],
             'date_raffle' => $data['date_raffle'],
             'status_raffle' => (int)$data['status_raffle'],
-            'type_raffle' => in_array(($data['type_raffle'] ?? 'automatic'), ['manual', 'automatic'], true)
+            'type_raffle' => in_array(($data['type_raffle'] ?? 'automatic'), ['manual', 'automatic', 'both'], true)
                 ? $data['type_raffle']
                 : 'automatic',
         ];

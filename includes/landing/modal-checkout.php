@@ -25,7 +25,7 @@ $checkoutNequiName = trim((string)$config->get('transfer_nequi_name', $checkoutT
                         <div class="cr-checkout-ticket__row">
                             <div class="cr-checkout-ticket__meta">
                                 <div class="cr-checkout-ticket__meta-top">
-                                    <span class="cr-checkout-ticket__qty" id="modalCheckoutCantidad">0 nros</span>
+                                    <span class="cr-checkout-ticket__qty" id="modalCheckoutCantidad">0 códigos</span>
                                     <span class="cr-checkout-promo-note d-none" id="checkoutPromoNote"></span>
                                 </div>
                                 <div class="cr-checkout-ticket__nums" id="checkoutNumerosChips"></div>

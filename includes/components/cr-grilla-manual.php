@@ -23,7 +23,8 @@ $crGrillaAlertHtml = $crGrillaAlertHtml ?? '';
         <div class="d-flex justify-content-between align-items-center gap-2">
             <p class="cr-grilla-panel__title mb-0">Escoge los tuyos</p>
             <span class="cr-grilla-count-badge">
-                <strong id="<?= htmlspecialchars($crGrillaCountId, ENT_QUOTES, 'UTF-8') ?>">0</strong> / 1 mín.
+                <strong id="<?= htmlspecialchars($crGrillaCountId, ENT_QUOTES, 'UTF-8') ?>">0</strong>
+                / <span id="<?= htmlspecialchars($crGrillaCountId . 'Target', ENT_QUOTES, 'UTF-8') ?>">1</span>
             </span>
         </div>
     </div>
@@ -36,7 +37,7 @@ $crGrillaAlertHtml = $crGrillaAlertHtml ?? '';
             <input type="tel"
                 id="<?= htmlspecialchars($crGrillaSearchId, ENT_QUOTES, 'UTF-8') ?>"
                 class="form-control border-start-0 ps-0"
-                placeholder="Buscar número…"
+                placeholder="Buscar código…"
                 inputmode="numeric"
                 maxlength="6"
                 autocomplete="off"
@@ -44,7 +45,7 @@ $crGrillaAlertHtml = $crGrillaAlertHtml ?? '';
         </div>
     </div>
 
-    <div id="<?= htmlspecialchars($crGrillaGridId, ENT_QUOTES, 'UTF-8') ?>" class="cr-grilla-numeros cr-grilla-numeros--grid" role="listbox" aria-label="Números de la rifa"></div>
+    <div id="<?= htmlspecialchars($crGrillaGridId, ENT_QUOTES, 'UTF-8') ?>" class="cr-grilla-numeros cr-grilla-numeros--grid" role="listbox" aria-label="Códigos de la rifa"></div>
 
     <div class="cr-grilla-stats d-none" id="<?= htmlspecialchars($crGrillaStatsId, ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></div>
 

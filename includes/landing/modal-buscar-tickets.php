@@ -2,7 +2,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="modalBuscarTicketsLabel">🔍 Buscar mis nums</h5>
+                    <h5 class="modal-title fw-bold" id="modalBuscarTicketsLabel">🔍 Buscar mis códigos</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body pt-2">
@@ -27,7 +27,7 @@
                     </div>
 
                     <button type="button" id="btnBuscarTickets" class="btn btn-warning w-100 fw-bold py-2" onclick="buscarTickets()" disabled>
-                        Buscar mis nums
+                        Buscar mis códigos
                     </button>
                     <div id="resultadoBusqueda" class="mt-3 text-start"></div>
                 </div>

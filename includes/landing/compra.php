@@ -8,6 +8,7 @@
                     <div class="card border-0 shadow-sm" id="bloquePaquetesLanding">
                         <div class="card-body bg-light cr-theme">
                             <?php include ROOT_PATH . '/includes/components/cr-paquetes-grid.php'; ?>
+                            <?php include ROOT_PATH . '/includes/components/cr-modo-numeros.php'; ?>
                         </div>
                     </div>
 

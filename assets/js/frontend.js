@@ -6,6 +6,7 @@ const estado = {
     disponiblesCount: 0,
     numerosSeleccionados: [],
     cantidadSeleccionada: 0,
+    modoNumeros: 'automatic',
     siteImages: {},
     contactConfig: {},
     pricing: null,
@@ -405,9 +406,11 @@ function sanitizarTextoPublico(text) {
         .replace(/\brifas?\b/gi, 'campaña')
         .replace(/\bpremios?\b/gi, 'bendecido')
         .replace(/\bganadores?\b/gi, 'entrega')
-        .replace(/\bstickers?\b/gi, 'nro')
+        .replace(/\bstickers?\b/gi, (m) => (m.toLowerCase().endsWith('s') ? 'códigos' : 'código'))
         .replace(/\bboletas?\b/gi, 'comprobante')
-        .replace(/\bn[uú]meros?\b/gi, (m) => (m.toLowerCase().endsWith('s') ? 'nros' : 'nro'));
+        .replace(/\bn[uú]meros?\b/gi, (m) => (m.toLowerCase().endsWith('s') ? 'códigos' : 'código'))
+        .replace(/\bnros\b/gi, 'códigos')
+        .replace(/\bnro\b/gi, 'código');
 }
 
 function tituloHeroComboIlustrado(raw) {
@@ -486,20 +489,16 @@ function formatHeroTitleLine(line) {
 }
 
 function premioMayorFactsPublicos() {
-    return [
-        'NMAX 2027 + MT-15 2027',
-        'Por la de Boyacá para este 24 de Octubre',
-        '19 de sep y 10 oct · 2 entregas de $4 Millones en tecnología',
-    ];
+    const fromSetting = typeof getSetting === 'function'
+        ? String(getSetting('landing_premio_mayor_desc', '') || '').trim()
+        : '';
+    const raw = fromSetting || 'Premio $20.000.000 el 19 de diciembre con la lotería de Boyacá\nSorteo a 4 cifras\nCada miércoles $500.000 con la lotería de Manizales';
+    return raw.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 }
 
 function formatPremioMayorFactsHtml() {
     return premioMayorFactsPublicos()
-        .map((part) => {
-            let html = escapeHeroTitleText(ilustrarLineaPremioMayor(part));
-            html = html.replace(/\b19 de sep\b/gi, '<s>19 de sep</s>');
-            return '<li class="premio-mayor-facts__item">' + html + '</li>';
-        })
+        .map((part) => '<li class="premio-mayor-facts__item">' + escapeHeroTitleText(part) + '</li>')
         .join('');
 }
 
@@ -713,6 +712,67 @@ function initLandingSplides() {
     if (document.getElementById('ganadoresMainSlides')?.children.length) {
         crearSlider('#ganadores-carousel', '#ganadores-thumbnails', 3500, 'ganadores');
     }
+    initResenasSlider();
+    initVideosSlider();
+}
+
+function initResenasSlider() {
+    const el = document.getElementById('crResenasSlider');
+    if (!el || typeof Splide === 'undefined') return;
+    if (!el.querySelector('.splide__slide')) return;
+
+    destroySplide('resenas');
+
+    const slider = new Splide(el, {
+        type: 'slide',
+        rewind: true,
+        perPage: 3,
+        perMove: 1,
+        gap: '0.85rem',
+        arrows: true,
+        pagination: false,
+        drag: true,
+        speed: 500,
+        breakpoints: {
+            991: { perPage: 2 },
+            767: { perPage: 1, padding: 0 },
+        },
+    });
+
+    slider.mount();
+    estado.splideInstances.resenas = slider;
+}
+
+function initVideosSlider() {
+    const el = document.getElementById('crVideosSlider');
+    if (!el || typeof Splide === 'undefined') return;
+    if (!el.querySelector('.splide__slide')) return;
+
+    destroySplide('videos');
+
+    const slider = new Splide(el, {
+        type: 'slide',
+        rewind: true,
+        perPage: 1,
+        perMove: 1,
+        gap: '1rem',
+        arrows: true,
+        pagination: true,
+        drag: true,
+        speed: 450,
+        autoplay: false,
+        noDrag: 'video, button',
+    });
+
+    const pausar = () => {
+        el.querySelectorAll('video').forEach((video) => {
+            try { video.pause(); } catch (e) { /* el video puede no haber iniciado */ }
+        });
+    };
+
+    slider.on('move', pausar);
+    slider.mount();
+    estado.splideInstances.videos = slider;
 }
 
 async function cargarRifasActivas() {
@@ -817,7 +877,7 @@ function aplicarBloqueoComprasWeb() {
     if (banner) {
         if (!ok) {
             let msg =
-                'Las compras en línea están temporalmente deshabilitadas. Puedes seguir navegando y consultar tus nros.';
+                'Las compras en línea están temporalmente deshabilitadas. Puedes seguir navegando y consultar tus códigos.';
             if (typeof getSetting === 'function') {
                 const custom = String(getSetting('web_mensaje_compras_bloqueadas', '') || '').trim();
                 if (custom !== '') {
@@ -862,27 +922,83 @@ async function cargarInventario() {
         try {
             json = JSON.parse(text.trim());
         } catch (parseErr) {
-            throw new Error('Respuesta inválida al cargar nros disponibles.');
+            throw new Error('Respuesta inválida al cargar códigos disponibles.');
         }
 
         if (json.success) {
 
             aplicarInventarioResponse(json);
         } else {
-            toastError(json.message || 'No se pudo cargar el inventario de nros.');
+            toastError(json.message || 'No se pudo cargar el inventario de códigos.');
         }
     } catch (e) {
-        toastError(e instanceof Error ? e.message : 'Error al cargar nros disponibles.');
+        toastError(e instanceof Error ? e.message : 'Error al cargar códigos disponibles.');
     }
 
     hidePreloader();
 
 }
 
-function esRifaManual() {
+function tipoRifaActiva() {
     const rifa = rifaActiva();
     const type = rifa ? (rifa.type_raffle || 'automatic') : (estado.rifa.type || 'automatic');
-    return String(type) === 'manual';
+    return String(type);
+}
+
+function esRifaManual() {
+    return tipoRifaActiva() === 'manual';
+}
+
+function esRifaAmbos() {
+    return tipoRifaActiva() === 'both';
+}
+
+function esSeleccionManualActiva() {
+    return esRifaManual() || (esRifaAmbos() && estado.modoNumeros === 'manual');
+}
+
+function hayPaqueteParaModo() {
+    return (Number(estado.cantidadSeleccionada) || 0) >= minCantidadCompra();
+}
+
+function visibilidadModoAsignacion() {
+    const modoBox = document.getElementById('modoAsignacionNumeros');
+    if (!modoBox) return;
+    modoBox.classList.toggle('d-none', !(esRifaAmbos() && hayPaqueteParaModo()));
+}
+
+function hintModoNumeros() {
+    const hint = document.getElementById('modoNumerosHint');
+    if (hint) {
+        if (esSeleccionManualActiva()) {
+            const qty = Number(estado.cantidadSeleccionada) || 0;
+            hint.textContent = qty > 0
+                ? `Elige ${qty} código${qty !== 1 ? 's' : ''}.`
+                : 'Elige un paquete y luego tus códigos en la grilla.';
+        } else {
+            hint.textContent = 'Te asignamos códigos libres al confirmar el pago.';
+        }
+    }
+    const countEl = document.getElementById(LANDING_GRILLA.countId);
+    if (countEl) countEl.textContent = String(estado.numerosSeleccionados.length);
+    const targetEl = document.getElementById(LANDING_GRILLA.countTargetId);
+    if (targetEl) {
+        targetEl.textContent = String(esRifaAmbos()
+            ? (Number(estado.cantidadSeleccionada) || minCantidadCompra())
+            : minCantidadCompra());
+    }
+}
+
+async function aplicarModoNumerosLanding() {
+    const checked = document.querySelector('input[name="modoNumeros"]:checked');
+    estado.modoNumeros = checked?.value === 'manual' ? 'manual' : 'automatic';
+    if (!esSeleccionManualActiva()) {
+        estado.numerosSeleccionados = [];
+    }
+    if (esSeleccionManualActiva() && estado.inventarioCompleto.length === 0) {
+        await cargarInventario();
+    }
+    aplicarModoRifa();
 }
 
 async function refrescarRifaAntesPago() {
@@ -898,7 +1014,9 @@ function sincronizarCantidadCheckout() {
         estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
         return;
     }
-    estado.numerosSeleccionados = [];
+    if (!esSeleccionManualActiva()) {
+        estado.numerosSeleccionados = [];
+    }
     const checked = document.querySelector('.paquete-radio:checked');
     if (checked && checked.value !== 'custom') {
         estado.cantidadSeleccionada = parseInt(checked.value, 10) || estado.cantidadSeleccionada;
@@ -914,21 +1032,29 @@ function aplicarModoRifa() {
         estado.rifa.type = rifa.type_raffle || 'automatic';
     }
 
-    const manual = esRifaManual();
+    const exclusiveManual = esRifaManual();
+    const pick = esSeleccionManualActiva();
     const manualBox = document.getElementById('selectorManualNumeros');
     const paquetesBox = document.getElementById('bloquePaquetesLanding');
-    if (manualBox) manualBox.classList.toggle('d-none', !manual);
-    if (paquetesBox) paquetesBox.classList.toggle('d-none', manual);
+    if (paquetesBox) paquetesBox.classList.toggle('d-none', exclusiveManual);
+    visibilidadModoAsignacion();
+    if (manualBox) {
+        manualBox.classList.toggle('d-none', !(pick && (exclusiveManual || hayPaqueteParaModo())));
+    }
 
-    if (manual) {
+    if (exclusiveManual) {
         estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
         initGrillaLanding();
         renderSelectorManualNumeros();
-    } else {
+    } else if (pick) {
+        initGrillaLanding();
+        renderSelectorManualNumeros();
+    } else if (!esRifaAmbos()) {
         estado.numerosSeleccionados = [];
         document.querySelectorAll('.paquete-radio').forEach(r => { r.checked = false; });
     }
 
+    hintModoNumeros();
     actualizarUI();
 }
 
@@ -937,6 +1063,7 @@ const LANDING_GRILLA = {
     pagerId: 'gridNumerosManualPager',
     statsId: 'gridNumerosManualStats',
     countId: 'manualSeleccionCount',
+    countTargetId: 'manualSeleccionCountTarget',
     searchId: 'buscarNumeroManual',
 };
 
@@ -958,7 +1085,7 @@ function renderSelectorManualNumeros() {
         soloDisponibles: true,
         onToggleName: 'toggleNumeroManual',
         rerender: renderSelectorManualNumeros,
-        emptyMessage: 'No hay nros disponibles en este momento.',
+        emptyMessage: 'No hay códigos disponibles en este momento.',
     });
 }
 
@@ -966,30 +1093,37 @@ function toggleNumeroManual(idTicket) {
     const id = parseInt(idTicket, 10);
     const ticket = estado.inventarioCompleto.find(t => parseInt(t.id_ticket, 10) === id);
     if (ticket && typeof CrGrillaNumeros !== 'undefined' && !CrGrillaNumeros.isDisponible(ticket)) {
-        toastError('Este nro ya no está disponible.');
+        toastError('Este código ya no está disponible.');
         return;
     }
     const idx = estado.numerosSeleccionados.indexOf(id);
     if (idx >= 0) {
         estado.numerosSeleccionados.splice(idx, 1);
     } else {
+        const max = esRifaAmbos() ? (Number(estado.cantidadSeleccionada) || 0) : 0;
+        if (esRifaAmbos() && max <= 0) {
+            toastError('Elige un paquete primero');
+            return;
+        }
+        if (esRifaAmbos() && estado.numerosSeleccionados.length >= max) {
+            toastError(`Ya elegiste los ${max} códigos del paquete`);
+            return;
+        }
         estado.numerosSeleccionados.push(id);
     }
-    estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
+    if (esRifaManual()) {
+        estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
+    }
 
     const isSelected = idx < 0;
     const patched = typeof CrGrillaNumeros !== 'undefined'
         && CrGrillaNumeros.patchSelection(LANDING_GRILLA.gridId, id, isSelected);
 
-    if (patched) {
-        const countEl = document.getElementById(LANDING_GRILLA.countId);
-        if (countEl) {
-            countEl.textContent = String(estado.cantidadSeleccionada);
-        }
-    } else {
+    if (!patched) {
         renderSelectorManualNumeros();
     }
 
+    hintModoNumeros();
     actualizarUI();
 }
 
@@ -1003,12 +1137,24 @@ function filtrarNumerosManual() {
 window.toggleNumeroManual = toggleNumeroManual;
 
 function validarSeleccionManualCheckout() {
-    if (!esRifaManual()) {
+    if (!esSeleccionManualActiva()) {
         return true;
     }
     const min = minCantidadCompra();
+    if (esRifaAmbos()) {
+        const qty = Number(estado.cantidadSeleccionada) || 0;
+        if (qty < min) {
+            toastError('Elige un paquete y luego tus códigos en la grilla');
+            return false;
+        }
+        if (estado.numerosSeleccionados.length !== qty) {
+            toastError(`Elige ${qty} código${qty !== 1 ? 's' : ''} en la grilla`);
+            return false;
+        }
+        return true;
+    }
     if (estado.numerosSeleccionados.length < min) {
-        toastError(`Selecciona al menos ${min} nro${min > 1 ? 's' : ''} en la grilla`);
+        toastError(`Selecciona al menos ${min} código${min > 1 ? 's' : ''} en la grilla`);
         return false;
     }
     estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
@@ -1031,7 +1177,7 @@ function aplicarNumerosNoDisponiblesCheckout(json) {
 }
 
 function appendTicketIdsToPayload(payload) {
-    if (!esRifaManual() || estado.numerosSeleccionados.length === 0) {
+    if (!esSeleccionManualActiva() || estado.numerosSeleccionados.length === 0) {
         return payload;
     }
     if (payload instanceof FormData) {
@@ -1050,16 +1196,27 @@ $(document).on('change', '.paquete-radio', function () {
 
     if (this.value === 'custom') {
         $('#cantidadManual').show().focus();
+        estado.cantidadSeleccionada = 0;
+        estado.numerosSeleccionados = [];
+        hintModoNumeros();
+        aplicarModoRifa();
         return;
     }
 
     $('#cantidadManual').hide();
 
-    estado.cantidadSeleccionada = parseInt(this.value);
-
-    actualizarUI();
+    estado.cantidadSeleccionada = parseInt(this.value, 10) || 0;
+    if (esRifaAmbos() && estado.numerosSeleccionados.length > estado.cantidadSeleccionada) {
+        estado.numerosSeleccionados = estado.numerosSeleccionados.slice(0, estado.cantidadSeleccionada);
+    }
+    hintModoNumeros();
+    aplicarModoRifa();
     trackMetaAddToCart(estado.cantidadSeleccionada, totalAPagarCOP());
 
+});
+
+$(document).on('change', 'input[name="modoNumeros"]', function () {
+    aplicarModoNumerosLanding();
 });
 
 $('#cantidadManual').on('blur', function () {
@@ -1072,15 +1229,18 @@ $('#cantidadManual').on('blur', function () {
 
     if (cant < min) {
 
-        toastError(`Recuerda mínimo ${min} nro${min > 1 ? 's' : ''} para participar`);
+        toastError(`Recuerda mínimo ${min} código${min > 1 ? 's' : ''} para participar`);
 
         this.value = min;
         cant = min;
     }
 
     estado.cantidadSeleccionada = cant;
-
-    actualizarUI();
+    if (esRifaAmbos() && estado.numerosSeleccionados.length > cant) {
+        estado.numerosSeleccionados = estado.numerosSeleccionados.slice(0, cant);
+    }
+    hintModoNumeros();
+    aplicarModoRifa();
     trackMetaAddToCart(estado.cantidadSeleccionada, totalAPagarCOP());
 
 });
@@ -1141,14 +1301,14 @@ function pricingTierConfig() {
 }
 
 function defaultPackageGridItems() {
-    const unit = 2000;
+    const unit = 8000;
     return [
-        { qty: 10, price: 20000, badge: null, badge_slug: null },
-        { qty: 18, price: 36000, badge: null, badge_slug: null },
-        { qty: 30, price: 60000, badge: null, badge_slug: null },
-        { qty: 40, price: 68000, badge: 'Popular', badge_slug: 'popular' },
-        { qty: 60, price: 102000, badge: null, badge_slug: null },
-        { qty: 100, price: 150000, badge: 'Más vendido', badge_slug: 'mas-vendido' },
+        { qty: 3, price: 24000, badge: null, badge_slug: null },
+        { qty: 5, price: 40000, badge: null, badge_slug: null },
+        { qty: 8, price: 64000, badge: null, badge_slug: null },
+        { qty: 10, price: 70000, badge: null, badge_slug: null },
+        { qty: 15, price: 105000, badge: null, badge_slug: null },
+        { qty: 20, price: 130000, badge: null, badge_slug: null },
     ].map((item) => ({ ...item, compare_at: item.qty * unit }));
 }
 
@@ -1194,20 +1354,20 @@ function packagePricingConfig() {
     });
 
     if (!Object.keys(packages).length) {
-        [10, 18, 30, 40, 60, 100].forEach((qty, i) => {
-            const prices = [20000, 36000, 60000, 68000, 102000, 150000];
+        [3, 5, 8, 10, 15, 20].forEach((qty, i) => {
+            const prices = [24000, 40000, 64000, 70000, 105000, 130000];
             packages[qty] = prices[i];
         });
     }
 
     return {
         enabled,
-        unitPrice: readPricingInt(p?.unit_price ?? 2000, 2000),
-        bulkUnitPrice: 1700,
-        bulkThreshold: 40,
-        bulk2UnitPrice: 1500,
-        bulk2Threshold: 100,
-        minQuantity: readPricingInt(p?.min_quantity ?? 10, 10),
+        unitPrice: readPricingInt(p?.unit_price ?? 8000, 8000),
+        bulkUnitPrice: readPricingInt(p?.bulk_unit_price ?? 7000, 7000),
+        bulkThreshold: readPricingInt(p?.bulk_threshold ?? 10, 10),
+        bulk2UnitPrice: readPricingInt(p?.bulk2_unit_price ?? 6500, 6500),
+        bulk2Threshold: readPricingInt(p?.bulk2_threshold ?? 20, 20),
+        minQuantity: readPricingInt(p?.min_quantity ?? 3, 3),
         packages,
     };
 }
@@ -1231,8 +1391,8 @@ function packagePriceForQuantity(qty) {
     }
 
     if (quantity >= pkg.minQuantity) {
-        const unit = quantity >= (pkg.bulk2Threshold || 100)
-            ? (pkg.bulk2UnitPrice || 1500)
+        const unit = quantity >= (pkg.bulk2Threshold || 20)
+            ? (pkg.bulk2UnitPrice || 6500)
             : (quantity >= pkg.bulkThreshold ? pkg.bulkUnitPrice : pkg.unitPrice);
         return { total: quantity * unit, isPackage: false };
     }
@@ -1391,7 +1551,7 @@ function mensajePromoPrecio(cantidad, variant = 'full') {
         if (qty >= tier.bulkThreshold) {
             return `PROMO DESDE ${tier.bulkThreshold} — ${fmtCOPShort(tier.thirdPlusUnit)} c/u (${fmtCOPShort(total)} total)`;
         }
-        return `Desde ${tier.bulkThreshold} nros: ${fmtCOPShort(tier.thirdPlusUnit)} c/u`;
+        return `Desde ${tier.bulkThreshold} códigos: ${fmtCOPShort(tier.thirdPlusUnit)} c/u`;
     }
 
     const total2 = tier.secondUnit * 2;
@@ -1405,7 +1565,7 @@ function mensajePromoPrecio(cantidad, variant = 'full') {
             return `Promo 2 nums · ${fmtCOPShort(tier.secondUnit)} c/u · ${fmtCOPShort(total2)}`;
         }
         if (qty === 1) {
-            return `2 nros: ${fmtCOPShort(tier.secondUnit)} c/u · ${fmtCOPShort(total2)}`;
+            return `2 códigos: ${fmtCOPShort(tier.secondUnit)} c/u · ${fmtCOPShort(total2)}`;
         }
         return '';
     }
@@ -1429,7 +1589,7 @@ function mensajePromoPrecio(cantidad, variant = 'full') {
     }
 
     if (qty === 1) {
-        return `2 nros: ${fmtCOPShort(tier.secondUnit)} c/u cada uno`;
+        return `2 códigos: ${fmtCOPShort(tier.secondUnit)} c/u cada uno`;
     }
 
     return '';
@@ -1493,7 +1653,7 @@ function renderHeroPackagesHtml() {
         return `
         <div class="cr-hero-precio-tier${slugClass}${hasSaving ? ' cr-hero-precio-tier--con-ahorro' : ''}">
             ${badgeHtml}
-            <span class="cr-hero-precio-tier__label">${item.qty} nros</span>
+            <span class="cr-hero-precio-tier__label">${item.qty} códigos</span>
             ${unitHtml}
             ${beforeHtml}
             <span class="cr-hero-precio-tier__value">${fmtCOPShort(item.price)}</span>
@@ -1560,7 +1720,7 @@ function actualizarPrecioVisual() {
 }
 
 function crearChipSeleccionadoHtml(id, num) {
-    return `<button type="button" class="cr-chip-seleccionado" data-ticket-id="${id}" onclick="toggleNumeroManual(${id})" title="Quitar nro ${num}">
+    return `<button type="button" class="cr-chip-seleccionado" data-ticket-id="${id}" onclick="toggleNumeroManual(${id})" title="Quitar código ${num}">
         <span>${num}</span><i class="ti ti-x"></i>
     </button>`;
 }
@@ -1582,7 +1742,7 @@ function renderSeleccionadosBarSmooth(container) {
 
     if (!esRifaManual() || !estado.numerosSeleccionados.length) {
         container.innerHTML = `<div class="cr-seleccionados-pack">
-            <span class="cr-seleccionados-pack__badge">${cant} nro${cant > 1 ? 's' : ''}</span>
+            <span class="cr-seleccionados-pack__badge">${cant} código${cant > 1 ? 's' : ''}</span>
             <span class="cr-seleccionados-pack__hint">Se asignan al confirmar el pago</span>
         </div>`;
         container.classList.add('is-visible');
@@ -1681,7 +1841,7 @@ function renderBarraSeleccionados() {
         html = `<div class="cr-seleccionados-scroll">${chips}</div>`;
     } else {
         html = `<div class="cr-seleccionados-pack">
-            <span class="cr-seleccionados-pack__badge">${cant} nro${cant > 1 ? 's' : ''}</span>
+            <span class="cr-seleccionados-pack__badge">${cant} código${cant > 1 ? 's' : ''}</span>
             <span class="cr-seleccionados-pack__hint">Se asignan al confirmar el pago</span>
         </div>`;
     }
@@ -1699,8 +1859,8 @@ function renderCheckoutModalResumen() {
 
     if (cantEl) {
         cantEl.textContent = cant
-            ? `${cant} nro${cant !== 1 ? 's' : ''}`
-            : '0 nros';
+            ? `${cant} código${cant !== 1 ? 's' : ''}`
+            : '0 códigos';
     }
 
     if (ticket) {
@@ -1746,13 +1906,13 @@ function renderCheckoutSheetNumeros() {
 
     if (esRifaManual() && nums.length) {
         el.innerHTML = `
-            <span class="text-muted small d-block mb-2">Nros seleccionados</span>
+            <span class="text-muted small d-block mb-2">Códigos seleccionados</span>
             <div class="d-flex flex-wrap gap-1">${nums.map((n) => landingNumeroChipHtml(n)).join('')}</div>`;
         return;
     }
 
     el.innerHTML = `
-        <span class="text-muted small d-block mb-2">Nros</span>
+        <span class="text-muted small d-block mb-2">Códigos</span>
         <span class="vender-sheet__auto-badge">
             <i class="ti ti-shuffle"></i> Asignación automática al confirmar el pago
         </span>`;
@@ -1773,7 +1933,7 @@ function actualizarCheckoutSheet() {
     const sheetTotal = document.getElementById('landingSheetTotal');
 
     if (sheetCant) {
-        sheetCant.textContent = `${cant} nro${cant !== 1 ? 's' : ''}`;
+        sheetCant.textContent = `${cant} código${cant !== 1 ? 's' : ''}`;
     }
 
     if (sheetTotal) {
@@ -2215,7 +2375,7 @@ function actualizarUI() {
 
     const mobileQty = document.getElementById('lblCantidadMobileCart');
     if (mobileQty) {
-        mobileQty.textContent = `${cant} nro${cant !== 1 ? 's' : ''}`;
+        mobileQty.textContent = `${cant} código${cant !== 1 ? 's' : ''}`;
     }
 
     $('#totalDineroDesktop, #lblTotalMobile, #resumenTotal').text(fmt(total));
@@ -2226,7 +2386,7 @@ function actualizarUI() {
 
     $('#resumenNumeros').html(
         cant
-            ? `<span class="fw-bold">${cant} nro${cant > 1 ? 's' : ''}</span>`
+            ? `<span class="fw-bold">${cant} código${cant > 1 ? 's' : ''}</span>`
             : '<span class="text-muted">Sin selección</span>'
     );
 
@@ -2385,17 +2545,17 @@ async function abrirCheckout() {
 
     if (esRifaManual()) {
         if (estado.numerosSeleccionados.length < min) {
-            toastError(`Selecciona al menos ${min} nro${min > 1 ? 's' : ''}`);
+            toastError(`Selecciona al menos ${min} código${min > 1 ? 's' : ''}`);
             return;
         }
         estado.cantidadSeleccionada = estado.numerosSeleccionados.length;
     } else if (!estado.cantidadSeleccionada || estado.cantidadSeleccionada < min) {
-        toastError(`La compra mínima es de ${min} nro${min > 1 ? 's' : ''}`);
+        toastError(`La compra mínima es de ${min} código${min > 1 ? 's' : ''}`);
         return;
     }
 
     if (!esRifaManual() && estado.cantidadSeleccionada > estado.disponiblesCount) {
-        toastError('No hay suficientes nros disponibles');
+        toastError('No hay suficientes códigos disponibles');
         return;
     }
 
@@ -2449,7 +2609,7 @@ const min = minCantidadCompra();
 
 if (!estado.cantidadSeleccionada || estado.cantidadSeleccionada < min) {
 
-    toastError(`La compra mínima es de ${min} nro${min > 1 ? 's' : ''}`);
+    toastError(`La compra mínima es de ${min} código${min > 1 ? 's' : ''}`);
 
     return false;
 
@@ -2617,7 +2777,7 @@ async function procesarTransferencia(e) {
     }
 
     if (estado.cantidadSeleccionada < minCantidadCompra()) {
-        toastError(`Mínimo ${minCantidadCompra()} nro${minCantidadCompra() > 1 ? 's' : ''}`);
+        toastError(`Mínimo ${minCantidadCompra()} código${minCantidadCompra() > 1 ? 's' : ''}`);
         return;
     }
 

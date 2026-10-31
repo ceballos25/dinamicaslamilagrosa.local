@@ -2,53 +2,54 @@
 declare(strict_types=1);
 
 /**
- * Paquetes por cantidad — Dinámicas La Milagrosa (3era Dinámica · COMBO PAREJA).
- * Base $2.000 c/u · desde 40: $1.700 · desde 100: $1.500.
+ * Paquetes — Dinámica Navideña (4.º sorteo · 4 cifras).
+ * Base $8.000 c/u · desde 10: $7.000 · desde 20: $6.500.
+ * Mínimo 3 números.
  *
  * @return array<int, int> cantidad => total COP
  */
 function cs_package_prices(): array
 {
     return [
-        10 => 20000,
-        18 => 36000,
-        30 => 60000,
-        40 => 68000,
-        60 => 102000,
-        100 => 150000,
+        3 => 24000,
+        5 => 40000,
+        8 => 64000,
+        10 => 70000,
+        15 => 105000,
+        20 => 130000,
     ];
 }
 
 function cs_package_unit_price(): int
 {
-    return 2000;
+    return 8000;
 }
 
-/** Precio unitario desde el primer umbral (40+). */
+/** Precio unitario desde el primer umbral (10+). */
 function cs_package_bulk_unit_price(): int
 {
-    return 1700;
+    return 7000;
 }
 
 function cs_package_bulk_threshold(): int
 {
-    return 40;
+    return 10;
 }
 
-/** Segundo descuento (100+). */
+/** Segundo descuento (20+). */
 function cs_package_bulk2_unit_price(): int
 {
-    return 1500;
+    return 6500;
 }
 
 function cs_package_bulk2_threshold(): int
 {
-    return 100;
+    return 20;
 }
 
 function cs_package_min_quantity(): int
 {
-    return 10;
+    return 3;
 }
 
 function cs_package_pricing_enabled(): bool
@@ -115,12 +116,12 @@ function cs_package_grid_items(): array
 {
     $unit = cs_package_unit_price();
     $items = [
-        ['id' => 'paq10', 'qty' => 10, 'price' => 20000, 'badge' => null, 'badge_slug' => null],
-        ['id' => 'paq18', 'qty' => 18, 'price' => 36000, 'badge' => null, 'badge_slug' => null],
-        ['id' => 'paq30', 'qty' => 30, 'price' => 60000, 'badge' => null, 'badge_slug' => null],
-        ['id' => 'paq40', 'qty' => 40, 'price' => 68000, 'badge' => 'Popular', 'badge_slug' => 'popular'],
-        ['id' => 'paq60', 'qty' => 60, 'price' => 102000, 'badge' => null, 'badge_slug' => null],
-        ['id' => 'paq100', 'qty' => 100, 'price' => 150000, 'badge' => 'Más vendido', 'badge_slug' => 'mas-vendido'],
+        ['id' => 'paq3', 'qty' => 3, 'price' => 24000, 'badge' => null, 'badge_slug' => null],
+        ['id' => 'paq5', 'qty' => 5, 'price' => 40000, 'badge' => null, 'badge_slug' => null],
+        ['id' => 'paq8', 'qty' => 8, 'price' => 64000, 'badge' => null, 'badge_slug' => null],
+        ['id' => 'paq10', 'qty' => 10, 'price' => 70000, 'badge' => null, 'badge_slug' => null],
+        ['id' => 'paq15', 'qty' => 15, 'price' => 105000, 'badge' => null, 'badge_slug' => null],
+        ['id' => 'paq20', 'qty' => 20, 'price' => 130000, 'badge' => null, 'badge_slug' => null],
     ];
 
     foreach ($items as &$item) {

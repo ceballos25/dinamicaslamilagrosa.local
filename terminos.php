@@ -27,7 +27,7 @@ include $landingDir . '/navbar.php';
         <div class="cr-legal__card">
             <p class="cr-legal__kicker mb-2">Dinámicas La Milagrosa</p>
             <h1 class="cr-legal__title">Términos y condiciones</h1>
-            <p class="cr-legal__updated">3era Dinámica · Combo Pareja · Actualizado septiembre 2026</p>
+            <p class="cr-legal__updated">4.ª Dinámica Navideña · Actualizado octubre 2026</p>
 
             <h2>1. Quién organiza</h2>
             <p>
@@ -38,16 +38,16 @@ include $landingDir . '/navbar.php';
             <h2>2. Cómo funciona</h2>
             <p>
                 Eliges un paquete, pagas el valor publicado y, cuando confirmamos tu pago,
-                quedan asignados tus nros. La compra mínima es el paquete de 10.
-                Esta campaña se rige por la de Boyacá.
-                La fecha tentativa es el <strong>24 de octubre</strong>,
-                si hemos alcanzado el 70%.
+                quedan asignados tus códigos. La compra mínima es de 3 códigos.
+                El premio de $20.000.000 juega el <strong>19 de diciembre</strong> con la lotería de Boyacá.
+                Cada miércoles se juegan $500.000 con la lotería de Manizales.
             </p>
 
-            <h2>3. Combo Pareja y entregas</h2>
+            <h2>3. Premio y fecha</h2>
             <p>
-                El Combo Pareja de esta campaña es <strong>NMAX 2027 + MT-15 2027</strong>.
-                Hay dos entregas de $4 millones en tecnología: 19 de septiembre y 10 de octubre,
+                El premio mayor de esta campaña es <strong>$20.000.000</strong>,
+                el 19 de diciembre de 2026, con la lotería de Boyacá.
+                El puesto vale $8.000. Desde 10 códigos quedan a $7.000 y desde 20 a $6.500,
                 según lo publicado en la portada.
             </p>
             <p>
@@ -75,7 +75,7 @@ include $landingDir . '/navbar.php';
                 Tratamos tus datos personales de acuerdo con la Ley 1581 de 2012 y normas
                 que la complementan (habeas data). Recogemos nombre, apellido, celular,
                 correo, ciudad y el comprobante de pago para confirmar tu compra, asignar
-                tus nros, contactarte y coordinar las entregas.
+                tus códigos, contactarte y coordinar las entregas.
             </p>
             <p>
                 Eres titular de tu información: puedes pedir que la consultemos, corrijamos

@@ -53,7 +53,7 @@ $paquetesOficiales = cs_package_grid_items();
             <?php endif; ?>
             <div class="paquete-card__body">
                 <div class="paquete-card__meta">
-                    <span class="paquete-qty"><?= $qty ?> <small>nros</small></span>
+                    <span class="paquete-qty"><?= $qty ?> <small>códigos</small></span>
                     <?php if ($hasSaving): ?>
                     <span class="paquete-unit-price">$<?= number_format($unitNow, 0, ',', '.') ?> c/u</span>
                     <?php endif; ?>
@@ -83,14 +83,14 @@ $paquetesOficiales = cs_package_grid_items();
             </div>
         </label>
         <input type="tel" id="<?= htmlspecialchars($crCantidadManualId, ENT_QUOTES, 'UTF-8') ?>"
-            class="form-control form-control-sm text-center mt-1" min="<?= $minQty ?>" placeholder="Mín. <?= $minQty ?> nros" style="display:none;">
+            class="form-control form-control-sm text-center mt-1" min="<?= $minQty ?>" placeholder="Mín. <?= $minQty ?> códigos" style="display:none;">
     </div>
 
 </div>
 <div class="cr-paquetes-hint">
-    <p class="cr-paquetes-hint__mobile mb-0">Desde <?= $bulkFrom ?> nros baja el precio de cada uno.</p>
+    <p class="cr-paquetes-hint__mobile mb-0">Desde <?= $bulkFrom ?> códigos baja el precio de cada uno.</p>
     <div class="cr-paquetes-hint__desktop">
-        <p class="mb-1"><strong>Precio normal:</strong> mínimo <?= $minQty ?> nros · $<?= number_format($unitBase, 0, ',', '.') ?> c/u</p>
-        <p class="mb-0"><strong>Precio especial:</strong> desde <?= $bulkFrom ?> nros · $<?= number_format($unitBulk, 0, ',', '.') ?> c/u · desde <?= $bulk2From ?> nros · $<?= number_format($unitBulk2, 0, ',', '.') ?> c/u</p>
+        <p class="mb-1"><strong>Precio normal:</strong> mínimo <?= $minQty ?> códigos · $<?= number_format($unitBase, 0, ',', '.') ?> c/u</p>
+        <p class="mb-0"><strong>Precio especial:</strong> desde <?= $bulkFrom ?> códigos · $<?= number_format($unitBulk, 0, ',', '.') ?> c/u · desde <?= $bulk2From ?> códigos · $<?= number_format($unitBulk2, 0, ',', '.') ?> c/u</p>
     </div>
 </div>

@@ -90,9 +90,32 @@ final class RaffleCheckoutAllocationServiceTest extends TestCase
         );
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Debes seleccionar los números');
+        $this->expectExceptionMessage('Debes seleccionar los códigos');
 
         $service->reserveForPendingPayment(9, 3, null, false);
+    }
+
+    public function testBothRaffleReservesOnlyWhenCustomerPicksNumbers(): void
+    {
+        $raffles = InMemoryRaffleRepository::both(11);
+        $tickets = new InMemoryTicketRepository();
+        $tickets->seed(1, 11, '0001');
+        $tickets->seed(2, 11, '0002');
+        $tickets->seed(3, 11, '0003');
+
+        $service = new RaffleCheckoutAllocationService(
+            new TicketReservationService($tickets, $raffles, $this->mockPdo()),
+            $raffles,
+            $this->mockPdo()
+        );
+
+        $random = $service->reserveForPendingPayment(11, 3, null, true);
+        self::assertSame([], $random['ticket_ids']);
+        self::assertSame(RaffleType::AUTOMATIC, $random['allocation_mode']);
+
+        $picked = $service->reserveForPendingPayment(11, 3, [1, 2, 3], true);
+        self::assertSame([1, 2, 3], $picked['ticket_ids']);
+        self::assertSame(RaffleType::MANUAL, $picked['allocation_mode']);
     }
 
     public function testResolveForAutomaticApprovalReturnsNullTicketIds(): void

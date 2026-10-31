@@ -12,7 +12,7 @@ final class TicketConflictApiResponseTest extends TestCase
 {
     public function testFromDomainExceptionIncludesUnavailablePayload(): void
     {
-        $e = new DomainException('Lo siento, el número 042 ya fue vendido.', 'TICKET_UNAVAILABLE', [
+        $e = new DomainException('Lo siento, el código 042 ya fue vendido.', 'TICKET_UNAVAILABLE', [
             'unavailable_ticket_ids' => [42],
             'unavailable_numbers' => ['042'],
         ]);
@@ -29,7 +29,7 @@ final class TicketConflictApiResponseTest extends TestCase
     {
         $response = TicketConflictApiResponse::fromUnavailable(9, '009', TicketStatus::PAID);
 
-        self::assertSame('Lo siento, el número 009 ya fue vendido.', $response['message']);
+        self::assertSame('Lo siento, el código 009 ya fue vendido.', $response['message']);
         self::assertSame([9], $response['unavailable_ticket_ids']);
     }
 }

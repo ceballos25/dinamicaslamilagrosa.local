@@ -12,6 +12,10 @@ final class RaffleTypeTest extends TestCase
     {
         self::assertTrue(RaffleType::isValid(RaffleType::MANUAL));
         self::assertTrue(RaffleType::isValid(RaffleType::AUTOMATIC));
+        self::assertTrue(RaffleType::isValid(RaffleType::BOTH));
+        self::assertTrue(RaffleType::allowsPickedTickets(RaffleType::BOTH));
+        self::assertFalse(RaffleType::requiresPickedTickets(RaffleType::BOTH));
+        self::assertFalse(RaffleType::allowsPickedTickets(RaffleType::AUTOMATIC));
     }
 
     public function testInvalidType(): void

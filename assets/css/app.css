@@ -4528,6 +4528,337 @@ body.landing .cr-hero-section {
     padding-bottom: var(--cr-space-lg);
 }
 
+body.landing .cr-navidad-weekly {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--cr-dark);
+}
+
+body.landing .cr-navidad-premio {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 280px;
+    padding: 2rem 1.25rem;
+    text-align: center;
+    border-radius: 24px;
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgba(255, 210, 77, 0.55), transparent 55%),
+        linear-gradient(180deg, #fffdf6 0%, #fff4cc 100%);
+    border: 2px solid var(--cr-primary);
+    box-shadow: 0 12px 32px rgba(201, 151, 0, 0.16);
+}
+
+body.landing .cr-navidad-premio__kicker {
+    margin: 0 0 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a6a00;
+}
+
+body.landing .cr-navidad-premio__amount {
+    margin: 0;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1;
+    color: #1a1a1a;
+}
+
+body.landing .cr-navidad-premio__note {
+    margin: 0.75rem 0 0;
+    font-weight: 600;
+    color: #3f3f3f;
+}
+
+.cr-modo-numeros {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e5e5;
+}
+
+.cr-modo-numeros__group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.cr-modo-numeros__btn {
+    width: 100%;
+    border: 1px solid #d4d4d4;
+    background: #fff;
+    color: #111;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.btn-check:checked + .cr-modo-numeros__btn {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+}
+
+body.landing .cr-ganador-video {
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 16px;
+    background: #111;
+    display: block;
+}
+
+body.landing .cr-resenas {
+    padding: 2.5rem 0 3rem;
+}
+
+body.landing .cr-resenas__head {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+
+body.landing .cr-resenas__kicker {
+    margin: 0 0 .35rem;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--cr-gold-dark);
+}
+
+body.landing .cr-resenas__title {
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 800;
+    color: var(--cr-dark);
+}
+
+body.landing .cr-resenas__score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: .35rem .55rem;
+    margin-top: .65rem;
+    padding: 0 .75rem;
+    color: var(--cr-text-muted);
+    font-size: .92rem;
+    text-align: center;
+}
+
+body.landing .cr-resenas__score strong {
+    font-size: 1.35rem;
+    color: var(--cr-dark);
+}
+
+body.landing .cr-resenas-slider {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 0 3.1rem;
+}
+
+body.landing .cr-resenas-slider .splide__slide {
+    height: auto;
+}
+
+body.landing .cr-resenas-slider .splide__arrow,
+body.landing .cr-videos-slider .splide__arrow {
+    background: var(--cr-gold);
+    opacity: 1;
+    width: 2.15rem;
+    height: 2.15rem;
+    top: auto;
+    bottom: 0;
+    transform: none;
+}
+
+body.landing .cr-resenas-slider .splide__arrow svg,
+body.landing .cr-videos-slider .splide__arrow svg {
+    fill: var(--cr-dark);
+    width: 1rem;
+    height: 1rem;
+}
+
+body.landing .cr-resenas-slider .splide__arrow--prev,
+body.landing .cr-videos-slider .splide__arrow--prev {
+    left: calc(50% - 2.7rem);
+}
+
+body.landing .cr-resenas-slider .splide__arrow--next,
+body.landing .cr-videos-slider .splide__arrow--next {
+    right: calc(50% - 2.7rem);
+}
+
+body.landing .cr-resenas-slider .splide__arrow:disabled,
+body.landing .cr-videos-slider .splide__arrow:disabled {
+    opacity: .35;
+}
+
+body.landing .cr-resena {
+    background: #fff;
+    border: 1px solid rgba(13, 13, 13, .08);
+    border-radius: 16px;
+    padding: 1rem 1rem .9rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+    height: 100%;
+    min-height: 210px;
+}
+
+body.landing .cr-resena--fijada {
+    border-color: rgba(201, 151, 0, .55);
+    background: linear-gradient(180deg, #fffaf0 0%, #fff 42%);
+}
+
+body.landing .cr-resena__top {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+body.landing .cr-resena__avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background: var(--cr-dark);
+    color: var(--cr-gold);
+    font-size: .78rem;
+    font-weight: 800;
+}
+
+body.landing .cr-resena__who {
+    min-width: 0;
+}
+
+body.landing .cr-resena__name {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+body.landing .cr-resena__city {
+    margin: .1rem 0 .2rem;
+    color: var(--cr-text-muted);
+    font-size: .82rem;
+    font-weight: 600;
+}
+
+body.landing .cr-resena__stars {
+    display: inline-flex;
+    gap: 1px;
+    color: #d7d7d7;
+    font-size: .95rem;
+    letter-spacing: 0;
+    line-height: 1;
+}
+
+body.landing .cr-resena__stars .is-on {
+    color: var(--cr-gold-dark);
+}
+
+body.landing .cr-resena__pin {
+    margin-left: auto;
+    align-self: flex-start;
+    background: var(--cr-gold);
+    color: var(--cr-dark);
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: .28rem .6rem;
+}
+
+body.landing .cr-resena__text {
+    margin: .75rem 0 0;
+    color: var(--cr-text);
+    font-size: .98rem;
+}
+
+body.landing .cr-resenas__videos {
+    max-width: 520px;
+    margin: 2rem auto 0;
+}
+
+body.landing .cr-videos-slider {
+    padding: 0 0 4.4rem;
+}
+
+body.landing .cr-videos-slider .splide__pagination {
+    bottom: 2.55rem;
+}
+
+body.landing .cr-videos-slider .splide__pagination__page.is-active {
+    background: var(--cr-gold-dark);
+}
+
+body.landing .cr-resenas__videos-title {
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0 0 .85rem;
+}
+
+body.landing .cr-resenas__videos-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+body.landing .cr-resena-video {
+    margin: 0;
+}
+
+body.landing .cr-resena-video figcaption {
+    font-weight: 700;
+    margin-bottom: .4rem;
+    text-align: center;
+}
+
+@media (max-width: 767.98px) {
+    body.landing .cr-resenas {
+        padding: 1.75rem 0 2.25rem;
+    }
+
+    body.landing .cr-resena {
+        min-height: 0;
+    }
+
+    body.landing .cr-resena__text {
+        font-size: .95rem;
+    }
+
+    body.landing .cr-ganador-video {
+        max-height: 62vh;
+    }
+}
+
+@media (min-width: 768px) {
+    body.landing .cr-resenas-slider {
+        padding: 0 2.8rem .25rem;
+    }
+
+    body.landing .cr-resenas-slider .splide__arrow {
+        top: 50%;
+        bottom: auto;
+        transform: translateY(-50%);
+    }
+
+    body.landing .cr-resenas-slider .splide__arrow--prev {
+        left: .15rem;
+    }
+
+    body.landing .cr-resenas-slider .splide__arrow--next {
+        right: .15rem;
+    }
+
+    body.landing .cr-resenas__videos-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 /* Mobile: título → fotos → puestos → barra → CTA */
 .cr-hero-layout {
     display: flex;
@@ -4541,18 +4872,24 @@ body.landing .cr-hero-section {
     gap: 1rem;
 }
 
+body.landing .cr-hero-cover {
+    display: block;
+    width: min(520px, 100%);
+    height: auto;
+    margin: 0 auto;
+    border-radius: 18px;
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
+}
+
 @media (min-width: 992px) {
     .cr-hero-layout {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         grid-template-areas:
-            "title    title"
-            "count    count"
-            "photo    puestos"
-            "photo    progress"
-            "photo    cta";
+            "photo"
+            "cta";
         gap: 1rem;
-        align-items: start;
+        justify-items: center;
     }
 
     .cr-hero-title-wrap {

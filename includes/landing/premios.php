@@ -2,7 +2,7 @@
     <div class="container-premio-loteria">
         <div>
             <div class="title-sticker-premiados">
-                <h2 class="text-center fw-bold mb-3 mt-3">6 nros especiales bendecidos 🎁</h2>
+                <h2 class="text-center fw-bold mb-3 mt-3">6 códigos especiales bendecidos 🎁</h2>
             </div>
 
             <div class="container container-premios-dos">

@@ -69,4 +69,16 @@ final class InMemoryRaffleRepository implements RaffleRepositoryInterface
             ],
         ]);
     }
+
+    public static function both(int $id): self
+    {
+        return new self([
+            $id => [
+                'id_raffle' => $id,
+                'type_raffle' => RaffleType::BOTH,
+                'status_raffle' => 1,
+                'min_quantity_raffle' => 3,
+            ],
+        ]);
+    }
 }

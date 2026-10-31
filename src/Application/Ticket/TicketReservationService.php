@@ -61,11 +61,11 @@ final class TicketReservationService
                 $manualSelection = true;
                 $ticketIds = array_values(array_unique(array_map('intval', $ticketIds)));
                 if (count($ticketIds) !== $quantity) {
-                    throw new DomainException('La cantidad no coincide con los nros seleccionados', 'QUANTITY_MISMATCH');
+                    throw new DomainException('La cantidad no coincide con los códigos seleccionados', 'QUANTITY_MISMATCH');
                 }
                 $rows = $this->tickets->findByIdsForUpdate($raffleId, $ticketIds);
                 if (count($rows) !== count($ticketIds)) {
-                    throw new DomainException('Algunos nros no existen', 'TICKETS_NOT_FOUND');
+                    throw new DomainException('Algunos códigos no existen', 'TICKETS_NOT_FOUND');
                 }
                 foreach ($rows as $row) {
                     if ((int)$row['status_ticket'] !== TicketStatus::AVAILABLE) {
@@ -75,7 +75,7 @@ final class TicketReservationService
             } else {
                 $rows = $this->tickets->findAvailableRandom($raffleId, $quantity);
                 if (count($rows) < $quantity) {
-                    throw new DomainException('No hay suficientes nros disponibles', 'INSUFFICIENT_TICKETS');
+                    throw new DomainException('No hay suficientes códigos disponibles', 'INSUFFICIENT_TICKETS');
                 }
                 $ticketIds = array_map(static fn (array $r) => (int)$r['id_ticket'], $rows);
             }
@@ -85,7 +85,7 @@ final class TicketReservationService
             } else {
                 $reserved = $this->tickets->reserve($raffleId, $ticketIds, $expiresAt);
                 if ($reserved !== count($ticketIds)) {
-                    throw new DomainException('No hay suficientes nros disponibles', 'INSUFFICIENT_TICKETS');
+                    throw new DomainException('No hay suficientes códigos disponibles', 'INSUFFICIENT_TICKETS');
                 }
             }
 
@@ -148,7 +148,7 @@ final class TicketReservationService
             }
 
             throw new DomainException(
-                'No se pudieron reservar todos los nros. Intenta de nuevo.',
+                'No se pudieron reservar todos los códigos. Intenta de nuevo.',
                 'RESERVATION_RACE'
             );
         }
@@ -180,13 +180,13 @@ final class TicketReservationService
 
         if (count($numbers) === 1) {
             $message = (int)$rows[0]['status_ticket'] === TicketStatus::PAID
-                ? "Lo siento, el número {$numbers[0]} ya fue vendido."
-                : "Lo siento, el número {$numbers[0]} ya no está disponible.";
+                ? "Lo siento, el código {$numbers[0]} ya fue vendido."
+                : "Lo siento, el código {$numbers[0]} ya no está disponible.";
         } else {
             $list = implode(', ', $numbers);
             $message = $allSold
-                ? "Lo siento, estos números ya fueron vendidos: {$list}."
-                : "Lo siento, estos números ya no están disponibles: {$list}.";
+                ? "Lo siento, estos códigos ya fueron vendidos: {$list}."
+                : "Lo siento, estos códigos ya no están disponibles: {$list}.";
         }
 
         throw new DomainException($message, 'TICKET_UNAVAILABLE', [
