@@ -12,7 +12,21 @@ $heroBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
             <h2 class="visually-hidden" id="landingHeroTitle"><?= htmlspecialchars($heroTitle, ENT_QUOTES, 'UTF-8') ?></h2>
 
             <div class="cr-hero-photo">
-                <img class="cr-hero-cover" src="<?= htmlspecialchars(ASSETS_URL . '/images/dinamica-navidena.jpg', ENT_QUOTES, 'UTF-8') ?>?v=2" alt="<?= htmlspecialchars($heroBrand . ' — 4.ª Dinámica Navideña. Premio $20.000.000. Juegan el 19 de diciembre con la de Boyacá. Cada miércoles $500.000 con la de Manizales. Puesto $8.000. Mínimo 3 códigos. Desde 10 códigos, $7.000 cada uno.', ENT_QUOTES, 'UTF-8') ?>" width="768" height="1024">
+                <div id="crHeroSlider" class="splide cr-hero-slider" aria-label="Portadas de la dinámica">
+                    <div class="splide__track">
+                        <ul class="splide__list">
+                            <li class="splide__slide">
+                                <img class="cr-hero-cover" src="<?= htmlspecialchars(ASSETS_URL . '/images/dinamica-navidena.jpg', ENT_QUOTES, 'UTF-8') ?>?v=2" alt="<?= htmlspecialchars($heroBrand . ' — 4.ª Dinámica Navideña. Premio $20.000.000. Juegan el 19 de diciembre con la de Boyacá. Cada miércoles $500.000 con la de Manizales. Puesto $8.000. Mínimo 3 códigos. Desde 10 códigos, $7.000 cada uno.', ENT_QUOTES, 'UTF-8') ?>" width="768" height="1024">
+                            </li>
+                            <li class="splide__slide">
+                                <img class="cr-hero-cover" src="<?= htmlspecialchars(ASSETS_URL . '/images/portada-palitos-sala.jpg', ENT_QUOTES, 'UTF-8') ?>?v=1" alt="<?= htmlspecialchars($heroBrand . ' — 20 millones de palitos. Cada miércoles $500.000. Código por $8.000. Compra mínima 3 códigos.', ENT_QUOTES, 'UTF-8') ?>" width="768" height="1024">
+                            </li>
+                            <li class="splide__slide">
+                                <img class="cr-hero-cover" src="<?= htmlspecialchars(ASSETS_URL . '/images/portada-palitos-terraza.jpg', ENT_QUOTES, 'UTF-8') ?>?v=1" alt="<?= htmlspecialchars($heroBrand . ' — 20 millones de palitos.', ENT_QUOTES, 'UTF-8') ?>" width="768" height="1024">
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <div class="cr-hero-progress" style="display: none">

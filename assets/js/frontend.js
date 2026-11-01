@@ -712,8 +712,34 @@ function initLandingSplides() {
     if (document.getElementById('ganadoresMainSlides')?.children.length) {
         crearSlider('#ganadores-carousel', '#ganadores-thumbnails', 3500, 'ganadores');
     }
+    initHeroSlider();
     initResenasSlider();
     initVideosSlider();
+}
+
+function initHeroSlider() {
+    const el = document.getElementById('crHeroSlider');
+    if (!el || typeof Splide === 'undefined') return;
+    if (!el.querySelector('.splide__slide')) return;
+
+    destroySplide('heroCover');
+
+    const slider = new Splide(el, {
+        type: 'loop',
+        perPage: 1,
+        perMove: 1,
+        arrows: true,
+        pagination: true,
+        drag: true,
+        speed: 500,
+        autoplay: true,
+        interval: 4500,
+        pauseOnHover: true,
+        pauseOnFocus: true,
+    });
+
+    slider.mount();
+    estado.splideInstances.heroCover = slider;
 }
 
 function initResenasSlider() {

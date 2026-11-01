@@ -4872,13 +4872,40 @@ body.landing .cr-resena-video figcaption {
     gap: 1rem;
 }
 
+body.landing .cr-hero-slider {
+    width: min(520px, 100%);
+    margin: 0 auto;
+    padding-bottom: 1.7rem;
+}
+
 body.landing .cr-hero-cover {
     display: block;
-    width: min(520px, 100%);
+    width: 100%;
     height: auto;
     margin: 0 auto;
     border-radius: 18px;
     box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
+}
+
+body.landing .cr-hero-slider .splide__arrow {
+    background: var(--cr-gold);
+    opacity: 1;
+    width: 2.15rem;
+    height: 2.15rem;
+}
+
+body.landing .cr-hero-slider .splide__arrow svg {
+    fill: var(--cr-dark);
+    width: 1rem;
+    height: 1rem;
+}
+
+body.landing .cr-hero-slider .splide__pagination {
+    bottom: 0;
+}
+
+body.landing .cr-hero-slider .splide__pagination__page.is-active {
+    background: var(--cr-gold-dark);
 }
 
 @media (min-width: 992px) {
