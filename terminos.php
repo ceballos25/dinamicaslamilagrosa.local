@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/landing/init.php';
 $landingDir = __DIR__ . '/includes/landing';
 $landingPageTitle = 'Términos y condiciones — ' . ($landingBrandName ?? 'Dinámicas La Milagrosa');
 $terminosBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
-$terminosPhones = function_exists('landing_setting') ? landing_setting('footer_phones', '313 399 2903 · 320 259 5184') : '313 399 2903 · 320 259 5184';
+$terminosPhones = function_exists('landing_setting') ? landing_setting('footer_phones', '313 399 2903') : '313 399 2903';
 $terminosEmail = function_exists('landing_setting') ? landing_setting('contact_email', '') : '';
 $terminosHome = defined('BASE_URL') && BASE_URL !== '' ? rtrim((string) BASE_URL, '/') : '/';
 $terminosCcmLogo = defined('ASSETS_URL')
