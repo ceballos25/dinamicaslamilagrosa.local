@@ -987,10 +987,16 @@ function hayPaqueteParaModo() {
     return (Number(estado.cantidadSeleccionada) || 0) >= minCantidadCompra();
 }
 
+function esCantidadPersonalizada() {
+    const checked = document.querySelector('.paquete-radio:checked');
+    return !!checked && checked.value === 'custom';
+}
+
 function visibilidadModoAsignacion() {
     const modoBox = document.getElementById('modoAsignacionNumeros');
     if (!modoBox) return;
-    modoBox.classList.toggle('d-none', !(esRifaAmbos() && hayPaqueteParaModo()));
+    const visible = esRifaAmbos() && (hayPaqueteParaModo() || esCantidadPersonalizada());
+    modoBox.classList.toggle('d-none', !visible);
 }
 
 function hintModoNumeros() {
@@ -1128,7 +1134,9 @@ function toggleNumeroManual(idTicket) {
     } else {
         const max = esRifaAmbos() ? (Number(estado.cantidadSeleccionada) || 0) : 0;
         if (esRifaAmbos() && max <= 0) {
-            toastError('Elige un paquete primero');
+            toastError(esCantidadPersonalizada()
+                ? 'Escribe cuántos códigos quieres'
+                : 'Elige un paquete primero');
             return;
         }
         if (esRifaAmbos() && estado.numerosSeleccionados.length >= max) {
@@ -1245,29 +1253,45 @@ $(document).on('change', 'input[name="modoNumeros"]', function () {
     aplicarModoNumerosLanding();
 });
 
+function sincronizarCantidadManual() {
+    const cant = parseInt(document.getElementById('cantidadManual')?.value || '', 10);
+    const min = minCantidadCompra();
+    estado.cantidadSeleccionada = Number.isFinite(cant) && cant >= min ? cant : 0;
+    if (esRifaAmbos() && estado.numerosSeleccionados.length > estado.cantidadSeleccionada) {
+        estado.numerosSeleccionados = estado.cantidadSeleccionada > 0
+            ? estado.numerosSeleccionados.slice(0, estado.cantidadSeleccionada)
+            : [];
+    }
+    hintModoNumeros();
+    aplicarModoRifa();
+}
+
+$('#cantidadManual').on('input', function () {
+    sincronizarCantidadManual();
+    if (estado.cantidadSeleccionada >= minCantidadCompra()) {
+        trackMetaAddToCart(estado.cantidadSeleccionada, totalAPagarCOP());
+    }
+});
+
 $('#cantidadManual').on('blur', function () {
 
-    let cant = parseInt(this.value);
+    let cant = parseInt(this.value, 10);
 
     const min = minCantidadCompra();
 
-    if (!cant) return;
+    if (!cant) {
+        sincronizarCantidadManual();
+        return;
+    }
 
     if (cant < min) {
 
         toastError(`Recuerda mínimo ${min} código${min > 1 ? 's' : ''} para participar`);
 
         this.value = min;
-        cant = min;
     }
 
-    estado.cantidadSeleccionada = cant;
-    if (esRifaAmbos() && estado.numerosSeleccionados.length > cant) {
-        estado.numerosSeleccionados = estado.numerosSeleccionados.slice(0, cant);
-    }
-    hintModoNumeros();
-    aplicarModoRifa();
-    trackMetaAddToCart(estado.cantidadSeleccionada, totalAPagarCOP());
+    sincronizarCantidadManual();
 
 });
 

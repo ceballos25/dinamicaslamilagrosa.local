@@ -778,10 +778,16 @@ function cambiarRifa() {
     aplicarModoVenta();
 }
 
+function esCantidadPersonalizadaVenta() {
+    const checked = document.querySelector('.paquete-radio:checked');
+    return !!checked && checked.value === 'custom';
+}
+
 function visibilidadModoAsignacionVenta() {
     const modoBox = document.getElementById('modoAsignacionNumeros');
     if (!modoBox) return;
-    modoBox.classList.toggle('d-none', !(esRifaAmbos() && hayPaqueteParaModoVenta()));
+    const visible = esRifaAmbos() && (hayPaqueteParaModoVenta() || esCantidadPersonalizadaVenta());
+    modoBox.classList.toggle('d-none', !visible);
     const hint = document.getElementById('modoNumerosHint');
     if (hint) {
         hint.textContent = esSeleccionManualActiva()
@@ -1554,10 +1560,18 @@ $(document).on('change', 'input[name="modoNumerosVenta"]', function () {
 
 $('#cantidadManual').on('input', function(){
 
-    const val = parseInt(this.value) || 0;
+    const val = parseInt(this.value, 10) || 0;
+    const min = typeof minCantidadVenta === 'function' ? minCantidadVenta() : 1;
 
-    estado.cantidadSeleccionada = val;
+    estado.cantidadSeleccionada = val >= min ? val : 0;
+    if (esRifaAmbos() && estado.numerosSeleccionados.length > estado.cantidadSeleccionada) {
+        estado.numerosSeleccionados = estado.cantidadSeleccionada > 0
+            ? estado.numerosSeleccionados.slice(0, estado.cantidadSeleccionada)
+            : [];
+    }
 
+    visibilidadModoAsignacionVenta();
+    aplicarModoNumerosVenta();
     actualizarCarritoUI();
 
 });
