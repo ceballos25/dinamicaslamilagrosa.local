@@ -4,13 +4,14 @@ declare(strict_types=1);
 /**
  * Paquetes — Dinámica Navideña (4.º sorteo · 4 cifras).
  * Base $8.000 c/u · desde 10: $7.000 · desde 20: $6.500.
- * Mínimo 3 números.
+ * Mínimo 2 códigos.
  *
  * @return array<int, int> cantidad => total COP
  */
 function cs_package_prices(): array
 {
     return [
+        2 => 16000,
         3 => 24000,
         5 => 40000,
         8 => 64000,
@@ -49,7 +50,7 @@ function cs_package_bulk2_threshold(): int
 
 function cs_package_min_quantity(): int
 {
-    return 3;
+    return 2;
 }
 
 function cs_package_pricing_enabled(): bool
@@ -116,6 +117,7 @@ function cs_package_grid_items(): array
 {
     $unit = cs_package_unit_price();
     $items = [
+        ['id' => 'paq2', 'qty' => 2, 'price' => 16000, 'badge' => null, 'badge_slug' => null],
         ['id' => 'paq3', 'qty' => 3, 'price' => 24000, 'badge' => null, 'badge_slug' => null],
         ['id' => 'paq5', 'qty' => 5, 'price' => 40000, 'badge' => null, 'badge_slug' => null],
         ['id' => 'paq8', 'qty' => 8, 'price' => 64000, 'badge' => null, 'badge_slug' => null],

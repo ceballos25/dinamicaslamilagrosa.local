@@ -38,7 +38,7 @@ include $landingDir . '/navbar.php';
             <h2>2. Cómo funciona</h2>
             <p>
                 Eliges un paquete, pagas el valor publicado y, cuando confirmamos tu pago,
-                quedan asignados tus códigos. La compra mínima es de 3 códigos.
+                quedan asignados tus códigos. La compra mínima es de 2 códigos.
                 El premio de $20.000.000 juega el <strong>19 de diciembre</strong> con la lotería de Boyacá.
                 Cada miércoles se juegan $500.000 con la lotería de Manizales.
             </p>

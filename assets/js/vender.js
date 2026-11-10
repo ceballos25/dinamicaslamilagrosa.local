@@ -82,7 +82,7 @@ function packagePricingConfigVenta() {
         bulkThreshold: readPricingInt(p.bulk_threshold, 10),
         bulk2UnitPrice: readPricingInt(p.bulk2_unit_price, 6500),
         bulk2Threshold: readPricingInt(p.bulk2_threshold, 20),
-        minQuantity: readPricingInt(p.min_quantity, 3),
+        minQuantity: readPricingInt(p.min_quantity, 2),
         packages,
     };
 }

@@ -255,7 +255,7 @@ $extra_js = '
 <script src="' . ASSETS_URL . '/js/departamentos-ciudades.js?v=1"></script>
 <script src="' . ASSETS_URL . '/js/cr-grilla-numeros.js?v=10"></script>
 <script src="' . ASSETS_URL . '/js/phone-co.js?v=1"></script>
-<script src="' . ASSETS_URL . '/js/vender.js?v=33"></script>
+<script src="' . ASSETS_URL . '/js/vender.js?v=34"></script>
 ';
 include_once ROOT_PATH . "/includes/footer.php";
 ?>

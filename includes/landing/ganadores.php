@@ -202,6 +202,16 @@ $ganadores = [
             </div>
         </div>
 
+        <div class="cr-comunidad">
+            <a class="cr-comunidad__btn" href="https://chat.whatsapp.com/GMyvIbj5fNbHNsremVNgAB?s=sh&amp;p=i&amp;mlu=4&amp;ilr=4&amp;iam=2" target="_blank" rel="noopener noreferrer">
+                <span class="cr-comunidad__icon" aria-hidden="true"><i class="ti ti-brand-whatsapp"></i></span>
+                <span class="cr-comunidad__copy">
+                    <strong>Únete a nuestra comunidad</strong>
+                    <small>Únete a nuestras dinámicas diarias</small>
+                </span>
+            </a>
+        </div>
+
         <div class="cr-resenas__videos">
             <h3 class="cr-resenas__videos-title">Ganadores</h3>
             <div id="crVideosSlider" class="splide cr-videos-slider" aria-label="Videos de ganadores">

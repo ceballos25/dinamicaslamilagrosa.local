@@ -1404,8 +1404,8 @@ function packagePricingConfig() {
     });
 
     if (!Object.keys(packages).length) {
-        [3, 5, 8, 10, 15, 20].forEach((qty, i) => {
-            const prices = [24000, 40000, 64000, 70000, 105000, 130000];
+        [2, 3, 5, 8, 10, 15, 20].forEach((qty, i) => {
+            const prices = [16000, 24000, 40000, 64000, 70000, 105000, 130000];
             packages[qty] = prices[i];
         });
     }
@@ -1417,7 +1417,7 @@ function packagePricingConfig() {
         bulkThreshold: readPricingInt(p?.bulk_threshold ?? 10, 10),
         bulk2UnitPrice: readPricingInt(p?.bulk2_unit_price ?? 6500, 6500),
         bulk2Threshold: readPricingInt(p?.bulk2_threshold ?? 20, 20),
-        minQuantity: readPricingInt(p?.min_quantity ?? 3, 3),
+        minQuantity: readPricingInt(p?.min_quantity ?? 2, 2),
         packages,
     };
 }
