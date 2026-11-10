@@ -4666,16 +4666,18 @@ body.landing .cr-comunidad__btn {
     gap: .85rem;
     max-width: 100%;
     padding: .85rem 1.35rem .85rem .85rem;
-    border-radius: 999px;
     text-decoration: none;
-    color: #1a1404;
-    background: linear-gradient(180deg, #ffe08a 0%, #f2b500 48%, #d89a00 100%);
-    border: 1px solid rgba(255, 244, 204, .7);
+    color: #fff;
+    background: linear-gradient(180deg, #3fe68a 0%, #14ab55 48%, #0a8440 100%);
+    border: 0;
+    border-radius: 16px;
+    text-shadow: 0 1px 2px rgba(0, 60, 25, .6);
     box-shadow:
-        0 0 0 1px rgba(242, 181, 0, .35),
-        0 10px 28px rgba(242, 181, 0, .28);
+        inset 0 1px 0 rgba(255, 255, 255, .6),
+        inset 0 -2px 0 rgba(0, 70, 30, .5),
+        0 0 0 1.5px rgba(150, 255, 195, .6);
     overflow: hidden;
-    animation: crComunidadGlow 2.8s ease-in-out infinite;
+    animation: crComunidadGlow 2.4s ease-in-out infinite;
 }
 
 body.landing .cr-comunidad__btn::after {
@@ -4694,15 +4696,13 @@ body.landing .cr-comunidad__copy {
 }
 
 body.landing .cr-comunidad__icon {
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 50%;
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    background: #111;
-    color: #25d366;
-    font-size: 1.25rem;
+    background: transparent;
+    color: #fff;
+    font-size: 1.7rem;
+    line-height: 1;
 }
 
 body.landing .cr-comunidad__copy {
@@ -4722,17 +4722,17 @@ body.landing .cr-comunidad__copy small {
     margin-top: .15rem;
     font-size: .78rem;
     font-weight: 600;
-    color: rgba(26, 20, 4, .78);
+    color: rgba(255, 255, 255, .9);
 }
 
 body.landing .cr-comunidad__btn:hover {
-    color: #1a1404;
+    color: #fff;
     transform: translateY(-1px);
 }
 
 @keyframes crComunidadGlow {
-    0%, 100% { box-shadow: 0 0 0 1px rgba(242, 181, 0, .35), 0 10px 24px rgba(242, 181, 0, .22); }
-    50% { box-shadow: 0 0 0 1px rgba(255, 236, 170, .8), 0 12px 34px rgba(242, 181, 0, .42); }
+    0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -2px 0 rgba(0, 70, 30, .5), 0 0 0 1.5px rgba(150, 255, 195, .45), 0 8px 22px rgba(20, 171, 85, .28); }
+    50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), inset 0 -2px 0 rgba(0, 70, 30, .5), 0 0 0 1.5px rgba(150, 255, 195, .85), 0 10px 28px rgba(20, 171, 85, .45); }
 }
 
 @keyframes crComunidadShine {

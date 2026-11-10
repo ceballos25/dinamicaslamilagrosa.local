@@ -13,6 +13,19 @@ function transferenciaSuccessIconSvg(): string
     return '<svg class="accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
 }
 
+function transferenciaComunidadHtml(): string
+{
+    $url = 'https://chat.whatsapp.com/GMyvIbj5fNbHNsremVNgAB?s=sh&p=i&mlu=4&ilr=4&iam=2';
+
+    return '<div class="cr-comunidad">'
+        . '<a class="cr-comunidad__btn" href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" target="_blank" rel="noopener noreferrer">'
+        . '<span class="cr-comunidad__icon" aria-hidden="true"><i class="ti ti-brand-whatsapp"></i></span>'
+        . '<span class="cr-comunidad__copy">'
+        . '<strong>Únete a nuestra comunidad</strong>'
+        . '<small>Únete a nuestras dinámicas diarias</small>'
+        . '</span></a></div>';
+}
+
 function transferenciaAntifraudNoticeHtml(): string
 {
     return '<div class="antifraud-notice" role="note">'
@@ -152,7 +165,7 @@ header('Content-Type: text/html; charset=utf-8');
     <link rel="shortcut icon" type="image/png" href="<?= cr_site_favicon_href() ?>" data-site-favicon>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" crossorigin="anonymous">
-    <link rel="stylesheet" href="<?= htmlspecialchars(ASSETS_URL . '/css/app.css', ENT_QUOTES, 'UTF-8') ?>?v=84">
+    <link rel="stylesheet" href="<?= htmlspecialchars(ASSETS_URL . '/css/app.css', ENT_QUOTES, 'UTF-8') ?>?v=135">
     <style>
         :root {
             --cr-gold: #f2b500;
@@ -497,6 +510,7 @@ header('Content-Type: text/html; charset=utf-8');
                     </button>
                     <a class="btn-outline" href="<?= htmlspecialchars($homeUrl, ENT_QUOTES, 'UTF-8') ?>">Volver al sitio</a>
                 </div>
+                <?= transferenciaComunidadHtml() ?>
             </div>
         </div>
         <?php endif; ?>

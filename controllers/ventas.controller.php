@@ -793,6 +793,7 @@ class VentasController
             '{NombreRifa}' => $nombreRifa,
             '{SiteName}' => htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8'),
             '{LogoUrl}' => htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8'),
+            '{WhatsappIconUrl}' => htmlspecialchars(ASSETS_URL . '/images/whatsapp-icon.png?v=4', ENT_QUOTES, 'UTF-8'),
             '{Evento}' => htmlspecialchars($textoEvento, ENT_QUOTES, 'UTF-8'),
         ];
 
