@@ -66,14 +66,47 @@ $(document).ready(function () {
         }
     }
 
-    if (typeof datosColombia !== 'undefined') {
-        cargarDepartamentos();
-        $('#departamento').on('change', function () {
-            cargarCiudades(this.value);
+    const bindDeptos = () => {
+        ensureDatosColombia().then((ok) => {
+            if (!ok) return;
+            cargarDepartamentos();
+            $('#departamento').off('change.crDepto').on('change.crDepto', function () {
+                cargarCiudades(this.value);
+            });
         });
+    };
+    // Solo cuando abren el checkout / tocan ubicación (51 KB menos en la carga inicial).
+    document.getElementById('departamento')?.addEventListener('focus', bindDeptos, { once: true });
+    document.getElementById('btnPagarDesktop')?.addEventListener('click', bindDeptos, { once: true });
+    document.getElementById('btnPagarMobile')?.addEventListener('click', bindDeptos, { once: true });
+
+    // Buscar códigos: script solo al abrir el modal.
+    const modalBuscar = document.getElementById('modalBuscarTickets');
+    if (modalBuscar) {
+        modalBuscar.addEventListener('show.bs.modal', () => { ensureBuscarTickets(); }, { once: true });
     }
+    document.querySelectorAll('[data-bs-target="#modalBuscarTickets"]').forEach((btn) => {
+        btn.addEventListener('click', () => { ensureBuscarTickets(); }, { once: true });
+    });
 
 });
+
+let datosColombiaPromise = null;
+function ensureDatosColombia() {
+    if (typeof datosColombia !== 'undefined') {
+        return Promise.resolve(true);
+    }
+    if (datosColombiaPromise) return datosColombiaPromise;
+    datosColombiaPromise = new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = (typeof ASSETS_URL === 'string' ? ASSETS_URL : '/assets') + '/js/departamentos-ciudades.js?v=2';
+        s.async = true;
+        s.onload = () => resolve(typeof datosColombia !== 'undefined');
+        s.onerror = () => resolve(false);
+        document.head.appendChild(s);
+    });
+    return datosColombiaPromise;
+}
 
 function resolverIdRifaPublica() {
     const activas = estado.rifasActivas || [];
@@ -166,7 +199,11 @@ async function completarInicializacionLanding(boot) {
         return;
     }
 
-    await cargarInventario();
+    // En "both" el inventario de 10k códigos solo se pide al tocar "Yo elijo".
+    if (esRifaManual()) {
+        await ensureCrGrilla();
+        await cargarInventario();
+    }
 
     actualizarPrecioVisual();
 
@@ -208,7 +245,10 @@ async function inicializarSistemaLegacy() {
         return;
     }
 
-    await cargarInventario();
+    if (esRifaManual()) {
+        await ensureCrGrilla();
+        await cargarInventario();
+    }
     actualizarPrecioVisual();
 
     const porcentajeBackend = await cargarPorcentajeBackend();
@@ -273,7 +313,17 @@ async function cargarBootstrapLanding() {
 }
 
 function aplicarInventarioResponse(json) {
-    estado.inventarioCompleto = json.data || [];
+    let rows = json.data || [];
+    // Formato compacto: [[id, number, premium], ...]
+    if (json.compact && Array.isArray(rows) && rows.length && Array.isArray(rows[0])) {
+        rows = rows.map((row) => ({
+            id_ticket: row[0],
+            number_ticket: String(row[1] ?? ''),
+            status_ticket: 0,
+            is_premium_ticket: Number(row[2] ?? 0),
+        }));
+    }
+    estado.inventarioCompleto = rows;
     estado.statsInventario = json.stats || null;
     estado.disponiblesCount = json.stats?.disponibles
         ?? (typeof CrGrillaNumeros !== 'undefined'
@@ -327,11 +377,29 @@ function aplicarImagenesSitio() {
         return raw;
     };
 
-    const logoUrl = resolveAssetUrl(img.logo) || (window.location.origin + '/assets/images/logo-transparent.png');
-    document.querySelectorAll('[data-site-logo], [data-site-logo-footer], [data-site-logo-white], [data-site-logo-nav]').forEach((el) => {
-        el.src = logoUrl;
-    });
-    const favUrl = resolveAssetUrl(img.favicon) || logoUrl;
+    // logo-transparent.png es el default viejo (duplica descarga y pisa el WebP del <picture>).
+    const isLegacyDefaultLogo = (url) => /\/logo-transparent\.(?:png|jpe?g|webp)(?:\?|$)/i.test(String(url || ''));
+    const logoUrlRaw = resolveAssetUrl(img.logo) || '';
+    const logoUrl = (!logoUrlRaw || isLegacyDefaultLogo(logoUrlRaw))
+        ? ''
+        : logoUrlRaw;
+    if (logoUrl) {
+        document.querySelectorAll('[data-site-logo], [data-site-logo-footer], [data-site-logo-white], [data-site-logo-nav]').forEach((el) => {
+            el.src = logoUrl;
+            const pic = el.closest('picture');
+            if (pic) {
+                pic.querySelectorAll('source[type="image/webp"]').forEach((src) => {
+                    if (/\.webp(?:\?|$)/i.test(logoUrl)) {
+                        src.srcset = logoUrl;
+                    }
+                });
+            }
+        });
+    }
+    const favRaw = resolveAssetUrl(img.favicon) || '';
+    const favUrl = (!favRaw || isLegacyDefaultLogo(favRaw))
+        ? (window.location.origin + '/assets/images/logo-nav.png')
+        : favRaw;
     if (favUrl) {
         document.querySelectorAll('link[data-site-favicon]').forEach(link => { link.href = favUrl; });
     }
@@ -717,6 +785,22 @@ function initLandingSplides() {
     initVideosSlider();
 }
 
+function hydrateHeroLazyMedia(root) {
+    if (!root) return;
+    root.querySelectorAll('source[data-srcset]').forEach((source) => {
+        if (!source.getAttribute('srcset')) {
+            source.setAttribute('srcset', source.getAttribute('data-srcset'));
+            source.removeAttribute('data-srcset');
+        }
+    });
+    root.querySelectorAll('img[data-src]').forEach((img) => {
+        if (!img.getAttribute('src') || img.hasAttribute('data-src')) {
+            img.setAttribute('src', img.getAttribute('data-src'));
+            img.removeAttribute('data-src');
+        }
+    });
+}
+
 function initHeroSlider() {
     const el = document.getElementById('crHeroSlider');
     if (!el || typeof Splide === 'undefined') return;
@@ -724,8 +808,10 @@ function initHeroSlider() {
 
     destroySplide('heroCover');
 
+    // slide+rewind (sin loop) evita clones que descargan la 2.ª portada al inicio.
     const slider = new Splide(el, {
-        type: 'loop',
+        type: 'slide',
+        rewind: true,
         perPage: 1,
         perMove: 1,
         arrows: true,
@@ -738,8 +824,67 @@ function initHeroSlider() {
         pauseOnFocus: true,
     });
 
+    let lazyReady = false;
+    const ensureLazyHero = () => {
+        if (lazyReady) return;
+        lazyReady = true;
+        hydrateHeroLazyMedia(el);
+    };
+
+    slider.on('move', ensureLazyHero);
+    slider.on('drag', ensureLazyHero);
     slider.mount();
     estado.splideInstances.heroCover = slider;
+    try { slider.Components.Autoplay.pause(); } catch (e) { /* ignore */ }
+
+    // La 2.ª portada solo al navegar o tras 12s (no pelear el LCP en 3G).
+    const startAutoplay = () => {
+        ensureLazyHero();
+        try { slider.Components.Autoplay.play(); } catch (e) { /* ignore */ }
+    };
+    setTimeout(startAutoplay, 12000);
+}
+
+function loadScriptOnce(src) {
+    const key = String(src);
+    if (!window.__crScriptPromises) window.__crScriptPromises = {};
+    if (window.__crScriptPromises[key]) return window.__crScriptPromises[key];
+    window.__crScriptPromises[key] = new Promise((resolve, reject) => {
+        if ([...document.scripts].some((s) => s.src && s.src.includes(key.split('/').pop().split('?')[0]))) {
+            resolve(true);
+            return;
+        }
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        s.onload = () => resolve(true);
+        s.onerror = () => reject(new Error('No se pudo cargar ' + src));
+        document.head.appendChild(s);
+    });
+    return window.__crScriptPromises[key];
+}
+
+async function ensureCrGrilla() {
+    if (typeof CrGrillaNumeros !== 'undefined') return true;
+    const base = typeof ASSETS_URL === 'string' ? ASSETS_URL : (window.ASSETS_URL || '/assets');
+    try {
+        await loadScriptOnce(base + '/js/cr-grilla-numeros.js?v=11');
+        return typeof CrGrillaNumeros !== 'undefined';
+    } catch (e) {
+        return false;
+    }
+}
+
+async function ensureBuscarTickets() {
+    if (window.__crBuscarTicketsReady) return true;
+    const base = typeof ASSETS_URL === 'string' ? ASSETS_URL : (window.ASSETS_URL || '/assets');
+    try {
+        await loadScriptOnce(base + '/js/buscarTickets.js?v=8');
+        window.__crBuscarTicketsReady = true;
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
 
 function initResenasSlider() {
@@ -769,6 +914,27 @@ function initResenasSlider() {
     estado.splideInstances.resenas = slider;
 }
 
+function attachVideoPoster(video) {
+    if (!video || video.dataset.posterAttached === '1') return;
+    const poster = video.getAttribute('data-poster');
+    if (!poster) return;
+    video.setAttribute('poster', poster);
+    video.dataset.posterAttached = '1';
+}
+
+function attachVideoSource(video) {
+    if (!video || video.dataset.srcAttached === '1') return;
+    attachVideoPoster(video);
+    const src = video.getAttribute('data-src');
+    if (!src) return;
+    const source = document.createElement('source');
+    source.src = src;
+    source.type = 'video/mp4';
+    video.appendChild(source);
+    video.dataset.srcAttached = '1';
+    try { video.load(); } catch (e) { /* ignore */ }
+}
+
 function initVideosSlider() {
     const el = document.getElementById('crVideosSlider');
     if (!el || typeof Splide === 'undefined') return;
@@ -795,6 +961,23 @@ function initVideosSlider() {
             try { video.pause(); } catch (e) { /* el video puede no haber iniciado */ }
         });
     };
+
+    // Poster solo al acercarse; MP4 solo al pulsar play.
+    el.querySelectorAll('video.cr-ganador-video').forEach((video) => {
+        const ensure = () => attachVideoSource(video);
+        video.addEventListener('play', ensure, { once: true });
+        video.addEventListener('pointerdown', ensure, { once: true });
+    });
+    if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                attachVideoPoster(entry.target);
+                io.unobserve(entry.target);
+            });
+        }, { rootMargin: '120px 0px' });
+        el.querySelectorAll('video.cr-ganador-video').forEach((video) => io.observe(video));
+    }
 
     slider.on('move', pausar);
     slider.mount();
@@ -1027,8 +1210,11 @@ async function aplicarModoNumerosLanding() {
     if (!esSeleccionManualActiva()) {
         estado.numerosSeleccionados = [];
     }
-    if (esSeleccionManualActiva() && estado.inventarioCompleto.length === 0) {
-        await cargarInventario();
+    if (esSeleccionManualActiva()) {
+        await ensureCrGrilla();
+        if (estado.inventarioCompleto.length === 0) {
+            await cargarInventario();
+        }
     }
     aplicarModoRifa();
 }
@@ -1102,7 +1288,16 @@ const LANDING_GRILLA = {
 let grillaLandingInicializada = false;
 
 function initGrillaLanding() {
-    if (grillaLandingInicializada || typeof CrGrillaNumeros === 'undefined') return;
+    if (typeof CrGrillaNumeros === 'undefined') {
+        ensureCrGrilla().then((ok) => {
+            if (ok) {
+                initGrillaLanding();
+                renderSelectorManualNumeros();
+            }
+        });
+        return;
+    }
+    if (grillaLandingInicializada) return;
     CrGrillaNumeros.bindSearch(LANDING_GRILLA.searchId, LANDING_GRILLA.gridId, renderSelectorManualNumeros);
     grillaLandingInicializada = true;
 }
@@ -2526,32 +2721,62 @@ function cargarCiudades(dep) {
     }
 }
 
+let toastifyPromise = null;
+function ensureToastify() {
+    if (typeof Toastify !== 'undefined') return Promise.resolve(true);
+    if (toastifyPromise) return toastifyPromise;
+    toastifyPromise = new Promise((resolve) => {
+        if (!document.querySelector('link[data-cr-toastify-css]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css';
+            link.setAttribute('data-cr-toastify-css', '1');
+            document.head.appendChild(link);
+        }
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/toastify-js';
+        s.async = true;
+        s.onload = () => resolve(typeof Toastify !== 'undefined');
+        s.onerror = () => resolve(false);
+        document.head.appendChild(s);
+    });
+    return toastifyPromise;
+}
+
 function showSiteToast(msg, type, hint) {
     const main = String(msg ?? '').trim();
     const extra = String(hint ?? '').trim();
-    if (!main || typeof Toastify === 'undefined') return;
+    if (!main) return;
 
-    const isError = type === 'error';
-    const text = extra ? `${isError ? '✕' : '✓'} ${main}\n${extra}` : `${isError ? '✕' : '✓'} ${main}`;
+    const paint = () => {
+        if (typeof Toastify === 'undefined') return;
+        const isError = type === 'error';
+        const text = extra ? `${isError ? '✕' : '✓'} ${main}\n${extra}` : `${isError ? '✕' : '✓'} ${main}`;
+        Toastify({
+            text,
+            duration: isError ? (extra ? 6500 : 4500) : 3500,
+            gravity: 'top',
+            position: 'center',
+            stopOnFocus: true,
+            style: {
+                background: isError ? '#dc3545' : '#198754',
+                color: '#fff',
+                fontWeight: '600',
+                fontSize: '15px',
+                lineHeight: '1.45',
+                borderRadius: '10px',
+                boxShadow: '0 8px 24px rgba(15,23,42,0.2)',
+                maxWidth: 'min(420px, 92vw)',
+                whiteSpace: 'pre-line',
+            },
+        }).showToast();
+    };
 
-    Toastify({
-        text,
-        duration: isError ? (extra ? 6500 : 4500) : 3500,
-        gravity: 'top',
-        position: 'center',
-        stopOnFocus: true,
-        style: {
-            background: isError ? '#dc3545' : '#198754',
-            color: '#fff',
-            fontWeight: '600',
-            fontSize: '15px',
-            lineHeight: '1.45',
-            borderRadius: '10px',
-            boxShadow: '0 8px 24px rgba(15,23,42,0.2)',
-            maxWidth: 'min(420px, 92vw)',
-            whiteSpace: 'pre-line',
-        },
-    }).showToast();
+    if (typeof Toastify !== 'undefined') {
+        paint();
+        return;
+    }
+    ensureToastify().then((ok) => { if (ok) paint(); });
 }
 
 function toastError(msg, hint) {

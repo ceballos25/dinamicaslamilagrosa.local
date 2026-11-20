@@ -79,12 +79,15 @@ class NumerosController
             $params[':num'] = $normalized;
         }
 
-        $sql = 'SELECT id_ticket,number_ticket,status_ticket,is_winner_ticket,is_premium_ticket,id_raffle_ticket FROM tickets WHERE '
-            . implode(' AND ', $where) . ' ORDER BY number_ticket ASC';
+        $grilla = !empty($_POST['grilla']);
+        // Landing pública (grilla): payload compacto sin campos muertos.
+        $sql = $grilla
+            ? 'SELECT id_ticket, number_ticket, is_premium_ticket, status_ticket FROM tickets WHERE '
+            : 'SELECT id_ticket,number_ticket,status_ticket,is_winner_ticket,is_premium_ticket,id_raffle_ticket FROM tickets WHERE ';
+        $sql .= implode(' AND ', $where) . ' ORDER BY number_ticket ASC';
 
         $data = Db::fetchAll($sql, $params);
 
-        $grilla = !empty($_POST['grilla']);
         $hasFilters = $search !== '' || $estado !== '' || ($premium !== '' && in_array((string)$premium, ['0', '1'], true));
         if ($grilla && $data !== []) {
             usort($data, static function ($a, $b) {
@@ -122,6 +125,15 @@ class NumerosController
                         break;
                 }
             }
+            // Compacto: [[id, number, premium], ...] — ~70% menos JSON en la landing.
+            $result['compact'] = true;
+            $result['data'] = array_map(static function ($row) {
+                return [
+                    (int)($row->id_ticket ?? 0),
+                    (string)($row->number_ticket ?? ''),
+                    (int)($row->is_premium_ticket ?? 0),
+                ];
+            }, $data);
             $result['stats'] = $stats;
         }
 

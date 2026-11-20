@@ -1,5 +1,5 @@
 @import url('brand.css');
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+/* Montserrat se carga desde head.php (preload + display=swap) para no bloquear el render. */
 
 body.landing {
     --bs-body-font-family: var(--cr-font);

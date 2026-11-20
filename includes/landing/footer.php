@@ -26,9 +26,12 @@ $landingTerminosHref = $landingHome . '/terminos.php';
                         <p class="small site-footer-text mb-3<?= $footerTagline === '' ? ' d-none' : '' ?>" id="landingFooterTagline">
                             <?= htmlspecialchars($footerTagline, ENT_QUOTES, 'UTF-8') ?>
                         </p>
-                        <?php $footerLogo = defined('LOGO_NAV_URL') ? LOGO_NAV_URL : (ASSETS_URL . '/images/logo-transparent.png'); ?>
+                        <?php $footerLogo = defined('LOGO_NAV_URL') ? LOGO_NAV_URL : (ASSETS_URL . '/images/logo-nav.png'); ?>
                         <a href="<?= htmlspecialchars(defined('BASE_URL') && BASE_URL !== '' ? rtrim((string) BASE_URL, '/') : '/', ENT_QUOTES, 'UTF-8') ?>" class="site-footer-logo" aria-label="<?= htmlspecialchars($footerBrand . ' — inicio', ENT_QUOTES, 'UTF-8') ?>">
-                            <img src="<?= htmlspecialchars($footerLogo, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($footerBrand, ENT_QUOTES, 'UTF-8') ?>" data-site-logo-footer loading="lazy">
+                            <picture>
+                                <source type="image/webp" srcset="<?= htmlspecialchars(ASSETS_URL . '/images/logo-nav.webp', ENT_QUOTES, 'UTF-8') ?>?v=1">
+                                <img src="<?= htmlspecialchars($footerLogo, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($footerBrand, ENT_QUOTES, 'UTF-8') ?>" data-site-logo-footer loading="lazy" decoding="async" width="140" height="46">
+                            </picture>
                         </a>
                     </div>
                 </div>

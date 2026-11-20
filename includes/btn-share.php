@@ -1,6 +1,4 @@
 
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
 <script>
 async function shareVoucher() {
   const voucher = document.getElementById('voucherCapture');
@@ -8,6 +6,16 @@ async function shareVoucher() {
 
   const codigoEl = voucher.querySelector('[data-codigo]');
   const codigo = codigoEl?.dataset.codigo || 'comprobante';
+
+  if (typeof html2canvas === 'undefined') {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    }).catch(() => null);
+  }
 
   if (typeof html2canvas === 'undefined') return;
 

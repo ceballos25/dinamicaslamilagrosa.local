@@ -4,6 +4,14 @@ $heroTitle = function_exists('landing_setting')
     ? landing_setting('landing_hero_title', $heroTitleDefault)
     : $heroTitleDefault;
 $heroBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
+$heroSalaJpg = ASSETS_URL . '/images/portada-palitos-sala.jpg';
+$heroSalaWebp = ASSETS_URL . '/images/portada-palitos-sala.webp';
+$heroSalaWebpSm = ASSETS_URL . '/images/portada-palitos-sala-480.webp';
+$heroTerrazaJpg = ASSETS_URL . '/images/portada-palitos-terraza.jpg';
+$heroTerrazaWebp = ASSETS_URL . '/images/portada-palitos-terraza.webp';
+$heroTerrazaWebpSm = ASSETS_URL . '/images/portada-palitos-terraza-480.webp';
+$heroAltSala = $heroBrand . ' — 20 palitos. Cada miércoles $500.000. Código por $8.000. Compra mínima 2 códigos.';
+$heroAltTerraza = $heroBrand . ' — 20.000.000 palitos. Cada miércoles $500.000. Código por $8.000. Compra mínima 2 códigos.';
 ?>
 <section class="cr-hero-section py-3">
     <div class="container">
@@ -16,10 +24,18 @@ $heroBrand = $landingBrandName ?? 'Dinámicas La Milagrosa';
                     <div class="splide__track">
                         <ul class="splide__list">
                             <li class="splide__slide">
-                                <img class="cr-hero-cover" src="<?= htmlspecialchars(ASSETS_URL . '/images/portada-palitos-sala.jpg', ENT_QUOTES, 'UTF-8') ?>?v=3" alt="<?= htmlspecialchars($heroBrand . ' — 20 palitos. Cada miércoles $500.000. Código por $8.000. Compra mínima 2 códigos.', ENT_QUOTES, 'UTF-8') ?>" width="768" height="1024">
+                                <picture>
+                                    <source media="(max-width: 767px)" type="image/webp" srcset="<?= htmlspecialchars($heroSalaWebpSm, ENT_QUOTES, 'UTF-8') ?>?v=6">
+                                    <source type="image/webp" srcset="<?= htmlspecialchars($heroSalaWebp, ENT_QUOTES, 'UTF-8') ?>?v=6">
+                                    <img class="cr-hero-cover" src="<?= htmlspecialchars($heroSalaJpg, ENT_QUOTES, 'UTF-8') ?>?v=6" alt="<?= htmlspecialchars($heroAltSala, ENT_QUOTES, 'UTF-8') ?>" width="768" height="1024" fetchpriority="high" decoding="async">
+                                </picture>
                             </li>
                             <li class="splide__slide">
-                                <img class="cr-hero-cover" src="<?= htmlspecialchars(ASSETS_URL . '/images/portada-palitos-terraza.jpg', ENT_QUOTES, 'UTF-8') ?>?v=3" alt="<?= htmlspecialchars($heroBrand . ' — 20.000.000 palitos. Cada miércoles $500.000. Código por $8.000. Compra mínima 2 códigos.', ENT_QUOTES, 'UTF-8') ?>" width="768" height="1024">
+                                <picture>
+                                    <source media="(max-width: 767px)" type="image/webp" data-srcset="<?= htmlspecialchars($heroTerrazaWebpSm, ENT_QUOTES, 'UTF-8') ?>?v=6">
+                                    <source type="image/webp" data-srcset="<?= htmlspecialchars($heroTerrazaWebp, ENT_QUOTES, 'UTF-8') ?>?v=6">
+                                    <img class="cr-hero-cover" data-src="<?= htmlspecialchars($heroTerrazaJpg, ENT_QUOTES, 'UTF-8') ?>?v=6" alt="<?= htmlspecialchars($heroAltTerraza, ENT_QUOTES, 'UTF-8') ?>" width="768" height="1024" decoding="async">
+                                </picture>
                             </li>
                         </ul>
                     </div>
