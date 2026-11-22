@@ -125,13 +125,14 @@ class NumerosController
                         break;
                 }
             }
-            // Compacto: [[id, number, premium], ...] — ~70% menos JSON en la landing.
+            // Compacto: [[id, number, premium, status], ...] — ~70% menos JSON.
             $result['compact'] = true;
             $result['data'] = array_map(static function ($row) {
                 return [
                     (int)($row->id_ticket ?? 0),
                     (string)($row->number_ticket ?? ''),
                     (int)($row->is_premium_ticket ?? 0),
+                    (int)($row->status_ticket ?? 0),
                 ];
             }, $data);
             $result['stats'] = $stats;

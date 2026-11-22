@@ -314,13 +314,13 @@ async function cargarBootstrapLanding() {
 
 function aplicarInventarioResponse(json) {
     let rows = json.data || [];
-    // Formato compacto: [[id, number, premium], ...]
+    // Formato compacto: [[id, number, premium, status?], ...]
     if (json.compact && Array.isArray(rows) && rows.length && Array.isArray(rows[0])) {
         rows = rows.map((row) => ({
             id_ticket: row[0],
             number_ticket: String(row[1] ?? ''),
-            status_ticket: 0,
             is_premium_ticket: Number(row[2] ?? 0),
+            status_ticket: Number(row[3] ?? 0),
         }));
     }
     estado.inventarioCompleto = rows;

@@ -879,7 +879,17 @@ async function cargarInventarioVenta() {
         const res = await fetch(estado.config.rutas.numeros, { method: 'POST', body: fd });
         const json = await parseAjaxJson(res);
         if (json.success) {
-            estado.inventarioCompleto = json.data || [];
+            let rows = json.data || [];
+            // Compacto: [[id, number, premium, status], ...] (igual que la landing)
+            if (json.compact && Array.isArray(rows) && rows.length && Array.isArray(rows[0])) {
+                rows = rows.map((row) => ({
+                    id_ticket: row[0],
+                    number_ticket: String(row[1] ?? ''),
+                    is_premium_ticket: Number(row[2] ?? 0),
+                    status_ticket: Number(row[3] ?? 0),
+                }));
+            }
+            estado.inventarioCompleto = rows;
             estado.statsInventario = json.stats || null;
             aplicarPrecioServidor(json.price_raffle);
             estado.disponiblesCount = json.stats?.disponibles
