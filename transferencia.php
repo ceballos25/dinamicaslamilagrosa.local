@@ -15,7 +15,7 @@ function transferenciaSuccessIconSvg(): string
 
 function transferenciaComunidadHtml(): string
 {
-    $url = 'https://chat.whatsapp.com/GMyvIbj5fNbHNsremVNgAB?s=sh&p=i&mlu=4&ilr=4&iam=2';
+    $url = 'https://chat.whatsapp.com/DR1qJUQaype5hwbIe6EZdM?s=sh&p=i&mlu=4&ilr=4&iam=2';
 
     return '<div class="cr-comunidad">'
         . '<a class="cr-comunidad__btn" href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" target="_blank" rel="noopener noreferrer">'

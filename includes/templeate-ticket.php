@@ -126,7 +126,7 @@
                     <table border="0" cellspacing="0" cellpadding="0" role="presentation" align="center" style="margin:14px auto 0;border-collapse:collapse;">
                         <tr>
                             <td align="center" bgcolor="#14AB55" style="border-radius:16px;background:#14AB55;background-image:linear-gradient(#3FE68A,#14AB55 48%,#0A8440);">
-                                <a href="https://chat.whatsapp.com/GMyvIbj5fNbHNsremVNgAB?s=sh&amp;p=i&amp;mlu=4&amp;ilr=4&amp;iam=2" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 18px;border-radius:16px;background:#14AB55;background-image:linear-gradient(#3FE68A,#14AB55 48%,#0A8440);color:#ffffff;font-size:13px;font-weight:800;text-decoration:none;line-height:1.2;font-family:Montserrat,'Segoe UI',Arial,sans-serif;">
+                                <a href="https://chat.whatsapp.com/DR1qJUQaype5hwbIe6EZdM?s=sh&amp;p=i&amp;mlu=4&amp;ilr=4&amp;iam=2" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 18px;border-radius:16px;background:#14AB55;background-image:linear-gradient(#3FE68A,#14AB55 48%,#0A8440);color:#ffffff;font-size:13px;font-weight:800;text-decoration:none;line-height:1.2;font-family:Montserrat,'Segoe UI',Arial,sans-serif;">
                                     <img src="{WhatsappIconUrl}" width="18" height="18" alt="" style="display:inline-block;vertical-align:middle;border:0;margin:0 8px 2px 0;width:18px;height:18px;">Únete a nuestra comunidad
                                 </a>
                             </td>
