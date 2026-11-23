@@ -1129,11 +1129,14 @@ function aplicarBloqueoComprasWeb() {
 async function cargarInventario() {
 
     if (!estado.rifa.id) {
-        hidePreloader();
         return;
     }
 
-    showPreloader();
+    // No usar preloader a pantalla completa: el inventario son ~180KB y en móvil se siente “colgado”.
+    const grid = document.getElementById(LANDING_GRILLA.gridId);
+    if (grid) {
+        grid.innerHTML = '<p class="cr-grilla-empty">Cargando códigos…</p>';
+    }
 
     try {
         const fd = new FormData();
@@ -1156,14 +1159,21 @@ async function cargarInventario() {
         if (json.success) {
 
             aplicarInventarioResponse(json);
+            if (esSeleccionManualActiva()) {
+                renderSelectorManualNumeros();
+            }
         } else {
             toastError(json.message || 'No se pudo cargar el inventario de códigos.');
+            if (grid) {
+                grid.innerHTML = '<p class="cr-grilla-empty">No se pudieron cargar los códigos.</p>';
+            }
         }
     } catch (e) {
         toastError(e instanceof Error ? e.message : 'Error al cargar códigos disponibles.');
+        if (grid) {
+            grid.innerHTML = '<p class="cr-grilla-empty">No se pudieron cargar los códigos.</p>';
+        }
     }
-
-    hidePreloader();
 
 }
 

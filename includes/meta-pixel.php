@@ -26,25 +26,33 @@ function cs_meta_pixel_head(): void
 
     $pageViewPath = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
 
-    if ($sendCapiPageView) {
+    if ($sendPageView) {
         $metaPageViewEventId = MetaConversionsApi::eventId('PageView', $pageViewRef);
-        if (MetaConversionsApi::sendPageView($metaPageViewEventId)) {
+        // No bloquear el HTML esperando Graph API (antes sumaba cientos de ms al TTFB).
+        if ($sendCapiPageView) {
+            $eventIdForShutdown = $metaPageViewEventId;
+            $pathForShutdown = $pageViewPath;
+            register_shutdown_function(static function () use ($eventIdForShutdown, $pathForShutdown): void {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                }
+                if (MetaConversionsApi::sendPageView($eventIdForShutdown)) {
+                    (new MetaPixelGuard())->markPageViewSent();
+                    \App\Application\Marketing\MetaTrafficAudit::record('PageView', [
+                        'event_id' => $eventIdForShutdown,
+                        'capi' => true,
+                        'path' => $pathForShutdown,
+                    ]);
+                }
+            });
+        } else {
             $guard->markPageViewSent();
             \App\Application\Marketing\MetaTrafficAudit::record('PageView', [
                 'event_id' => $metaPageViewEventId,
-                'capi' => true,
+                'capi' => false,
                 'path' => $pageViewPath,
             ]);
         }
-        // Si CAPI falla, no marcamos: reintenta en la próxima carga.
-    } elseif ($sendPageView) {
-        $metaPageViewEventId = MetaConversionsApi::eventId('PageView', $pageViewRef);
-        $guard->markPageViewSent();
-        \App\Application\Marketing\MetaTrafficAudit::record('PageView', [
-            'event_id' => $metaPageViewEventId,
-            'capi' => false,
-            'path' => $pageViewPath,
-        ]);
     }
     ?>
     <script>
