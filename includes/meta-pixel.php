@@ -28,30 +28,22 @@ function cs_meta_pixel_head(): void
 
     if ($sendPageView) {
         $metaPageViewEventId = MetaConversionsApi::eventId('PageView', $pageViewRef);
-        // No bloquear el HTML esperando Graph API (antes sumaba cientos de ms al TTFB).
+        // Marcar YA (antes de cerrar la respuesta) para que la sesión persista.
+        // El POST a Graph se hace en shutdown y no debe bloquear el TTFB.
+        $guard->markPageViewSent();
+        \App\Application\Marketing\MetaTrafficAudit::record('PageView', [
+            'event_id' => $metaPageViewEventId,
+            'capi' => $sendCapiPageView,
+            'path' => $pageViewPath,
+        ]);
         if ($sendCapiPageView) {
             $eventIdForShutdown = $metaPageViewEventId;
-            $pathForShutdown = $pageViewPath;
-            register_shutdown_function(static function () use ($eventIdForShutdown, $pathForShutdown): void {
+            register_shutdown_function(static function () use ($eventIdForShutdown): void {
                 if (function_exists('fastcgi_finish_request')) {
                     @fastcgi_finish_request();
                 }
-                if (MetaConversionsApi::sendPageView($eventIdForShutdown)) {
-                    (new MetaPixelGuard())->markPageViewSent();
-                    \App\Application\Marketing\MetaTrafficAudit::record('PageView', [
-                        'event_id' => $eventIdForShutdown,
-                        'capi' => true,
-                        'path' => $pathForShutdown,
-                    ]);
-                }
+                MetaConversionsApi::sendPageView($eventIdForShutdown);
             });
-        } else {
-            $guard->markPageViewSent();
-            \App\Application\Marketing\MetaTrafficAudit::record('PageView', [
-                'event_id' => $metaPageViewEventId,
-                'capi' => false,
-                'path' => $pageViewPath,
-            ]);
         }
     }
     ?>

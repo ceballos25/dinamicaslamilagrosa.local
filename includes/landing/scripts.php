@@ -9,7 +9,7 @@ window.ASSETS_URL = <?= json_encode(ASSETS_URL, JSON_UNESCAPED_UNICODE) ?>;
 </script>
 <script src="<?= htmlspecialchars(ASSETS_URL . '/js/public-settings.js', ENT_QUOTES, 'UTF-8') ?>?v=1" defer></script>
 <script src="<?= htmlspecialchars(ASSETS_URL . '/js/phone-co.js', ENT_QUOTES, 'UTF-8') ?>?v=1" defer></script>
-<script src="<?= htmlspecialchars(ASSETS_URL . '/js/frontend.js', ENT_QUOTES, 'UTF-8') ?>?v=137" defer></script>
+<script src="<?= htmlspecialchars(ASSETS_URL . '/js/frontend.js', ENT_QUOTES, 'UTF-8') ?>?v=138" defer></script>
 <script>
 // Contentsquare (~170KB): solo tras interacción o a los 12s.
 (function () {

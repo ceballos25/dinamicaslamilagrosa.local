@@ -1133,7 +1133,10 @@ async function cargarInventario() {
     }
 
     // No usar preloader a pantalla completa: el inventario son ~180KB y en móvil se siente “colgado”.
-    const grid = document.getElementById(LANDING_GRILLA.gridId);
+    const gridId = (typeof LANDING_GRILLA !== 'undefined' && LANDING_GRILLA.gridId)
+        ? LANDING_GRILLA.gridId
+        : 'gridNumerosManual';
+    const grid = document.getElementById(gridId);
     if (grid) {
         grid.innerHTML = '<p class="cr-grilla-empty">Cargando códigos…</p>';
     }
