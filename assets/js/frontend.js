@@ -200,6 +200,8 @@ async function completarInicializacionLanding(boot) {
     }
 
     // En "both" el inventario de 10k códigos solo se pide al tocar "Yo elijo".
+    // El conteo de libres sí debe cargarse siempre (si no, Continuar cree que hay 0).
+    aplicarDisponiblesDesdeProgreso(boot.progreso);
     if (esRifaManual()) {
         await ensureCrGrilla();
         await cargarInventario();
@@ -208,6 +210,9 @@ async function completarInicializacionLanding(boot) {
     actualizarPrecioVisual();
 
     const porcentajeBackend = boot.progreso?.porcentaje ?? await cargarPorcentajeBackend();
+    if (!boot.progreso?.disponibles && estado.disponiblesCount <= 0) {
+        await cargarPorcentajeBackend();
+    }
 
     aplicarBloqueoComprasWeb();
     actualizarBarraProgreso(porcentajeBackend);
@@ -258,6 +263,20 @@ async function inicializarSistemaLegacy() {
     aplicarModoRifa();
     hidePreloader();
     trackLandingViewContent();
+}
+
+function aplicarDisponiblesDesdeProgreso(progreso) {
+    if (!progreso || typeof progreso !== 'object') return;
+    const disp = Number(progreso.disponibles);
+    if (Number.isFinite(disp) && disp >= 0) {
+        estado.disponiblesCount = disp;
+        return;
+    }
+    const total = Number(progreso.total);
+    const vendidos = Number(progreso.vendidos);
+    if (Number.isFinite(total) && Number.isFinite(vendidos) && total >= vendidos) {
+        estado.disponiblesCount = Math.max(0, total - vendidos);
+    }
 }
 
 async function cargarBootstrapLanding() {
@@ -2829,9 +2848,16 @@ async function abrirCheckout() {
         return;
     }
 
-    if (!esRifaManual() && estado.cantidadSeleccionada > estado.disponiblesCount) {
-        toastError('No hay suficientes códigos disponibles');
-        return;
+    // En rifa "both"/automática el inventario completo no se carga al inicio.
+    // Si el conteo quedó en 0 por eso, refrescar antes de bloquear la compra.
+    if (!esRifaManual()) {
+        if (estado.disponiblesCount <= 0) {
+            await cargarPorcentajeBackend();
+        }
+        if (estado.disponiblesCount > 0 && estado.cantidadSeleccionada > estado.disponiblesCount) {
+            toastError('No hay suficientes códigos disponibles');
+            return;
+        }
     }
 
     const total = totalAPagarCOP();
@@ -3340,6 +3366,7 @@ async function cargarPorcentajeBackend() {
             return 0;
         }
 
+        aplicarDisponiblesDesdeProgreso(json);
         return Number(json.porcentaje) || 0;
     } catch (e) {
         return 0;

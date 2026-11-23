@@ -575,11 +575,13 @@ final class WebCheckoutService
             if (is_array($stats) && (int)($stats['total'] ?? 0) > 0) {
                 $total = (int)$stats['total'];
                 $vendidos = (int)($stats['vendidos'] ?? 0);
+                $disponibles = (int)($stats['disponibles'] ?? max(0, $total - $vendidos));
 
                 return [
                     'success' => true,
                     'total' => $total,
                     'vendidos' => $vendidos,
+                    'disponibles' => $disponibles,
                     'porcentaje' => round(($vendidos * 100) / $total, 2),
                 ];
             }

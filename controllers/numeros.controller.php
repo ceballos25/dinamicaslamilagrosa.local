@@ -202,12 +202,19 @@ class NumerosController
             );
             $vendidos = (int)($vendRow->c ?? 0);
 
+            $dispRow = Db::fetchOne(
+                'SELECT COUNT(*) AS c FROM tickets WHERE id_raffle_ticket = :r AND status_ticket = 0',
+                [':r' => $idRaffle]
+            );
+            $disponibles = (int)($dispRow->c ?? 0);
+
             $porcentaje = $total > 0 ? round(($vendidos * 100) / $total, 2) : 0;
 
             return [
                 'success' => true,
                 'total' => $total,
                 'vendidos' => $vendidos,
+                'disponibles' => $disponibles,
                 'porcentaje' => $porcentaje,
             ];
         } catch (Exception $e) {
